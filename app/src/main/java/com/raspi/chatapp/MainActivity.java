@@ -1,5 +1,6 @@
 package com.raspi.chatapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -37,7 +38,16 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onSettingsClick(MenuItem menuItem){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    public void onAddChatClick(MenuItem menuItem){
+        Intent intent = new Intent(this, AddChatActivity.class);
+        startActivity(intent);
     }
 }
