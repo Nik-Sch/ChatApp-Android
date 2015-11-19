@@ -35,6 +35,15 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.raspi.chatapp.MainActivity" />
         </activity>
+        <activity
+            android:name=".ChatActivity"
+            android:label="@string/title_activity_chat"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.raspi.chatapp.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

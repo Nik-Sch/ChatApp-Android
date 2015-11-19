@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/chat_messages"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/chat_singleMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="6dp"
+            android:background="@drawable/bubble_b1"
+            android:paddingLeft="10dip"
+            android:text="Hello World"
+            android:textColor="@android:color/black"/>
+
+    </LinearLayout>
+
+</LinearLayout>
