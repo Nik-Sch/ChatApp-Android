@@ -27,6 +27,9 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
     @Override
     public void add(ChatMessage chatMessage) {
         MessageList.add(chatMessage);
+        notifyDataSetChanged();
+        for (ChatMessage cm : MessageList)
+            System.out.println("    " + cm.message);
     }
 
     public int getCount() {

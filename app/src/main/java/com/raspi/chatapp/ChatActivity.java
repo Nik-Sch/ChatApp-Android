@@ -62,12 +62,14 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChanged() {
                 super.onChanged();
+                System.out.println("Change observed");
                 listView.setSelection(caa.getCount() - 1);
             }
         });
     }
 
     private boolean sendChatMessage() {
+        System.out.println("Sending message: " + textIn.getText().toString());
         caa.add(new ChatMessage(side, textIn.getText().toString()));
         textIn.setText("");
         side=!side;
