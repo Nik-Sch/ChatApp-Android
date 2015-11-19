@@ -14,6 +14,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class ChatActivity extends AppCompatActivity {
 
     private ChatArrayAdapter caa;
@@ -62,15 +65,14 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onChanged() {
                 super.onChanged();
-                System.out.println("Change observed");
                 listView.setSelection(caa.getCount() - 1);
             }
         });
     }
 
     private boolean sendChatMessage() {
-        System.out.println("Sending message: " + textIn.getText().toString());
-        caa.add(new ChatMessage(side, textIn.getText().toString()));
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+        caa.add(new ChatMessage(side, textIn.getText().toString(), df.format(new Date())));
         textIn.setText("");
         side=!side;
         return true;

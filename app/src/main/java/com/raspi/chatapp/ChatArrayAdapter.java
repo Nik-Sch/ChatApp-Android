@@ -1,14 +1,12 @@
 package com.raspi.chatapp;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.File;
@@ -18,8 +16,9 @@ import java.util.List;
 public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
 
     private TextView chatText;
+    private TextView chatTime;
     private List<ChatMessage> MessageList = new ArrayList<ChatMessage>();
-    private LinearLayout layout;
+    private RelativeLayout layout;
 
     public ChatArrayAdapter(Context context, int textViewResourceId) {
         super(context, textViewResourceId);
@@ -29,8 +28,6 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
     public void add(ChatMessage chatMessage) {
         MessageList.add(chatMessage);
         notifyDataSetChanged();
-        for (ChatMessage cm : MessageList)
-            System.out.println("    " + cm.message);
     }
 
     public int getCount() {
@@ -48,11 +45,13 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
             v = inflater.inflate(R.layout.chat, parent, false);
         }
 
-        layout = (LinearLayout) v.findViewById(R.id.chat_messages);
+        layout = (RelativeLayout) v.findViewById(R.id.chat_messages);
         ChatMessage msgObj = getItem(position);
 
         chatText = (TextView) v.findViewById(R.id.chat_singleMessage);
         chatText.setText(msgObj.message);
+        chatTime = (TextView) v.findViewById(R.id.chat_timeStamp);
+        chatTime.setText(msgObj.time);
         chatText.setBackgroundResource(msgObj.left ? R.drawable.bubble_a1 : R.drawable.bubble_b1);
 
         layout.setGravity(msgObj.left ? Gravity.LEFT : Gravity.RIGHT);
@@ -60,11 +59,11 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
         return v;
     }
 
-    public boolean saveToFile(File file){
+    public boolean saveToFile(File file) {
         return true;
     }
 
-    public boolean loadFromFile(File file){
+    public boolean loadFromFile(File file) {
         return true;
     }
 }

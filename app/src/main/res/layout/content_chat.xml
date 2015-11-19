@@ -13,24 +13,30 @@
         android:id="@+id/chat_listview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="80dp"/>
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/chat_form"/>
 
     <RelativeLayout
         android:id="@+id/chat_form"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true">
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
 
         <EditText
+            android:id="@+id/chat_in"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
+            android:minLines="1"
+            android:maxLines="3"
             android:ems="10"
-            android:id="@+id/chat_in"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
-            android:layout_toLeftOf="@+id/chat_sendBtn"/>
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@+id/chat_sendBtn"
+            android:layout_toLeftOf="@+id/chat_sendBtn"
+            android:textSize="@dimen/font_size"/>
 
         <Button
             android:layout_width="wrap_content"
@@ -38,6 +44,7 @@
             android:text="@string/chat_send"
             android:id="@+id/chat_sendBtn"
             android:layout_alignBottom="@+id/chat_in"
+            android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"/>
     </RelativeLayout>
 </RelativeLayout>

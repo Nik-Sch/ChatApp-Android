@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
 
-    <LinearLayout
+    <RelativeLayout
         android:id="@+id/chat_messages"
         android:layout_width="fill_parent"
         android:layout_height="match_parent">
@@ -13,12 +13,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_margin="6dp"
+            android:layout_margin="5dp"
+            android:paddingLeft="5dp"
+            android:paddingRight="45dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="6dp"
             android:background="@drawable/bubble_b1"
-            android:paddingLeft="10dip"
             android:text="Hello World"
+            android:textSize="@dimen/font_size"
             android:textColor="@android:color/black"/>
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/chat_timeStamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="@color/colorTimeStamp"
+            android:paddingRight="3dp"
+            android:paddingBottom="3dp"
+            android:layout_alignEnd="@+id/chat_singleMessage"
+            android:layout_alignRight="@+id/chat_singleMessage"
+            android:layout_alignBottom="@+id/chat_singleMessage"/>
+
+    </RelativeLayout>
 
 </LinearLayout>
