@@ -1,4 +1,4 @@
-package com.raspi.chatapp;
+package com.raspi.chatapp.single_chat;
 
 import android.content.Context;
 import android.view.Gravity;
@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.raspi.chatapp.R;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -20,9 +20,18 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
     compile 'com.android.support:support-v4:23.1.1'
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/jxmpp-core-0.5.0-alpha6.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/jxmpp-util-cache-0.5.0-alpha6.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/minidns-0.1.7.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/smack-android-4.1.4.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/smack-core-4.1.4.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/smack-debug-4.1.4.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/smack-im-4.1.4.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/smack-java7-4.1.4.jar')
+    compile files('C:/Users/gamer/AndroidStudioProjects/ChatApp/libs/smack-tcp-4.1.4.jar')
 }

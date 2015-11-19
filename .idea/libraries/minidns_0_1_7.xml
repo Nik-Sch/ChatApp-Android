@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="minidns-0.1.7">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/minidns-0.1.7.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
