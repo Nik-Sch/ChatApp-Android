@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,11 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
         return v;
     }
 
-    public Bitmap decodeToBitmap(byte[] decodedByte){
-        return BitmapFactory.decodeByteArray(decodedByte, 0, decodedByte.length);
+    public boolean saveToFile(File file){
+        return true;
+    }
+
+    public boolean loadFromFile(File file){
+        return true;
     }
 }
