@@ -32,6 +32,5 @@ dependencies {
     compile files('../libs/smack-core-4.1.4.jar')
     compile files('../libs/smack-debug-4.1.4.jar')
     compile files('../libs/smack-im-4.1.4.jar')
-    compile files('../libs/smack-java7-4.1.4.jar')
     compile files('../libs/smack-tcp-4.1.4.jar')
 }

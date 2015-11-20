@@ -1,13 +1,9 @@
 package com.raspi.chatapp.single_chat;
 
 import android.content.Intent;
-import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.KeyEvent;
-import android.view.View;
-import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -15,21 +11,15 @@ import android.widget.ListView;
 import com.raspi.chatapp.MainActivity;
 import com.raspi.chatapp.R;
 
-import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterEntry;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-public class ChatActivity extends AppCompatActivity {
-
-    private static final String server = "raspi-server.mooo.com";
-    private static final String service = "raspi-server.mooo.com";
-    private static final int port = 5222;
+public class ChatActivity extends AppCompatActivity{
 
     private String BuddyJID;
 
+    private MessageService messageService;
     private GUI gui;
-    private XmppManager xmppManager;
 
     private ChatArrayAdapter caa;
     private ListView listView;
@@ -39,7 +29,7 @@ public class ChatActivity extends AppCompatActivity {
     private boolean side = false;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_chat);
@@ -53,6 +43,8 @@ public class ChatActivity extends AppCompatActivity {
         //getSupportActionBar().setTitle(BuddyJID);
 
         gui = new GUI(this);
-        xmppManager = new XmppManager(server, service, port, gui);
+        messageService = new MessageService();
+
+
     }
 }

@@ -1,7 +1,6 @@
 package com.raspi.chatapp.single_chat;
 
 import android.database.DataSetObserver;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.Button;
@@ -15,7 +14,7 @@ import org.jivesoftware.smack.packet.Message;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class GUI {
+public class GUI{
 
     private ChatArrayAdapter caa;
 
@@ -23,7 +22,7 @@ public class GUI {
     private EditText textIn;
     private Button sendBtn;
 
-    protected GUI(ChatActivity context) {
+    protected GUI(ChatActivity context){
         caa = new ChatArrayAdapter(context, R.layout.chat);
 
         listView = (ListView) context.findViewById(R.id.chat_listview);
@@ -32,30 +31,34 @@ public class GUI {
 
         sendBtn.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View v) {
-                sendMessage(false, textIn.getText().toString());
+            public void onClick(View v){
+                sendMessage(textIn.getText().toString());
             }
         });
 
         listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
         listView.setAdapter(caa);
 
-        caa.registerDataSetObserver(new DataSetObserver() {
+        caa.registerDataSetObserver(new DataSetObserver(){
             @Override
-            public void onChanged() {
+            public void onChanged(){
                 super.onChanged();
                 listView.setSelection(caa.getCount() - 1);
             }
         });
     }
 
-    protected void sendMessage(boolean left, String message) {
+    protected void sendMessage(String message){
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
-        caa.add(new ChatMessage(left, textIn.getText().toString(), df.format(new Date())));
+        caa.add(new ChatMessage(false, message, df.format(new Date())));
         textIn.setText("");
     }
 
     protected void receiveMessage(Message message){
+        if (message.getBody() != null){
+            SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+            caa.add(new ChatMessage(true, message.getBody(), df.format(new Date())));
+        }
 
     }
 }

@@ -1,6 +1,6 @@
 package com.raspi.chatapp.single_chat;
 
-public class ChatMessage {
+public class ChatMessage{
     boolean left;
     String message;
     String time;

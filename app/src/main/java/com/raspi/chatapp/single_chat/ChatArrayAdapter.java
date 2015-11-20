@@ -15,34 +15,34 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
+public class ChatArrayAdapter extends ArrayAdapter<ChatMessage>{
 
     private TextView chatText;
     private TextView chatTime;
     private List<ChatMessage> MessageList = new ArrayList<ChatMessage>();
     private RelativeLayout layout;
 
-    public ChatArrayAdapter(Context context, int textViewResourceId) {
+    public ChatArrayAdapter(Context context, int textViewResourceId){
         super(context, textViewResourceId);
     }
 
     @Override
-    public void add(ChatMessage chatMessage) {
+    public void add(ChatMessage chatMessage){
         MessageList.add(chatMessage);
         notifyDataSetChanged();
     }
 
-    public int getCount() {
+    public int getCount(){
         return MessageList.size();
     }
 
-    public ChatMessage getItem(int i) {
+    public ChatMessage getItem(int i){
         return MessageList.get(i);
     }
 
-    public View getView(int position, View ConvertView, ViewGroup parent) {
+    public View getView(int position, View ConvertView, ViewGroup parent){
         View v = ConvertView;
-        if (v == null) {
+        if (v == null){
             LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.chat, parent, false);
         }
@@ -61,11 +61,11 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage> {
         return v;
     }
 
-    public boolean saveToFile(File file) {
+    public boolean saveToFile(File file){
         return true;
     }
 
-    public boolean loadFromFile(File file) {
+    public boolean loadFromFile(File file){
         return true;
     }
 }
