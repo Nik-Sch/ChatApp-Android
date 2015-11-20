@@ -12,7 +12,11 @@ import com.raspi.chatapp.single_chat.ChatActivity;
 
 public class MainActivity extends AppCompatActivity{
 
-    public static String BUDDY_ID = "com.raspi.chatapp.BUDDY_ID";
+    public static final String BUDDY_ID = "com.raspi.chatapp.buddyId";
+    public static final String INIT_XMPP = "com.raspi.chatapp.initXmpp";
+    public static final String SEND_MESSAGE = "com.raspi.chatapp.sendMessage";
+    public static final String MESSAGE_BODY = "com.raspi.chatapp.messageBody";
+    public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.receiveMessage";
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -50,12 +54,12 @@ public class MainActivity extends AppCompatActivity{
 
     public void onAddChatClick(MenuItem menuItem){
         Intent intent = new Intent(this, AddChatActivity.class);
-        intent.putExtra(BUDDY_ID, "aylin@raspi-server.mooo.com");
         startActivity(intent);
     }
 
     public void openChat(View view){
         Intent intent = new Intent(this, ChatActivity.class);
+        intent.putExtra(BUDDY_ID, "aylin@raspi-server.mooo.com");
         startActivity(intent);
     }
 }

@@ -1,7 +1,9 @@
-package com.raspi.chatapp.single_chat;
+package com.raspi.chatapp;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackConfiguration;
@@ -21,19 +23,33 @@ public class MessageService extends IntentService{
     private static final String service = "raspi-server.mooo.com";
     private static final int port = 5222;
 
-    private XmppManager xmppManager;
+    private static XmppManager xmppManager;
 
 
     public MessageService(){
         super("ChatAppMessageService");
-        xmppManager = new XmppManager(server, service, port, this);
-        if (!xmppManager.init() ||
-                !xmppManager.performLogin(getUserName(), getPassword()))
-            System.err.println("There was an error with the connection");
     }
 
     @Override
     protected void onHandleIntent(Intent intent){
+        String dataString = intent.getDataString();
+        Bundle extras = intent.getExtras();
+
+        if (dataString.equals(MainActivity.INIT_XMPP)){
+            xmppManager = new XmppManager(server, service, port, this);
+            if (xmppManager.init() &&
+                    xmppManager.performLogin(getUserName(), getPassword())){
+                System.out.println("Connected");
+            } else
+                System.out.println("There was an error with the connection");
+        } else if (dataString.equals(MainActivity.SEND_MESSAGE)){
+            //send a message
+            if (xmppManager != null && extras != null)
+                xmppManager.sendMessage(extras.getString(MainActivity.MESSAGE_BODY),
+                        extras.getString(MainActivity.BUDDY_ID));
+            else
+                System.out.println("null");
+        }
 
     }
 
@@ -189,7 +205,10 @@ public class MessageService extends IntentService{
         private class MyChatMessageListener implements ChatMessageListener{
             @Override
             public void processMessage(Chat chat, Message message){
-                //TODO: create an Intent from context to Activity
+                Intent msgIntent = new Intent(MainActivity.RECEIVE_MESSAGE)
+                        .putExtra(MainActivity.BUDDY_ID, message.getFrom())
+                        .putExtra(MainActivity.MESSAGE_BODY, message.getBody());
+                LocalBroadcastManager.getInstance(context).sendBroadcast(msgIntent);
             }
         }
 

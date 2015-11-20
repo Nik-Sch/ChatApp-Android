@@ -47,7 +47,7 @@
         </activity>
 
         <service
-            android:name=".single_chat.MessageService"
+            android:name=".MessageService"
             android:exported="false" />
     </application>
 
