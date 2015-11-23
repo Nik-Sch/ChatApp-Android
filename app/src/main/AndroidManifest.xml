@@ -9,6 +9,12 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <receiver android:name=".MainActivity$SystemReceiver">
+            <intent-filter>
+                <action android:name="ANDROID.INTENT.ACTION.BOOT_COMPLETED"/>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -46,9 +52,6 @@
                 android:value="com.raspi.chatapp.MainActivity" />
         </activity>
 
-        <service
-            android:name=".MessageService"
-            android:exported="false" />
     </application>
 
 </manifest>

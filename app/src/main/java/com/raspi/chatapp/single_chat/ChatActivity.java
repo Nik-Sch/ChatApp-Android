@@ -5,11 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.Button;
@@ -17,10 +17,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.raspi.chatapp.MainActivity;
-import com.raspi.chatapp.MessageService;
 import com.raspi.chatapp.R;
-
-import org.jivesoftware.smack.packet.Message;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -52,11 +49,6 @@ public class ChatActivity extends AppCompatActivity{
 
         initUI();
 
-        Intent initIntent = new Intent(this, MessageService.class);
-        initIntent.setData(Uri.parse(MainActivity.INIT_XMPP));
-        this.startService(initIntent);
-
-
         IntentFilter messageFilter = new IntentFilter(MainActivity.RECEIVE_MESSAGE);
         MessageReceiver messageReceiver = new MessageReceiver();
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, messageFilter);
@@ -87,27 +79,31 @@ public class ChatActivity extends AppCompatActivity{
             }
         });
     }
+
     private void sendMessage(String message){
-        Intent sendIntent = new Intent(this, MessageService.class);
-        sendIntent.setData(Uri.parse(MainActivity.SEND_MESSAGE));
+        Intent sendIntent = new Intent(MainActivity.SEND_MESSAGE);
         sendIntent.putExtra(MainActivity.BUDDY_ID, buddyJID);
         sendIntent.putExtra(MainActivity.MESSAGE_BODY, message);
-        startService(sendIntent);
+        Log.d("DEBUG", "UI: Sent Sent message (Intent)");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(sendIntent);
 
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
         caa.add(new ChatMessage(false, message, df.format(new Date())));
         textIn.setText("");
     }
 
+
     private class MessageReceiver extends BroadcastReceiver{
 
         @Override
         public void onReceive(Context context, Intent intent){
             Bundle extras = intent.getExtras();
-            String message = "";
-            if (extras != null)
-                message = extras.getString(MainActivity.MESSAGE_BODY);
-            caa.add(new ChatMessage(true, message, (new SimpleDateFormat("HH:mm").format(new Date()))));
+            if (extras != null && extras.containsKey(MainActivity.BUDDY_ID) && extras.getString(MainActivity.BUDDY_ID).equals(buddyJID)){
+                String message = extras.getString(MainActivity.MESSAGE_BODY);
+                caa.add(new ChatMessage(true, message, (new SimpleDateFormat("HH:mm").format(new Date()))));
+                Log.d("DEBUG", "Success: Received Message");
+            }
         }
     }
+
 }
