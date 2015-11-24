@@ -28,6 +28,9 @@ import android.widget.ListView;
 import com.raspi.chatapp.single_chat.ChatActivity;
 import com.raspi.chatapp.single_chat.RosterArrayAdapter;
 
+import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterEntry;
+
 public class MainActivity extends AppCompatActivity{
 
     public static final String BUDDY_ID = "com.raspi.chatapp.BUDDY_ID";
@@ -73,6 +76,22 @@ public class MainActivity extends AppCompatActivity{
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //UI:
+        raa = new RosterArrayAdapter(this, R.layout.roster);
+        ListView lv = (ListView) findViewById(R.id.main_listview);
+        lv.setAdapter(raa);
+        lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                RosterEntry ri = raa.getItem(position);
+                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                intent.putExtra(BUDDY_ID, ri.getUser());
+                intent.putExtra(CHAT_NAME, ri.getName());
+                startActivity(intent);
+            }
+        });
+
         if (xmppManager == null){
             xmppManager = new XmppManager(server, service, port, this);
             new initXMPP().execute("");
@@ -86,24 +105,6 @@ public class MainActivity extends AppCompatActivity{
         }
 
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
-
-        //UI:
-        raa = new RosterArrayAdapter(this, R.layout.roster);
-        ListView lv = (ListView) findViewById(R.id.main_listview);
-        lv.setAdapter(raa);
-        lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-                RosterItem ri = raa.getItem(position);
-                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-                intent.putExtra(BUDDY_ID, ri.buddyId);
-                intent.putExtra(CHAT_NAME, ri.name);
-                startActivity(intent);
-            }
-        });
-
-        //TODO retrieving roster entries and adding them to raa
 
     }
 
@@ -153,6 +154,30 @@ public class MainActivity extends AppCompatActivity{
         return "passwNiklas";
     }
 
+    private void createNotification(String buddyId, String message){
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setContentTitle("New message from " + buddyId)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.InboxStyle())
+                .setAutoCancel(true)
+                .setVibrate(new long[]{500, 300, 500, 300})
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                .setLights(Color.BLUE, 500, 500)
+                .setStyle(new NotificationCompat.InboxStyle());
+
+        Intent resultIntent = new Intent(this, ChatActivity.class);
+        resultIntent.putExtra(BUDDY_ID, buddyId);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(ChatActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder.setContentIntent(resultPendingIntent);
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, mBuilder.build());
+    }
+
     private class initXMPP extends AsyncTask<String, Void, String>{
         @Override
         protected String doInBackground(String... params){
@@ -162,11 +187,27 @@ public class MainActivity extends AppCompatActivity{
                     i++;
                 if (i < 5){
                     Log.d("DEBUG", "Success: Connected");
-                    //TODO reload roster and wait
+                    Roster roster = xmppManager.getRoster();
+                    if (!roster.isLoaded())
+                        try{
+                            roster.reloadAndWait();
+                            for (RosterEntry re: roster.getEntries())
+                                Log.d("DEBUG", re.toString());
+                        } catch (Exception e){
+                            Log.e("ERROR", "Couldn't load the roster");
+                            e.printStackTrace();
+                        }
+                    Log.d("DEBUG", "Success: Loaded roster.");
                 } else
                     Log.e("ERROR", "There was an error with the connection");
             }
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s){
+            super.onPostExecute(s);
+            raa.addAll(xmppManager.getRoster().getEntries());
         }
     }
 
@@ -215,29 +256,5 @@ public class MainActivity extends AppCompatActivity{
                     }
                 }
         }
-    }
-
-    private void createNotification(String buddyId, String message){
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-                .setContentTitle("New message from " + buddyId)
-                .setContentText(message)
-                .setStyle(new NotificationCompat.InboxStyle())
-                .setAutoCancel(true)
-                .setVibrate(new long[]{500, 300, 500, 300})
-                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                .setLights(Color.BLUE, 500, 500)
-                .setStyle(new NotificationCompat.InboxStyle());
-
-        Intent resultIntent = new Intent(this, ChatActivity.class);
-        resultIntent.putExtra(BUDDY_ID, buddyId);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(ChatActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        mBuilder.setContentIntent(resultPendingIntent);
-        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, mBuilder.build());
     }
 }

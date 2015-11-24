@@ -8,17 +8,15 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.RosterItem;
+
+import org.jivesoftware.smack.roster.RosterEntry;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Niklas-Yoga on 11/24/2015.
- */
-public class RosterArrayAdapter extends ArrayAdapter<RosterItem>{
+public class RosterArrayAdapter extends ArrayAdapter<RosterEntry>{
 
-    private List<RosterItem> rosterList = new ArrayList<RosterItem>();
+    private List<RosterEntry> rosterList = new ArrayList<RosterEntry>();
     private TextView rosterText;
 
     public RosterArrayAdapter(Context context, int textViewResourceId){
@@ -26,13 +24,13 @@ public class RosterArrayAdapter extends ArrayAdapter<RosterItem>{
     }
 
     @Override
-    public void add(RosterItem object){
+    public void add(RosterEntry object){
         rosterList.add(object);
         notifyDataSetChanged();
     }
 
     @Override
-    public RosterItem getItem(int position){
+    public RosterEntry getItem(int position){
         return rosterList.get(position);
     }
 
@@ -49,9 +47,9 @@ public class RosterArrayAdapter extends ArrayAdapter<RosterItem>{
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE))
                     .inflate(R.layout.roster, parent, false);
 
-        RosterItem rosterObj = getItem(position);
+        RosterEntry rosterObj = getItem(position);
         rosterText = (TextView) v.findViewById(R.id.roster_entry_name);
-        rosterText.setText(rosterObj.name);
+        rosterText.setText(rosterObj.getName());
 
         return v;
     }
