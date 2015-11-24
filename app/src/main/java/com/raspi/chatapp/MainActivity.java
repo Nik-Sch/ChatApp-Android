@@ -1,13 +1,19 @@
 package com.raspi.chatapp;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -21,6 +27,7 @@ import com.raspi.chatapp.single_chat.ChatActivity;
 public class MainActivity extends AppCompatActivity{
 
     public static final String BUDDY_ID = "com.raspi.chatapp.BUDDY_ID";
+    public static final String CHAT_NAME = "com.raspi.chatapp.CHAT_NAME";
     public static final String MESSAGE_BODY = "com.raspi.chatapp.MESSAGE_BODY";
     public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.RECEIVE_MESSAGE";
     public static final String SEND_MESSAGE = "com.raspi.chatapp.SEND_MESSAGE";
@@ -30,28 +37,12 @@ public class MainActivity extends AppCompatActivity{
     private static final String server = "raspi-server.mooo.com";
     private static final String service = "raspi-server.mooo.com";
     private static final int port = 5222;
+    private static final int NOTIFICATION_ID = 42;
+
     private XmppManager xmppManager;
+    private MessageReceiver messageReceiver;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        xmppManager = new XmppManager(server, service, port, this);
-        new initXMPP().execute("");
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageSendingReceiver, new IntentFilter(SEND_MESSAGE));
-    }
-
-    @Override
-    protected void onDestroy(){
-
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageSendingReceiver);
-        super.onDestroy();
-    }
-
+    //sending messages
     private BroadcastReceiver messageSendingReceiver = new BroadcastReceiver(){
 
         @Override
@@ -69,6 +60,35 @@ public class MainActivity extends AppCompatActivity{
                     Log.e("ERROR", "There was an error with the Intent while sending a message.");
         }
     };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        if (xmppManager == null){
+            xmppManager = new XmppManager(server, service, port, this);
+            new initXMPP().execute("");
+        }
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageSendingReceiver, new IntentFilter(SEND_MESSAGE));
+
+        if (messageReceiver == null){
+            messageReceiver = new MessageReceiver();
+            LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(RECEIVE_MESSAGE));
+        }
+
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
+    }
+
+    @Override
+    protected void onDestroy(){
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageSendingReceiver);
+        super.onDestroy();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
@@ -115,28 +135,6 @@ public class MainActivity extends AppCompatActivity{
         return "passwNiklas";
     }
 
-    public class SystemReceiver extends BroadcastReceiver{
-
-        @Override
-        public void onReceive(Context context, Intent intent){
-            if (intent.getAction() != null)
-                if (intent.getAction().equals(BOOT_COMPLETED)){
-                    //TODO do something on boot
-                    xmppManager = new XmppManager(server, service, port, context);
-                    new initXMPP().execute("");
-                } else if (intent.getAction().equals(CONNECTIVITY_CHANGE)){
-                    NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-                    if (info != null){
-                        if (info.isConnected()){
-                            //TODO do I need to do something here?
-                        } else {
-
-                        }
-                    }
-                }
-        }
-    }
-
     private class initXMPP extends AsyncTask<String, Void, String>{
         @Override
         protected String doInBackground(String... params){
@@ -151,5 +149,76 @@ public class MainActivity extends AppCompatActivity{
             }
             return null;
         }
+    }
+
+    //receiving system Intents
+    public class SystemReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent){
+            if (intent != null && intent.getAction() != null)
+                if (intent.getAction().equals(BOOT_COMPLETED)){
+                    //TODO do something on boot
+                    xmppManager = new XmppManager(server, service, port, context);
+                    new initXMPP().execute("");
+
+                    messageReceiver = new MessageReceiver();
+                    LocalBroadcastManager.getInstance(context).registerReceiver(messageReceiver, new IntentFilter(RECEIVE_MESSAGE));
+
+                } else if (intent.getAction().equals(CONNECTIVITY_CHANGE)){
+                    NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+                    if (info != null){
+                        if (info.isConnected()){
+                            //TODO do I need to do something here?
+                        } else {
+
+                        }
+                    }
+                }
+        }
+    }
+
+    //receiving messages
+    private class MessageReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent){
+            if (intent != null && intent.getAction() != null)
+                if (intent.getAction().equals(RECEIVE_MESSAGE)){
+                    Bundle extras = intent.getExtras();
+                    if (extras != null && extras.containsKey(BUDDY_ID) && extras.containsKey(MESSAGE_BODY)){
+                        Log.d("DEBUG", "Success: Received Message");
+                        String buddyId = extras.getString(BUDDY_ID);
+                        String message = extras.getString(MESSAGE_BODY);
+
+                        createNotification(buddyId, message);
+                        //create Intent for LocalBroadcastListener in ChatActivity
+                    }
+                }
+        }
+    }
+
+    private void createNotification(String buddyId, String message){
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setContentTitle("New message from " + buddyId)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.InboxStyle())
+                .setAutoCancel(true)
+                .setVibrate(new long[]{500, 300, 500, 300})
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                .setLights(Color.BLUE, 500, 500)
+                .setStyle(new NotificationCompat.InboxStyle());
+
+        Intent resultIntent = new Intent(this, ChatActivity.class);
+        resultIntent.putExtra(BUDDY_ID, buddyId);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(ChatActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder.setContentIntent(resultPendingIntent);
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, mBuilder.build());
     }
 }

@@ -1,7 +1,5 @@
 package com.raspi.chatapp;
 
-import android.app.Activity;
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
@@ -29,12 +27,10 @@ public class XmppManager{
     private String service;
     private int port;
 
-    private XMPPTCPConnectionConfiguration config;
     private XMPPTCPConnection connection;
 
     private ChatManager chatManager;
     private ChatMessageListener messageListener;
-    private ChatManagerListener managerListener;
 
 
     /**
@@ -60,7 +56,7 @@ public class XmppManager{
     public boolean init(){
         SmackConfiguration.setDefaultPacketReplyTimeout(packetReplyTime);
 
-        config = XMPPTCPConnectionConfiguration.builder()
+        XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
                 .setServiceName(service)
                 .setHost(server)
                 .setPort(port)
@@ -75,7 +71,7 @@ public class XmppManager{
         }
 
         messageListener = new MyChatMessageListener();
-        managerListener = new MyChatManagerListener();
+        ChatManagerListener managerListener = new MyChatManagerListener();
 
         chatManager = ChatManager.getInstanceFor(connection);
         chatManager.addChatListener(managerListener);
@@ -193,7 +189,7 @@ public class XmppManager{
             Intent msgIntent = new Intent(MainActivity.RECEIVE_MESSAGE)
                     .putExtra(MainActivity.BUDDY_ID, message.getFrom())
                     .putExtra(MainActivity.MESSAGE_BODY, message.getBody());
-            context.getApplicationContext().sendBroadcast(msgIntent);
+            LocalBroadcastManager.getInstance(context.getApplicationContext()).sendBroadcast(msgIntent);
             Log.d("DEBUG", "Received message and created Intent");
         }
     }

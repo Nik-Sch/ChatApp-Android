@@ -1,9 +1,6 @@
 package com.raspi.chatapp.single_chat;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -21,16 +18,17 @@ import com.raspi.chatapp.R;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity{
 
-    private String buddyJID;
+    private String buddyId;
+    private String chatName;
 
     private ChatArrayAdapter caa;
 
     private ListView listView;
     private EditText textIn;
-    private Button sendBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -39,19 +37,23 @@ public class ChatActivity extends AppCompatActivity{
         setContentView(R.layout.activity_chat);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        try{
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
 
         Intent in = getIntent();
         Bundle extras = in.getExtras();
-        if (extras != null)
-            buddyJID = extras.getString(MainActivity.BUDDY_ID);
-        getSupportActionBar().setTitle(buddyJID);
+        if (extras != null){
+            if (extras.containsKey(MainActivity.BUDDY_ID))
+                buddyId = extras.getString(MainActivity.BUDDY_ID);
+            if (extras.containsKey(MainActivity.CHAT_NAME))
+                chatName = extras.getString(MainActivity.CHAT_NAME);
+        }
+        getSupportActionBar().setTitle((chatName != null) ? chatName : buddyId);
 
         initUI();
-
-        IntentFilter messageFilter = new IntentFilter(MainActivity.RECEIVE_MESSAGE);
-        MessageReceiver messageReceiver = new MessageReceiver();
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, messageFilter);
     }
 
     private void initUI(){
@@ -59,7 +61,7 @@ public class ChatActivity extends AppCompatActivity{
 
         listView = (ListView) findViewById(R.id.chat_listview);
         textIn = (EditText) findViewById(R.id.chat_in);
-        sendBtn = (Button) findViewById(R.id.chat_sendBtn);
+        Button sendBtn = (Button) findViewById(R.id.chat_sendBtn);
 
         sendBtn.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -82,28 +84,14 @@ public class ChatActivity extends AppCompatActivity{
 
     private void sendMessage(String message){
         Intent sendIntent = new Intent(MainActivity.SEND_MESSAGE);
-        sendIntent.putExtra(MainActivity.BUDDY_ID, buddyJID);
+        sendIntent.putExtra(MainActivity.BUDDY_ID, buddyId);
         sendIntent.putExtra(MainActivity.MESSAGE_BODY, message);
         Log.d("DEBUG", "UI: Sent Sent message (Intent)");
         LocalBroadcastManager.getInstance(this).sendBroadcast(sendIntent);
 
-        SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
         caa.add(new ChatMessage(false, message, df.format(new Date())));
         textIn.setText("");
-    }
-
-
-    private class MessageReceiver extends BroadcastReceiver{
-
-        @Override
-        public void onReceive(Context context, Intent intent){
-            Bundle extras = intent.getExtras();
-            if (extras != null && extras.containsKey(MainActivity.BUDDY_ID) && extras.getString(MainActivity.BUDDY_ID).equals(buddyJID)){
-                String message = extras.getString(MainActivity.MESSAGE_BODY);
-                caa.add(new ChatMessage(true, message, (new SimpleDateFormat("HH:mm").format(new Date()))));
-                Log.d("DEBUG", "Success: Received Message");
-            }
-        }
     }
 
 }
