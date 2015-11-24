@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity{
     private XmppManager xmppManager;
     private MessageReceiver messageReceiver;
     private RosterArrayAdapter raa;
+    private ListView lv;
 
     //sending messages
     private BroadcastReceiver messageSendingReceiver = new BroadcastReceiver(){
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity{
 
         //UI:
         raa = new RosterArrayAdapter(this, R.layout.roster);
-        ListView lv = (ListView) findViewById(R.id.main_listview);
+        lv = (ListView) findViewById(R.id.main_listview);
         lv.setAdapter(raa);
         lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -89,6 +91,13 @@ public class MainActivity extends AppCompatActivity{
                 intent.putExtra(BUDDY_ID, ri.getUser());
                 intent.putExtra(CHAT_NAME, ri.getName());
                 startActivity(intent);
+            }
+        });
+        raa.registerDataSetObserver(new DataSetObserver(){
+            @Override
+            public void onChanged(){
+                super.onChanged();
+                lv.setSelection(raa.getCount() - 1);
             }
         });
 
@@ -106,44 +115,6 @@ public class MainActivity extends AppCompatActivity{
 
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
 
-    }
-
-    @Override
-    protected void onDestroy(){
-
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageSendingReceiver);
-        super.onDestroy();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings){
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    public void onSettingsClick(MenuItem menuItem){
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
-    }
-
-    public void onAddChatClick(MenuItem menuItem){
-        Intent intent = new Intent(this, AddChatActivity.class);
-        startActivity(intent);
     }
 
     private String getUserName(){
@@ -186,20 +157,21 @@ public class MainActivity extends AppCompatActivity{
                 while (i < 5 && !(xmppManager.init() && xmppManager.performLogin(getUserName(), getPassword())))
                     i++;
                 if (i < 5){
-                    Log.d("DEBUG", "Success: Connected");
+                    Log.d("DEBUG", "Success: Connected.");
                     Roster roster = xmppManager.getRoster();
-                    if (!roster.isLoaded())
+                    if (roster != null && !roster.isLoaded())
                         try{
                             roster.reloadAndWait();
-                            for (RosterEntry re: roster.getEntries())
-                                Log.d("DEBUG", re.toString());
+for (RosterEntry re : roster.getEntries())
+    Log.d("DEBUG", re.toString());
                         } catch (Exception e){
                             Log.e("ERROR", "Couldn't load the roster");
                             e.printStackTrace();
                         }
                     Log.d("DEBUG", "Success: Loaded roster.");
-                } else
+                } else {
                     Log.e("ERROR", "There was an error with the connection");
+                }
             }
             return null;
         }
@@ -207,7 +179,10 @@ public class MainActivity extends AppCompatActivity{
         @Override
         protected void onPostExecute(String s){
             super.onPostExecute(s);
-            raa.addAll(xmppManager.getRoster().getEntries());
+            if (xmppManager != null && xmppManager.getRoster() != null)
+                raa.addAll(xmppManager.getRoster().getEntries());
+            else
+                Log.e("ERROR", "There was an error while receiving the roster");
         }
     }
 
@@ -256,5 +231,43 @@ public class MainActivity extends AppCompatActivity{
                     }
                 }
         }
+    }
+
+    @Override
+    protected void onDestroy(){
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageSendingReceiver);
+        super.onDestroy();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings){
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void onSettingsClick(MenuItem menuItem){
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    public void onAddChatClick(MenuItem menuItem){
+        Intent intent = new Intent(this, AddChatActivity.class);
+        startActivity(intent);
     }
 }

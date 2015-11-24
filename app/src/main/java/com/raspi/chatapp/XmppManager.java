@@ -125,7 +125,7 @@ public class XmppManager{
      * @return true if sending was successful
      */
     public boolean sendMessage(String message, String buddyJID){
-        if (connection != null && connection.isConnected()){
+        if (connection != null && connection.isConnected() && chatManager != null){
             Chat chat = chatManager.createChat(buddyJID, messageListener);
             try{
                 chat.sendMessage(message);

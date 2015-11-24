@@ -17,7 +17,6 @@ import java.util.List;
 public class RosterArrayAdapter extends ArrayAdapter<RosterEntry>{
 
     private List<RosterEntry> rosterList = new ArrayList<RosterEntry>();
-    private TextView rosterText;
 
     public RosterArrayAdapter(Context context, int textViewResourceId){
         super(context, textViewResourceId);
@@ -48,8 +47,7 @@ public class RosterArrayAdapter extends ArrayAdapter<RosterEntry>{
                     .inflate(R.layout.roster, parent, false);
 
         RosterEntry rosterObj = getItem(position);
-        rosterText = (TextView) v.findViewById(R.id.roster_entry_name);
-        rosterText.setText(rosterObj.getName());
+        ((TextView) v.findViewById(R.id.roster_entry_name)).setText(rosterObj.getName());
 
         return v;
     }

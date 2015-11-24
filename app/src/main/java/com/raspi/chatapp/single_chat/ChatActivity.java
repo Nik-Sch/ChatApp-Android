@@ -44,12 +44,14 @@ public class ChatActivity extends AppCompatActivity{
         }
 
         Intent in = getIntent();
-        Bundle extras = in.getExtras();
-        if (extras != null){
-            if (extras.containsKey(MainActivity.BUDDY_ID))
-                buddyId = extras.getString(MainActivity.BUDDY_ID);
-            if (extras.containsKey(MainActivity.CHAT_NAME))
-                chatName = extras.getString(MainActivity.CHAT_NAME);
+        if (in != null){
+            Bundle extras = in.getExtras();
+            if (extras != null){
+                if (extras.containsKey(MainActivity.BUDDY_ID))
+                    buddyId = extras.getString(MainActivity.BUDDY_ID);
+                if (extras.containsKey(MainActivity.CHAT_NAME))
+                    chatName = extras.getString(MainActivity.CHAT_NAME);
+            }
         }
         getSupportActionBar().setTitle((chatName != null) ? chatName : buddyId);
 
