@@ -173,7 +173,8 @@ for (RosterEntry re : roster.getEntries())
                     Log.e("ERROR", "There was an error with the connection");
                 }
             }
-            return null;
+            //TODO return something whether the connection was successful or not
+            return "";
         }
 
         @Override
@@ -209,6 +210,10 @@ for (RosterEntry re : roster.getEntries())
 
                         }
                     }
+                    if (xmppManager == null)
+                        xmppManager = new XmppManager(server, service, port, context);
+                    if (!xmppManager.isConnected())
+                            new initXMPP().execute("");
                 }
         }
     }
