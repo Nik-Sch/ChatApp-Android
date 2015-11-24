@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 
 import com.raspi.chatapp.single_chat.ChatActivity;
 
@@ -81,6 +82,18 @@ public class MainActivity extends AppCompatActivity{
         }
 
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
+
+        //UI:
+        ListView lv = (ListView) findViewById(R.id.main_listview);
+        lv.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                v.get
+                Intent intent = new Intent(this, ChatActivity.class);
+                intent.putExtra(BUDDY_ID, buddyId);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -118,12 +131,6 @@ public class MainActivity extends AppCompatActivity{
 
     public void onAddChatClick(MenuItem menuItem){
         Intent intent = new Intent(this, AddChatActivity.class);
-        startActivity(intent);
-    }
-
-    public void openChat(View view){
-        Intent intent = new Intent(this, ChatActivity.class);
-        intent.putExtra(BUDDY_ID, "aylin@raspi-server.mooo.com");
         startActivity(intent);
     }
 

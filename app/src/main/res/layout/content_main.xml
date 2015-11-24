@@ -9,9 +9,12 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main" tools:context=".MainActivity">
 
-    <Button
-        android:layout_centerHorizontal="true"
-        android:layout_width="wrap_content"
+    <ListView
+        android:id="@+id/main_listview"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="openChat"/>
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:divider="@null"
+        android:dividerHeight="0dp"/>
 </RelativeLayout>
