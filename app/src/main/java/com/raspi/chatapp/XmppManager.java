@@ -2,16 +2,14 @@ package com.raspi.chatapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import com.raspi.chatapp.service.MessageService;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
-import org.jivesoftware.smack.chat.ChatManagerListener;
-import org.jivesoftware.smack.chat.ChatMessageListener;
-import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -28,10 +26,6 @@ public class XmppManager{
     private int port;
 
     private XMPPTCPConnection connection;
-
-    private ChatManager chatManager;
-    private ChatMessageListener messageListener;
-
 
     /**
      * creates a IM Manager with the given server ID
@@ -69,13 +63,6 @@ public class XmppManager{
             Log.e("ERROR", e.toString());
             return false;
         }
-
-        messageListener = new MyChatMessageListener();
-        ChatManagerListener managerListener = new MyChatManagerListener();
-
-        chatManager = ChatManager.getInstanceFor(connection);
-        chatManager.addChatListener(managerListener);
-
         Log.d("DEBUG", "Success: Initialized XmppManager.");
         return true;
     }
@@ -125,8 +112,9 @@ public class XmppManager{
      * @return true if sending was successful
      */
     public boolean sendMessage(String message, String buddyJID){
+        ChatManager chatManager = ChatManager.getInstanceFor(connection);
         if (connection != null && connection.isConnected() && chatManager != null){
-            Chat chat = chatManager.createChat(buddyJID, messageListener);
+            Chat chat = chatManager.createChat(buddyJID);
             try{
                 chat.sendMessage(message);
                 Log.d("DEBUG", "Success: Sent message");
@@ -183,21 +171,7 @@ public class XmppManager{
         return connection != null && connection.isConnected();
     }
 
-    private class MyChatMessageListener implements ChatMessageListener{
-        @Override
-        public void processMessage(Chat chat, Message message){
-            Intent msgIntent = new Intent(MainActivity.RECEIVE_MESSAGE)
-                    .putExtra(MainActivity.BUDDY_ID, message.getFrom())
-                    .putExtra(MainActivity.MESSAGE_BODY, message.getBody());
-            LocalBroadcastManager.getInstance(context.getApplicationContext()).sendBroadcast(msgIntent);
-            Log.d("DEBUG", "Received message and created Intent");
-        }
-    }
-
-    private class MyChatManagerListener implements ChatManagerListener{
-        @Override
-        public void chatCreated(Chat chat, boolean b){
-            chat.addMessageListener(messageListener);
-        }
+    public XMPPTCPConnection getConnection(){
+        return connection;
     }
 }
