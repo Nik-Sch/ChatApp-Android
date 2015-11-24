@@ -21,9 +21,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.raspi.chatapp.single_chat.ChatActivity;
+import com.raspi.chatapp.single_chat.RosterArrayAdapter;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -42,6 +45,7 @@ public class MainActivity extends AppCompatActivity{
 
     private XmppManager xmppManager;
     private MessageReceiver messageReceiver;
+    private RosterArrayAdapter raa;
 
     //sending messages
     private BroadcastReceiver messageSendingReceiver = new BroadcastReceiver(){
@@ -84,16 +88,23 @@ public class MainActivity extends AppCompatActivity{
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
 
         //UI:
+        raa = new RosterArrayAdapter(this, R.layout.roster);
         ListView lv = (ListView) findViewById(R.id.main_listview);
-        lv.setOnClickListener(new View.OnClickListener(){
+        lv.setAdapter(raa);
+        lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
-            public void onClick(View v){
-                v.get
-                Intent intent = new Intent(this, ChatActivity.class);
-                intent.putExtra(BUDDY_ID, buddyId);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                RosterItem ri = raa.getItem(position);
+                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                intent.putExtra(BUDDY_ID, ri.buddyId);
+                intent.putExtra(CHAT_NAME, ri.name);
                 startActivity(intent);
             }
         });
+
+        //TODO retrieving roster entries and adding them to raa
+
     }
 
     @Override
@@ -149,9 +160,10 @@ public class MainActivity extends AppCompatActivity{
                 int i = 0;
                 while (i < 5 && !(xmppManager.init() && xmppManager.performLogin(getUserName(), getPassword())))
                     i++;
-                if (i < 5)
+                if (i < 5){
                     Log.d("DEBUG", "Success: Connected");
-                else
+                    //TODO reload roster and wait
+                } else
                     Log.e("ERROR", "There was an error with the connection");
             }
             return null;
