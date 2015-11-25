@@ -13,8 +13,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.raspi.chatapp.Globals;
 import com.raspi.chatapp.MainActivity;
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.XmppManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -85,11 +87,13 @@ public class ChatActivity extends AppCompatActivity{
     }
 
     private void sendMessage(String message){
-        Intent sendIntent = new Intent(MainActivity.SEND_MESSAGE);
-        sendIntent.putExtra(MainActivity.BUDDY_ID, buddyId);
-        sendIntent.putExtra(MainActivity.MESSAGE_BODY, message);
-        Log.d("DEBUG", "UI: Sent Sent message (Intent)");
-        LocalBroadcastManager.getInstance(this).sendBroadcast(sendIntent);
+        XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
+
+        if (xmppManager != null && xmppManager.isConnected()){
+            xmppManager.sendMessage(message, buddyId);
+            Log.d("DEBUG", "Success: Sent message");
+        } else
+            Log.e("ERROR", "There was an error with the connection while sending a message.");
 
         SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
         caa.add(new ChatMessage(false, message, df.format(new Date())));

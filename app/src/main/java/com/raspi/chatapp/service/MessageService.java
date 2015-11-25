@@ -25,14 +25,12 @@ import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.roster.Roster;
-import org.jivesoftware.smack.roster.RosterEntry;
 
 public class MessageService extends Service{
 
     private static final String server = "raspi-server.mooo.com";
     private static final String service = "raspi-server.mooo.com";
     private static final int port = 5222;
-    private XmppManager xmppManager;
 
     @Override
     public void onCreate(){
@@ -47,34 +45,44 @@ public class MessageService extends Service{
             @Override
             public void run(){
                 try{
+                    Log.d("ConnectionChangeReceive", "started Service");
                     //initialize xmpp:
-                    xmppManager = new XmppManager(server, service, port, getApplication());
-                    int i = 0;
-                    while (i < 5 && !(xmppManager.init() && xmppManager.performLogin(getUserName(), getPassword())))
-                        i++;
-                    ((Globals) getApplication()).setXmppManager(xmppManager);
-                    if (i < 5){
-                        Log.d("DEBUG", "Success: Connected.");
-                        Roster roster = xmppManager.getRoster();
-                        if (roster != null && !roster.isLoaded())
-                            try{
-                                roster.reloadAndWait();
-                            } catch (Exception e){
-                                Log.e("ERROR", "Couldn't load the roster");
-                                e.printStackTrace();
-                            }
-                        Log.d("DEBUG", "Success: Loaded roster.");
-                    } else {
-                        Log.e("ERROR", "There was an error with the connection");
+                    XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
+                    if (xmppManager == null || !xmppManager.isConnected()){
+                        Log.d("ConnectionChangeReceive", "xmpp is not connected or null");
+                        xmppManager = new XmppManager(server,
+                                service, port,
+                                getApplication());
+                        int i = 0;
+                        while (i < 5 && !(xmppManager.init() && xmppManager.performLogin(getUserName(), getPassword()))){
+                            Log.d("ConnectionChangeReceive", i + "'s try to connect");
+                            i++;
+                        }
+                        ((Globals) getApplication()).setXmppManager(xmppManager);
+                        if (i < 5){
+                            Log.d("ConnectionChangeReceive", "connected");
+                            Log.d("DEBUG", "Success: Connected.");
+                            Roster roster = xmppManager.getRoster();
+                            if (roster != null && !roster.isLoaded())
+                                try{
+                                    roster.reloadAndWait();
+                                    Log.d("ConnectionChangeReceive", "reloaded the roster");
+                                } catch (Exception e){
+                                    Log.e("ERROR", "Couldn't load the roster");
+                                    e.printStackTrace();
+                                }
+                            Log.d("DEBUG", "Success: Loaded roster.");
+                        } else {
+                            Log.e("ERROR", "There was an error with the connection");
+                        }
+
+                        ((Globals) getApplication()).setXmppManager(xmppManager);
+
+                        ChatManagerListener managerListener = new MyChatManagerListener();
+                        ChatManager.getInstanceFor(xmppManager.getConnection())
+                                .addChatListener(managerListener);
+
                     }
-
-                    ((Globals) getApplication()).setXmppManager(xmppManager);
-
-                    ChatManagerListener managerListener = new MyChatManagerListener();
-                    ChatManager.getInstanceFor(((Globals) getApplication())
-                            .getXmppManager()
-                            .getConnection())
-                            .addChatListener(managerListener);
                 } catch (Exception e){
                     Log.e("ERROR", "An error while running the MessageService occurred.");
                     e.printStackTrace();
@@ -93,7 +101,9 @@ public class MessageService extends Service{
 
     @Override
     public void onDestroy(){
-        xmppManager.disconnect();
+        Log.d("DEBUG", "disconnecting xmpp");
+        Log.d("ConnectionChangeReceive", "Stopped service");
+        ((Globals) getApplication()).getXmppManager().disconnect();
         super.onDestroy();
     }
 
@@ -131,11 +141,10 @@ public class MessageService extends Service{
                 (MainActivity.NOTIFICATION_ID, mBuilder.build());
     }
 
-
     private class MyChatMessageListener implements ChatMessageListener{
         @Override
         public void processMessage(Chat chat, Message message){
-            xmppManager = ((Globals) getApplication()).getXmppManager();
+            XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
             Roster roster = xmppManager.getRoster();
             if (!roster.isLoaded())
                 try{

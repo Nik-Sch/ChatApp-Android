@@ -9,6 +9,7 @@ public class Globals extends Application{
 
     private XmppManager xmppManager;
 
+    private boolean wasConnected;
     public XmppManager getXmppManager(){
         return xmppManager;
     }
