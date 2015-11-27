@@ -27,6 +27,11 @@ import org.jivesoftware.smack.roster.RosterEntry;
 
 public class MainActivity extends AppCompatActivity{
 
+    public static final String PREFERENCES = "com.raspi.chatapp.PREFERENCES";
+    public static final String CONN_TIMEOUT = "com.raspi.chatapp.CONN_TIMEOUT";
+    public static final String RECONNECT = "com.raspi.chatapp.RECONNECT";
+    public static final String APP_CREATED = "con.raspi.chatapp.APP_CREATED";
+    public static final String APP_DESTROYED = "con.raspi.chatapp.APP_DESTROYED";
     public static final String BUDDY_ID = "com.raspi.chatapp.BUDDY_ID";
     public static final String CHAT_NAME = "com.raspi.chatapp.CHAT_NAME";
     public static final String MESSAGE_BODY = "com.raspi.chatapp.MESSAGE_BODY";
@@ -34,6 +39,7 @@ public class MainActivity extends AppCompatActivity{
     public static final String CONN_ESTABLISHED = "com.raspi.chatapp.CONN_ESTABLISHED";
     public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
     public static final int NOTIFICATION_ID = 42;
+
     //private MessageReceiver messageReceiver;
     private RosterArrayAdapter raa;
     private ListView lv;
@@ -62,7 +68,8 @@ public class MainActivity extends AppCompatActivity{
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        XmppManager xmppManager = ((Globals) this.getApplication()).getXmppManager();
+        //signal the service that the app is running
+        this.startService(new Intent(this, MessageService.class).setAction(APP_CREATED));
 
         //UI:
         raa = new RosterArrayAdapter(this, R.layout.roster);
@@ -86,21 +93,17 @@ public class MainActivity extends AppCompatActivity{
                 lv.setSelection(raa.getCount() - 1);
             }
         });
-
-        if (xmppManager == null){
-            Log.d("DEBUG", "xmppManager is null");
-            this.startService(new Intent(this, MessageService.class));
-        }
-        ((Globals) this.getApplication()).setXmppManager(xmppManager);
-/*
-        if (messageReceiver == null){
-            messageReceiver = new MessageReceiver();
-            LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, new IntentFilter(RECEIVE_MESSAGE));
-        }*/
         LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionEstablished, new
                 IntentFilter(CONN_ESTABLISHED));
 
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
+    }
+
+    @Override
+    protected void onDestroy(){
+        //signal the service that the app is about to get destroyed
+        this.startService(new Intent(this, MessageService.class).setAction(APP_DESTROYED));
+        super.onDestroy();
     }
 
     @Override

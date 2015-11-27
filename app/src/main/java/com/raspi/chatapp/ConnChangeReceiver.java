@@ -3,30 +3,32 @@ package com.raspi.chatapp;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.raspi.chatapp.service.MessageService;
 
+import java.util.Date;
+
 public class ConnChangeReceiver extends BroadcastReceiver{
+    private static int CONN_TIMEOUT = 5000;
+
     public ConnChangeReceiver(){
         Log.d("ConnectionChangeReceive", "CREATED CONN_CHANGE_RECEIVER");
     }
 
     @Override
     public void onReceive(Context context, Intent intent){
-        Log.d("ConnectionChangeReceive", "received conn change");
-        NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context
-                .CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-        if (info != null){
-            if (info.isConnected()){
-                Log.d("ConnectionChangeReceive", "I am connected");
-                context.startService(new Intent(context, MessageService.class));
-            } else {
-                Log.d("ConnectionChangeReceive", "I am not connected");
-                context.stopService(new Intent(context, MessageService.class));
-            }
+        SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
+        long now = new Date().getTime();
+        long lastConnection = preferences.getLong(MainActivity.CONN_TIMEOUT, now - CONN_TIMEOUT -
+                1000);
+        Log.d("ConnectionChangeReceive", "received conn change with time difference: " +
+                (now - lastConnection));
+        if (lastConnection + CONN_TIMEOUT < now){
+            Log.d("ConnectionChangeReceive", "starting service as reconnect");
+            preferences.edit().putLong(MainActivity.CONN_TIMEOUT, now).apply();
+            context.startService(new Intent(context, MessageService.class).setAction(MainActivity.RECONNECT));
         }
     }
 }

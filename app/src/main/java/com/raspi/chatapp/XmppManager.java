@@ -1,10 +1,7 @@
 package com.raspi.chatapp;
 
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
-
-import com.raspi.chatapp.service.MessageService;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackConfiguration;
@@ -17,7 +14,7 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 
 public class XmppManager{
 
-    private static final int packetReplyTime = 1000;
+    private static final int packetReplyTime = 5000;
 
     private Context context;
 
@@ -163,8 +160,22 @@ public class XmppManager{
         if (connection != null && connection.isConnected()){
             connection.disconnect();
             Log.d("DEBUG", "Success: Disconnected.");
-        }
-        Log.e("ERROR", "Disconnecting failed: No connection.");
+        } else
+            Log.e("ERROR", "Disconnecting failed: No connection.");
+    }
+
+    public boolean reconnect(){
+        if (connection == null)
+            init();
+        else if (!connection.isConnected())
+            try{
+                connection.connect();
+            } catch (Exception e){
+                Log.e("ERROR", "Couldn't connect.");
+                Log.e("ERROR", e.toString());
+                return false;
+            }
+        return true;
     }
 
     public boolean isConnected(){

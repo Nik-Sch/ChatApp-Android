@@ -2,14 +2,13 @@ package com.raspi.chatapp;
 
 import android.app.Application;
 
-/**
- * Created by gamer on 11/24/2015.
- */
 public class Globals extends Application{
+    public Globals(){
+        xmppManager = null;
+    }
 
     private XmppManager xmppManager;
 
-    private boolean wasConnected;
     public XmppManager getXmppManager(){
         return xmppManager;
     }

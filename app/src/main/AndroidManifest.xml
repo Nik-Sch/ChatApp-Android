@@ -62,8 +62,7 @@
         </activity>
 
         <service
-            android:name=".service.MessageService"
-            android:exported="false"/>
+            android:name=".service.MessageService"/>
     </application>
 
 </manifest>
