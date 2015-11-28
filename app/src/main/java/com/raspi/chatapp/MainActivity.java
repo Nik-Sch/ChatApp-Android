@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity{
 
     public static final String PREFERENCES = "com.raspi.chatapp.PREFERENCES";
     public static final String CONN_TIMEOUT = "com.raspi.chatapp.CONN_TIMEOUT";
+    public static final String CURRENT_NOTIFICATIONS = "com.raspi.chatapp.CURRENT_NOTIFICATIONS";
     public static final String RECONNECT = "com.raspi.chatapp.RECONNECT";
     public static final String APP_CREATED = "con.raspi.chatapp.APP_CREATED";
     public static final String APP_DESTROYED = "con.raspi.chatapp.APP_DESTROYED";

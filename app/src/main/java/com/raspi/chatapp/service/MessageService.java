@@ -6,6 +6,7 @@ import android.app.Service;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
@@ -26,6 +27,10 @@ import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.roster.Roster;
+import org.json.JSONArray;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class MessageService extends Service{
 
@@ -69,19 +74,19 @@ public class MessageService extends Service{
         } else if (MainActivity.APP_CREATED.equals(intent.getAction())){
             Log.d("DEBUG", "MessageService app created.");
             isAppRunning = true;
-            if (xmppManager == null)
-                new Thread(new Runnable(){
-                    @Override
-                    public void run(){
-                        initialize();
-                        publicize();
-                        LocalBroadcastManager.getInstance(getApplication()).sendBroadcast(new Intent
-                                (MainActivity.CONN_ESTABLISHED));
-                    }
-                }).start();
+            new Thread(new Runnable(){
+                @Override
+                public void run(){
+                    initialize();
+                    publicize();
+                    LocalBroadcastManager.getInstance(getApplication()).sendBroadcast(new Intent
+                            (MainActivity.CONN_ESTABLISHED));
+                }
+            }).start();
         } else if (MainActivity.APP_DESTROYED.equals(intent.getAction())){
             Log.d("DEBUG", "MessageService app destroyed.");
             isAppRunning = false;
+            onStartCommand(null, flags, startId);
         } else {
             Log.d("DEBUG", "MessageService received unknown intend.");
         }
@@ -151,8 +156,21 @@ public class MessageService extends Service{
         return "passwNiklas";
     }
 
+    private void writeJSONArray(String[] arr, String arr_name){
+        SharedPreferences preferences = getSharedPreferences(MainActivity.PREFERENCES, 0);
+        JSONArray jsonArray = new JSONArray();
+        for (String s : arr)
+            jsonArray.put(s);
+        //TODO
+    }
+
+    private String[] readJSONArray(String arr_name){
+        //TODO
+        return null;
+    }
+
     private void createNotification(String buddyId, String name, String message){
-        Log.d("DEBUG", "creating notification");
+        Log.d("DEBUG", "creating notification: " + buddyId + "|" + name + "|" + message);
         Intent resultIntent = new Intent(this, ChatActivity.class);
         resultIntent.putExtra(MainActivity.BUDDY_ID, buddyId);
         resultIntent.putExtra(MainActivity.CHAT_NAME, name);
@@ -160,22 +178,26 @@ public class MessageService extends Service{
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(ChatActivity.class);
         stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationManager nm = ((NotificationManager) getSystemService(Context
+                .NOTIFICATION_SERVICE));
+        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+
+        SharedPreferences preferences = this.getSharedPreferences(MainActivity.PREFERENCES, 0);
+        //TODO inboxStyle with jsonArray
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-                .setContentTitle("New message from " + buddyId)
-                .setContentText(message)
-                .setStyle(new NotificationCompat.InboxStyle())
+                .setStyle(inboxStyle)
                 .setAutoCancel(true)
                 .setVibrate(new long[]{500, 300, 500, 300})
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                 .setLights(Color.BLUE, 500, 500)
-                .setStyle(new NotificationCompat.InboxStyle())
                 .setContentIntent(resultPendingIntent);
 
-        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify
-                (MainActivity.NOTIFICATION_ID, mBuilder.build());
+        nm.notify(MainActivity.NOTIFICATION_ID, mBuilder.build());
     }
 
     @Override
