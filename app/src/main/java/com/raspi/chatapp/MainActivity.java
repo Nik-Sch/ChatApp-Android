@@ -27,19 +27,17 @@ import org.jivesoftware.smack.roster.RosterEntry;
 
 public class MainActivity extends AppCompatActivity{
 
-    public static final String PREFERENCES = "com.raspi.chatapp.PREFERENCES";
-    public static final String CONN_TIMEOUT = "com.raspi.chatapp.CONN_TIMEOUT";
-    public static final String CURRENT_NOTIFICATIONS = "com.raspi.chatapp.CURRENT_NOTIFICATIONS";
-    public static final String RECONNECT = "com.raspi.chatapp.RECONNECT";
-    public static final String APP_CREATED = "con.raspi.chatapp.APP_CREATED";
-    public static final String APP_DESTROYED = "con.raspi.chatapp.APP_DESTROYED";
-    public static final String BUDDY_ID = "com.raspi.chatapp.BUDDY_ID";
-    public static final String CHAT_NAME = "com.raspi.chatapp.CHAT_NAME";
-    public static final String MESSAGE_BODY = "com.raspi.chatapp.MESSAGE_BODY";
-    public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.RECEIVE_MESSAGE";
-    public static final String CONN_ESTABLISHED = "com.raspi.chatapp.CONN_ESTABLISHED";
+    public static final String PREFERENCES = "com.raspi.chatapp.MainActivity.PREFERENCES";
+    public static final String CONN_TIMEOUT = "com.raspi.chatapp.MainActivity.CONN_TIMEOUT";
+    public static final String RECONNECT = "com.raspi.chatapp.MainActivity.RECONNECT";
+    public static final String APP_CREATED = "con.raspi.chatapp.MainActivity.APP_CREATED";
+    public static final String APP_DESTROYED = "con.raspi.chatapp.MainActivity.APP_DESTROYED";
+    public static final String BUDDY_ID = "com.raspi.chatapp.MainActivity.BUDDY_ID";
+    public static final String CHAT_NAME = "com.raspi.chatapp.MainActivity.CHAT_NAME";
+    public static final String MESSAGE_BODY = "com.raspi.chatapp.MainActivity.MESSAGE_BODY";
+    public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.MainActivity.RECEIVE_MESSAGE";
+    public static final String CONN_ESTABLISHED = "com.raspi.chatapp.MainActivity.CONN_ESTABLISHED";
     public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
-    public static final int NOTIFICATION_ID = 42;
 
     //private MessageReceiver messageReceiver;
     private RosterArrayAdapter raa;
@@ -64,6 +62,17 @@ public class MainActivity extends AppCompatActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
+        Intent CallingIntent = getIntent();
+        if (CallingIntent!= null && CallingIntent.getAction() == MyNotification.NOTIFICATION_CLICK){
+            Bundle extras = CallingIntent.getExtras();
+            if (extras != null && extras.containsKey(BUDDY_ID) && extras.containsKey(CHAT_NAME)){
+                Intent intent = new Intent(this, ChatActivity.class);
+                intent.putExtra(BUDDY_ID, extras.getString(BUDDY_ID));
+                intent.putExtra(CHAT_NAME, extras.getString(CHAT_NAME));
+                startActivity(intent);
+            }
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -97,7 +106,9 @@ public class MainActivity extends AppCompatActivity{
         LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionEstablished, new
                 IntentFilter(CONN_ESTABLISHED));
 
-        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel(NOTIFICATION_ID);
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
+                (MyNotification.NOTIFICATION_ID);
+        new MyNotification(this).reset();
     }
 
     @Override

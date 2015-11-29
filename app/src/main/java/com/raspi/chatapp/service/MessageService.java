@@ -1,25 +1,17 @@
 package com.raspi.chatapp.service;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.raspi.chatapp.Globals;
 import com.raspi.chatapp.MainActivity;
-import com.raspi.chatapp.R;
+import com.raspi.chatapp.MyNotification;
 import com.raspi.chatapp.XmppManager;
-import com.raspi.chatapp.single_chat.ChatActivity;
 
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
@@ -27,10 +19,6 @@ import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.roster.Roster;
-import org.json.JSONArray;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class MessageService extends Service{
 
@@ -156,50 +144,6 @@ public class MessageService extends Service{
         return "passwNiklas";
     }
 
-    private void writeJSONArray(String[] arr, String arr_name){
-        SharedPreferences preferences = getSharedPreferences(MainActivity.PREFERENCES, 0);
-        JSONArray jsonArray = new JSONArray();
-        for (String s : arr)
-            jsonArray.put(s);
-        //TODO
-    }
-
-    private String[] readJSONArray(String arr_name){
-        //TODO
-        return null;
-    }
-
-    private void createNotification(String buddyId, String name, String message){
-        Log.d("DEBUG", "creating notification: " + buddyId + "|" + name + "|" + message);
-        Intent resultIntent = new Intent(this, ChatActivity.class);
-        resultIntent.putExtra(MainActivity.BUDDY_ID, buddyId);
-        resultIntent.putExtra(MainActivity.CHAT_NAME, name);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(ChatActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationManager nm = ((NotificationManager) getSystemService(Context
-                .NOTIFICATION_SERVICE));
-        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-
-        SharedPreferences preferences = this.getSharedPreferences(MainActivity.PREFERENCES, 0);
-        //TODO inboxStyle with jsonArray
-
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-                .setStyle(inboxStyle)
-                .setAutoCancel(true)
-                .setVibrate(new long[]{500, 300, 500, 300})
-                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                .setLights(Color.BLUE, 500, 500)
-                .setContentIntent(resultPendingIntent);
-
-        nm.notify(MainActivity.NOTIFICATION_ID, mBuilder.build());
-    }
-
     @Override
     public IBinder onBind(Intent intent){
         return null;
@@ -232,7 +176,7 @@ public class MessageService extends Service{
                     .putExtra(MainActivity.BUDDY_ID, buddyId)
                     .putExtra(MainActivity.MESSAGE_BODY, msg);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(msgIntent);
-            createNotification(buddyId, name, message.getBody());
+            new MyNotification(getApplicationContext()).createNotification(buddyId, name, message.getBody());
         }
     }
 
