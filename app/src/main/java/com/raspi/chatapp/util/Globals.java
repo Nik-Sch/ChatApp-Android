@@ -1,13 +1,13 @@
-package com.raspi.chatapp;
+package com.raspi.chatapp.util;
 
 import android.app.Application;
 
 public class Globals extends Application{
+    private XmppManager xmppManager;
+
     public Globals(){
         xmppManager = null;
     }
-
-    private XmppManager xmppManager;
 
     public XmppManager getXmppManager(){
         return xmppManager;

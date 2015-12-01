@@ -1,4 +1,4 @@
-package com.raspi.chatapp;
+package com.raspi.chatapp.activities;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -18,25 +18,28 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.raspi.chatapp.util.Globals;
+import com.raspi.chatapp.util.MyNotification;
+import com.raspi.chatapp.R;
+import com.raspi.chatapp.util.XmppManager;
 import com.raspi.chatapp.service.MessageService;
-import com.raspi.chatapp.single_chat.ChatActivity;
-import com.raspi.chatapp.single_chat.RosterArrayAdapter;
+import com.raspi.chatapp.ui_util.RosterArrayAdapter;
 
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
 
 public class MainActivity extends AppCompatActivity{
 
-    public static final String PREFERENCES = "com.raspi.chatapp.MainActivity.PREFERENCES";
-    public static final String CONN_TIMEOUT = "com.raspi.chatapp.MainActivity.CONN_TIMEOUT";
-    public static final String RECONNECT = "com.raspi.chatapp.MainActivity.RECONNECT";
+    public static final String PREFERENCES = "com.raspi.chatapp.activities.MainActivity.PREFERENCES";
+    public static final String CONN_TIMEOUT = "com.raspi.chatapp.activities.MainActivity.CONN_TIMEOUT";
+    public static final String RECONNECT = "com.raspi.chatapp.activities.MainActivity.RECONNECT";
     public static final String APP_CREATED = "con.raspi.chatapp.MainActivity.APP_CREATED";
     public static final String APP_DESTROYED = "con.raspi.chatapp.MainActivity.APP_DESTROYED";
-    public static final String BUDDY_ID = "com.raspi.chatapp.MainActivity.BUDDY_ID";
-    public static final String CHAT_NAME = "com.raspi.chatapp.MainActivity.CHAT_NAME";
-    public static final String MESSAGE_BODY = "com.raspi.chatapp.MainActivity.MESSAGE_BODY";
-    public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.MainActivity.RECEIVE_MESSAGE";
-    public static final String CONN_ESTABLISHED = "com.raspi.chatapp.MainActivity.CONN_ESTABLISHED";
+    public static final String BUDDY_ID = "com.raspi.chatapp.activities.MainActivity.BUDDY_ID";
+    public static final String CHAT_NAME = "com.raspi.chatapp.activities.MainActivity.CHAT_NAME";
+    public static final String MESSAGE_BODY = "com.raspi.chatapp.activities.MainActivity.MESSAGE_BODY";
+    public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.activities.MainActivity.RECEIVE_MESSAGE";
+    public static final String CONN_ESTABLISHED = "com.raspi.chatapp.activities.MainActivity.CONN_ESTABLISHED";
     public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
 
     //private MessageReceiver messageReceiver;
@@ -63,7 +66,8 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState){
         Intent CallingIntent = getIntent();
-        if (CallingIntent!= null && CallingIntent.getAction() == MyNotification.NOTIFICATION_CLICK){
+        if (CallingIntent != null && CallingIntent.getAction().equals(MyNotification
+                .NOTIFICATION_CLICK)){
             Bundle extras = CallingIntent.getExtras();
             if (extras != null && extras.containsKey(BUDDY_ID) && extras.containsKey(CHAT_NAME)){
                 Intent intent = new Intent(this, ChatActivity.class);

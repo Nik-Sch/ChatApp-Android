@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/chat_list_entry"
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp">
+    <TextView
+        android:id="@+id/chat_list_entry_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This is a very long name which is too long"
+        android:singleLine="true"
+        android:layout_toLeftOf="@+id/chat_list_entry_status"
+        android:layout_toStartOf="@+id/chat_list_entry_status"
+        android:textColor="@android:color/black"
+        android:textSize="25sp"/>
+
+    <ImageView
+        android:id="@+id/chat_list_entry_status"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/haken_tmp"
+        android:layout_toLeftOf="@+id/chat_list_entry_time"
+        android:layout_toStartOf="@+id/chat_list_entry_time"
+        android:layout_marginLeft="5dp"
+        android:paddingLeft="2.5dp"
+        android:paddingRight="2.5dp"
+        android:layout_marginRight="5dp"/>
+
+    <TextView
+        android:id="@+id/chat_list_entry_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00.00.0000"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@+id/chat_list_entry_status"/>
+
+    <TextView
+        android:id="@+id/chat_list_entry_mess"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/chat_list_entry_name"
+        android:singleLine="true"
+        android:text="This is an example for a very very very long message that will never end"
+        android:textSize="15sp"/>
+</RelativeLayout>

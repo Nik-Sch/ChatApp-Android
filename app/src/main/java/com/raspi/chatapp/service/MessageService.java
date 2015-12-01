@@ -8,10 +8,10 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.raspi.chatapp.Globals;
-import com.raspi.chatapp.MainActivity;
-import com.raspi.chatapp.MyNotification;
-import com.raspi.chatapp.XmppManager;
+import com.raspi.chatapp.util.Globals;
+import com.raspi.chatapp.util.MyNotification;
+import com.raspi.chatapp.util.XmppManager;
+import com.raspi.chatapp.activities.MainActivity;
 
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;

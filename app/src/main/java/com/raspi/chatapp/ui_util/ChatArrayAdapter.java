@@ -1,4 +1,4 @@
-package com.raspi.chatapp.single_chat;
+package com.raspi.chatapp.ui_util;
 
 import android.content.Context;
 import android.view.Gravity;
@@ -47,7 +47,7 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage>{
             v = inflater.inflate(R.layout.chat, parent, false);
         }
 
-        layout = (RelativeLayout) v.findViewById(R.id.chat_messages);
+        layout = (RelativeLayout) v.findViewById(R.id.chat_message);
         ChatMessage msgObj = getItem(position);
 
         chatText = (TextView) v.findViewById(R.id.chat_singleMessage);
@@ -59,13 +59,5 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage>{
         layout.setGravity(msgObj.left ? Gravity.LEFT : Gravity.RIGHT);
 
         return v;
-    }
-
-    public boolean saveToFile(File file){
-        return true;
-    }
-
-    public boolean loadFromFile(File file){
-        return true;
     }
 }

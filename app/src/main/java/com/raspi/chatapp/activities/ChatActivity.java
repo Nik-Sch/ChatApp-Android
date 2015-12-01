@@ -1,9 +1,8 @@
-package com.raspi.chatapp.single_chat;
+package com.raspi.chatapp.activities;
 
 import android.content.Intent;
 import android.database.DataSetObserver;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -13,10 +12,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import com.raspi.chatapp.Globals;
-import com.raspi.chatapp.MainActivity;
+import com.raspi.chatapp.ui_util.ChatArrayAdapter;
+import com.raspi.chatapp.ui_util.ChatMessage;
+import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.XmppManager;
+import com.raspi.chatapp.util.XmppManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

@@ -15,12 +15,13 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
 
     public void createMessageTable(String tableName){
         getWritableDatabase().execSQL("CREATE TABLE IF NOT EXISTS " + tableName + " (" +
-                MessageHistoryContract
-                .COLUMN_NAME_MESSAGE_ID + " INTEGER PRIMARY KEY, " + MessageHistoryContract
-                .COLUMN_NAME_BUDDY_ID + " TEXT, " + MessageHistoryContract
-                .COLUMN_NAME_MESSAGE_TYPE + " TEXT, " + MessageHistoryContract
-                .COLUMN_NAME_MESSAGE_CONTENT + " TEXT, " + MessageHistoryContract
-                .COLUMN_NAME_MESSAGE_STATUS + " TEXT, " + MessageHistoryContract
+                MessageHistoryContract.MessageEntry
+                        ._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + MessageHistoryContract
+                .MessageEntry
+                .COLUMN_NAME_BUDDY_ID + " TEXT, " + MessageHistoryContract.MessageEntry
+                .COLUMN_NAME_MESSAGE_TYPE + " TEXT, " + MessageHistoryContract.MessageEntry
+                .COLUMN_NAME_MESSAGE_CONTENT + " TEXT, " + MessageHistoryContract.MessageEntry
+                .COLUMN_NAME_MESSAGE_STATUS + " TEXT, " + MessageHistoryContract.MessageEntry
                 .COLUMN_NAME_MESSAGE_TIMESTAMP + " INTEGER)");
     }
 
@@ -36,9 +37,10 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db){
-        getWritableDatabase().execSQL("CREATE TABLE " + MessageHistoryContract
-                .TABLE_NAME_ALL_CHATS + " (" + MessageHistoryContract
-                .COLUMN_NAME_BUDDY_ID + "TEXT PRIMARY KEY, " + MessageHistoryContract
+        getWritableDatabase().execSQL("CREATE TABLE IF NOT EXISTS" + MessageHistoryContract.ChatEntry
+                .TABLE_NAME_ALL_CHATS + " (" + MessageHistoryContract.ChatEntry
+                ._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + MessageHistoryContract.ChatEntry
+                .COLUMN_NAME_BUDDY_ID + "TEXT UNIQUE KEY, " + MessageHistoryContract.ChatEntry
                 .COLUMN_NAME_NAME + " TEXT)");
     }
 }

@@ -1,4 +1,4 @@
-package com.raspi.chatapp.single_chat;
+package com.raspi.chatapp.ui_util;
 
 public class ChatMessage{
     boolean left;

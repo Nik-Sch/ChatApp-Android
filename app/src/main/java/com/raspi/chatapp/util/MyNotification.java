@@ -1,4 +1,4 @@
-package com.raspi.chatapp;
+package com.raspi.chatapp.util;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,7 +11,9 @@ import android.media.RingtoneManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.raspi.chatapp.single_chat.ChatActivity;
+import com.raspi.chatapp.R;
+import com.raspi.chatapp.activities.MainActivity;
+import com.raspi.chatapp.activities.ChatActivity;
 
 import org.json.JSONArray;
 
@@ -19,11 +21,11 @@ import java.util.Arrays;
 
 public class MyNotification{
     public static final int NOTIFICATION_ID = 42;
-    public static final String NOTIFICATION_CLICK = "com.raspi.chatapp.MyNotification" +
+    public static final String NOTIFICATION_CLICK = "com.raspi.chatapp.util.MyNotification" +
             ".NOTIFICATION_CLICK";
-    public static final String NOTIFICATION_OLD_BUDDY = "com.raspi.chatapp.MyNotification" +
+    public static final String NOTIFICATION_OLD_BUDDY = "com.raspi.chatapp.util.MyNotification" +
             ".NOTIFICATION_OLD_BUDDY";
-    public static final String CURRENT_NOTIFICATIONS = "com.raspi.chatapp.MyNotification" +
+    public static final String CURRENT_NOTIFICATIONS = "com.raspi.chatapp.util.MyNotification" +
             ".CURRENT_NOTIFICATIONS";
 
     Context context;
@@ -37,7 +39,7 @@ public class MyNotification{
         Intent resultIntent = new Intent(context, MainActivity.class);
         resultIntent.setAction(NOTIFICATION_CLICK);
         String oldBuddyId = getOldBuddyId();
-        Log.d("DEBUG", (oldBuddyId == null)?("oldBuddy is null (later " + buddyId):("oldBuddy: " +
+        Log.d("DEBUG", (oldBuddyId == null) ? ("oldBuddy is null (later " + buddyId) : ("oldBuddy: " +
                 oldBuddyId));
         if (oldBuddyId == null || oldBuddyId.equals("")){
             oldBuddyId = buddyId;
@@ -67,7 +69,7 @@ public class MyNotification{
                 inboxStyle.addLine(s);
         inboxStyle.setSummaryText((currentNotifications.length > 2) ? ("+" + (currentNotifications
                 .length - 2) + " more") : null);
-        inboxStyle.setBigContentTitle((currentNotifications.length > 1)?"New messages":"New " +
+        inboxStyle.setBigContentTitle((currentNotifications.length > 1) ? "New messages" : "New " +
                 "message");
         writeJSONArray(currentNotifications, CURRENT_NOTIFICATIONS);
 

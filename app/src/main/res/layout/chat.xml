@@ -1,40 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    android:id="@+id/chat_message"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
 
-    <RelativeLayout
-        android:id="@+id/chat_messages"
-        android:layout_width="fill_parent"
-        android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/chat_singleMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="5dp"
+        android:background="@drawable/bubble_b1"
+        android:paddingBottom="6dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="45dp"
+        android:paddingTop="9dp"
+        android:text="Hello World"
+        android:textColor="@android:color/black"
+        android:textSize="@dimen/font_size"/>
 
-        <TextView
-            android:id="@+id/chat_singleMessage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="5dp"
-            android:paddingLeft="5dp"
-            android:paddingRight="45dp"
-            android:paddingTop="9dp"
-            android:paddingBottom="6dp"
-            android:background="@drawable/bubble_b1"
-            android:text="Hello World"
-            android:textSize="@dimen/font_size"
-            android:textColor="@android:color/black"/>
+    <TextView
+        android:id="@+id/chat_timeStamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/chat_singleMessage"
+        android:layout_alignEnd="@+id/chat_singleMessage"
+        android:layout_alignRight="@+id/chat_singleMessage"
+        android:paddingBottom="3dp"
+        android:paddingRight="3dp"
+        android:text="00:00"
+        android:textColor="@color/colorTimeStamp"/>
 
-        <TextView
-            android:id="@+id/chat_timeStamp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="00:00"
-            android:textColor="@color/colorTimeStamp"
-            android:paddingRight="3dp"
-            android:paddingBottom="3dp"
-            android:layout_alignEnd="@+id/chat_singleMessage"
-            android:layout_alignRight="@+id/chat_singleMessage"
-            android:layout_alignBottom="@+id/chat_singleMessage"/>
-
-    </RelativeLayout>
-
-</LinearLayout>
+</RelativeLayout>
