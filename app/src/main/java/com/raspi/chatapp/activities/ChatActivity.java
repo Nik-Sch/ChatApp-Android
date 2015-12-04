@@ -12,6 +12,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.sqlite.MessageHistoryContract;
 import com.raspi.chatapp.ui_util.ChatArrayAdapter;
 import com.raspi.chatapp.ui_util.ChatMessage;
 import com.raspi.chatapp.util.Globals;
@@ -23,11 +25,13 @@ import java.util.Date;
 import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity{
+    private static final int MESSAGE_LIMIT = 30;
 
     private String buddyId;
     private String chatName;
 
     private ChatArrayAdapter caa;
+    private MessageHistory messageHistory;
 
     private ListView listView;
     private EditText textIn;
@@ -56,6 +60,7 @@ public class ChatActivity extends AppCompatActivity{
             }
         }
         getSupportActionBar().setTitle((chatName != null) ? chatName : buddyId);
+        messageHistory = new MessageHistory(this);
 
         initUI();
     }
@@ -84,6 +89,7 @@ public class ChatActivity extends AppCompatActivity{
                 listView.setSelection(caa.getCount() - 1);
             }
         });
+        messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
     }
 
     private void sendMessage(String message){
@@ -91,13 +97,15 @@ public class ChatActivity extends AppCompatActivity{
 
         if (xmppManager != null && xmppManager.isConnected()){
             xmppManager.sendMessage(message, buddyId);
-            Log.d("DEBUG", "Success: Sent message");
         } else
             Log.e("ERROR", "There was an error with the connection while sending a message.");
 
         SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
         caa.add(new ChatMessage(false, message, df.format(new Date())));
         textIn.setText("");
+//        messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
+//                .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
+//                MessageHistory.STATUS_WAITING);
     }
 
 }

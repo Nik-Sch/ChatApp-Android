@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.raspi.chatapp.sqlite.MessageHistory;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.MyNotification;
 import com.raspi.chatapp.util.XmppManager;
@@ -22,16 +23,19 @@ import org.jivesoftware.smack.roster.Roster;
 
 public class MessageService extends Service{
 
-    private static final String server = "raspi-server.mooo.com";
+    private static final String server = "192.168.2.116";
     private static final String service = "raspi-server.mooo.com";
     private static final int port = 5222;
+
     XmppManager xmppManager = null;
+    MessageHistory messageHistory;
     private boolean isAppRunning = false;
 
     @Override
     public void onCreate(){
         super.onCreate();
         Log.d("DEBUG", "MessageService created.");
+        messageHistory = new MessageHistory(this);
     }
 
     @Override
@@ -137,11 +141,11 @@ public class MessageService extends Service{
     }
 
     private String getUserName(){
-        return "niklas";
+        return getSharedPreferences(MainActivity.PREFERENCES, 0).getString(MainActivity.USERNAME, "");
     }
 
     private String getPassword(){
-        return "passwNiklas";
+        return getSharedPreferences(MainActivity.PREFERENCES, 0).getString(MainActivity.PASSWORD, "");
     }
 
     @Override
@@ -177,6 +181,8 @@ public class MessageService extends Service{
                     .putExtra(MainActivity.MESSAGE_BODY, msg);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(msgIntent);
             new MyNotification(getApplicationContext()).createNotification(buddyId, name, message.getBody());
+            messageHistory.addMessage(buddyId, buddyId, MessageHistory.TYPE_TEXT, msg,
+                    MessageHistory.STATUS_WAITING);
         }
     }
 

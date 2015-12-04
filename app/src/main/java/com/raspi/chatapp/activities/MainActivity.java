@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -18,12 +19,12 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.raspi.chatapp.util.Globals;
-import com.raspi.chatapp.util.MyNotification;
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.XmppManager;
 import com.raspi.chatapp.service.MessageService;
 import com.raspi.chatapp.ui_util.RosterArrayAdapter;
+import com.raspi.chatapp.util.Globals;
+import com.raspi.chatapp.util.MyNotification;
+import com.raspi.chatapp.util.XmppManager;
 
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
@@ -31,6 +32,8 @@ import org.jivesoftware.smack.roster.RosterEntry;
 public class MainActivity extends AppCompatActivity{
 
     public static final String PREFERENCES = "com.raspi.chatapp.activities.MainActivity.PREFERENCES";
+    public static final String USERNAME = "com.raspi.chatapp.activities.MainActivity.USERNAME";
+    public static final String PASSWORD = "com.raspi.chatapp.activities.MainActivity.PASSWORD";
     public static final String CONN_TIMEOUT = "com.raspi.chatapp.activities.MainActivity.CONN_TIMEOUT";
     public static final String RECONNECT = "com.raspi.chatapp.activities.MainActivity.RECONNECT";
     public static final String APP_CREATED = "con.raspi.chatapp.MainActivity.APP_CREATED";
@@ -82,8 +85,7 @@ public class MainActivity extends AppCompatActivity{
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //signal the service that the app is running
-        this.startService(new Intent(this, MessageService.class).setAction(APP_CREATED));
+        setUserPwd();
 
         //UI:
         raa = new RosterArrayAdapter(this, R.layout.roster);
@@ -113,6 +115,9 @@ public class MainActivity extends AppCompatActivity{
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
                 (MyNotification.NOTIFICATION_ID);
         new MyNotification(this).reset();
+
+        //signal the service that the app is running
+        this.startService(new Intent(this, MessageService.class).setAction(APP_CREATED));
     }
 
     @Override
@@ -151,6 +156,15 @@ public class MainActivity extends AppCompatActivity{
     public void onAddChatClick(MenuItem menuItem){
         Intent intent = new Intent(this, AddChatActivity.class);
         startActivity(intent);
+    }
+
+    private void setUserPwd(){
+        SharedPreferences preferences = getSharedPreferences(PREFERENCES, 0);
+        //if (!preferences.contains(USERNAME))
+            preferences.edit().putString(USERNAME, "niklas").apply();
+
+        //if (!preferences.contains(PASSWORD))
+            preferences.edit().putString(PASSWORD, "passwNiklas").apply();
     }
 
     //receiving boot intents

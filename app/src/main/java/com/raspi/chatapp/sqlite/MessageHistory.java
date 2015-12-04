@@ -10,9 +10,18 @@ import android.util.Log;
 import java.util.Date;
 
 public class MessageHistory{
+    public static final String TYPE_TEXT = "com.raspi.sqlite.MessageHistory.TYPE_TEXT";
+    public static final String TYPE_IMAGE = "com.raspi.sqlite.MessageHistory.TYPE_IMAGE";
+
+    public static final String STATUS_WAITING = "com.raspi.sqlite.MessageHistory.STATUS_WAITING";
+    public static final String STATUS_SENT = "com.raspi.sqlite.MessageHistory.STATUS_SENT";
+    public static final String STATUS_RECEIVED = "com.raspi.sqlite.MessageHistory.STATUS_RECEIVED";
+    public static final String STATUS_READ = "com.raspi.sqlite.MessageHistory.STATUS_READ";
+
     MessageHistoryDbHelper mDbHelper;
 
     public MessageHistory(Context context){
+        Log.d("DEBUG", "Creating MessageHistory");
         mDbHelper = new MessageHistoryDbHelper(context);
     }
 
