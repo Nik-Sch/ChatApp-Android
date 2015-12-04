@@ -7,6 +7,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MessageHistoryDbHelper extends SQLiteOpenHelper{
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "MessageHistory.db";
+    private static final String CREATE_ALL_CHATS = "CREATE TABLE IF NOT EXISTS " +
+            MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS + " (" + MessageHistoryContract
+            .ChatEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + MessageHistoryContract
+            .ChatEntry.COLUMN_NAME_BUDDY_ID + " TEXT UNIQUE, " + MessageHistoryContract
+            .ChatEntry
+            .COLUMN_NAME_NAME + " TEXT)";
 
 
     public MessageHistoryDbHelper(Context context){
@@ -37,10 +43,6 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
 
     @Override
     public void onCreate(SQLiteDatabase db){
-        getWritableDatabase().execSQL("CREATE TABLE IF NOT EXISTS" + MessageHistoryContract.ChatEntry
-                .TABLE_NAME_ALL_CHATS + " (" + MessageHistoryContract.ChatEntry
-                ._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + MessageHistoryContract.ChatEntry
-                .COLUMN_NAME_BUDDY_ID + "TEXT UNIQUE KEY, " + MessageHistoryContract.ChatEntry
-                .COLUMN_NAME_NAME + " TEXT)");
+        db.execSQL(CREATE_ALL_CHATS);
     }
 }

@@ -4,14 +4,11 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.DataSetObserver;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,13 +18,10 @@ import android.widget.ListView;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.service.MessageService;
-import com.raspi.chatapp.ui_util.RosterArrayAdapter;
-import com.raspi.chatapp.util.Globals;
+import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.ui_util.ChatArrayAdapter;
+import com.raspi.chatapp.ui_util.ChatEntry;
 import com.raspi.chatapp.util.MyNotification;
-import com.raspi.chatapp.util.XmppManager;
-
-import org.jivesoftware.smack.roster.Roster;
-import org.jivesoftware.smack.roster.RosterEntry;
 
 public class MainActivity extends AppCompatActivity{
 
@@ -46,14 +40,14 @@ public class MainActivity extends AppCompatActivity{
     public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
 
     //private MessageReceiver messageReceiver;
-    private RosterArrayAdapter raa;
+    private ChatArrayAdapter caa;
     private ListView lv;
 
+/*
     private BroadcastReceiver onConnectionEstablished = new BroadcastReceiver(){
         @Override
         public void onReceive(Context context, Intent intent){
             XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
-            Log.d("DEBUG", "this is after the connection is established");
             if (xmppManager != null){
                 Roster roster = xmppManager.getRoster();
                 if (roster != null){
@@ -65,6 +59,7 @@ public class MainActivity extends AppCompatActivity{
                 Log.e("ERROR", "There was an error while receiving the roster");
         }
     };
+*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -87,30 +82,9 @@ public class MainActivity extends AppCompatActivity{
 
         setUserPwd();
 
-        //UI:
-        raa = new RosterArrayAdapter(this, R.layout.roster);
-        lv = (ListView) findViewById(R.id.main_listview);
-        lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-                RosterEntry ri = raa.getItem(position);
-                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-                intent.putExtra(BUDDY_ID, ri.getUser());
-                intent.putExtra(CHAT_NAME, ri.getName());
-                startActivity(intent);
-            }
-        });
-        lv.setAdapter(raa);
-        raa.registerDataSetObserver(new DataSetObserver(){
-            @Override
-            public void onChanged(){
-                super.onChanged();
-                lv.setSelection(raa.getCount() - 1);
-            }
-        });
-        LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionEstablished, new
-                IntentFilter(CONN_ESTABLISHED));
+        initUI();
+//        LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionEstablished, new
+//                IntentFilter(CONN_ESTABLISHED));
 
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
                 (MyNotification.NOTIFICATION_ID);
@@ -118,6 +92,34 @@ public class MainActivity extends AppCompatActivity{
 
         //signal the service that the app is running
         this.startService(new Intent(this, MessageService.class).setAction(APP_CREATED));
+    }
+
+    private void initUI(){
+        caa = new ChatArrayAdapter(this, R.layout.chat_list_entry);
+        lv = (ListView) findViewById(R.id.main_listview);
+        lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                ChatEntry chatEntry = caa.getItem(position);
+                Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
+                intent.putExtra(BUDDY_ID, chatEntry.buddyId);
+                intent.putExtra(CHAT_NAME, chatEntry.name);
+                startActivity(intent);
+            }
+        });
+        lv.setAdapter(caa);
+        MessageHistory messageHistory = new MessageHistory(this);
+        ChatEntry[] entries = messageHistory.getChats();
+        for (ChatEntry entry : entries)
+            caa.add(entry);
+        caa.registerDataSetObserver(new DataSetObserver(){
+            @Override
+            public void onChanged(){
+                super.onChanged();
+                lv.setSelection(caa.getCount() - 1);
+            }
+        });
     }
 
     @Override
@@ -161,10 +163,10 @@ public class MainActivity extends AppCompatActivity{
     private void setUserPwd(){
         SharedPreferences preferences = getSharedPreferences(PREFERENCES, 0);
         //if (!preferences.contains(USERNAME))
-            preferences.edit().putString(USERNAME, "niklas").apply();
+        preferences.edit().putString(USERNAME, "niklas").apply();
 
         //if (!preferences.contains(PASSWORD))
-            preferences.edit().putString(PASSWORD, "passwNiklas").apply();
+        preferences.edit().putString(PASSWORD, "passwNiklas").apply();
     }
 
     //receiving boot intents

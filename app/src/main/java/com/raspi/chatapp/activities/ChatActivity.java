@@ -13,8 +13,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.raspi.chatapp.sqlite.MessageHistory;
-import com.raspi.chatapp.sqlite.MessageHistoryContract;
-import com.raspi.chatapp.ui_util.ChatArrayAdapter;
+import com.raspi.chatapp.ui_util.MessageArrayAdapter;
 import com.raspi.chatapp.ui_util.ChatMessage;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.R;
@@ -30,7 +29,7 @@ public class ChatActivity extends AppCompatActivity{
     private String buddyId;
     private String chatName;
 
-    private ChatArrayAdapter caa;
+    private MessageArrayAdapter caa;
     private MessageHistory messageHistory;
 
     private ListView listView;
@@ -66,7 +65,7 @@ public class ChatActivity extends AppCompatActivity{
     }
 
     private void initUI(){
-        caa = new ChatArrayAdapter(this, R.layout.chat);
+        caa = new MessageArrayAdapter(this, R.layout.chat);
 
         listView = (ListView) findViewById(R.id.chat_listview);
         textIn = (EditText) findViewById(R.id.chat_in);

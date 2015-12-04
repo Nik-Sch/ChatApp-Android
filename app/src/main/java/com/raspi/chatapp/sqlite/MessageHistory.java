@@ -7,7 +7,12 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.raspi.chatapp.ui_util.ChatEntry;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 public class MessageHistory{
     public static final String TYPE_TEXT = "com.raspi.sqlite.MessageHistory.TYPE_TEXT";
@@ -25,13 +30,56 @@ public class MessageHistory{
         mDbHelper = new MessageHistoryDbHelper(context);
     }
 
-    public Cursor getChats(){
+    public ChatEntry[] getChats(){
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
-        return db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS, new
+        Cursor chats = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS, new
                         String[]{MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID,
                         MessageHistoryContract.ChatEntry
                                 .COLUMN_NAME_NAME},
                 null, null, null, null, null);
+        int chatCount = chats.getColumnCount();
+        ChatEntry[] resultChats = new ChatEntry[chatCount];
+        int i = 0;
+        while (chats.move(1)){
+            String buddyId = chats.getString(0);
+            String name = chats.getString(1);
+
+            String[] columns = new String[]{
+                    MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
+                    MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
+                    MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
+                    MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
+                    MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
+            };
+            Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
+                    MessageHistoryContract.MessageEntry
+                    .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", " LIMIT 1");
+
+            String lastMessageStatus = lastMessage.getString(3);
+            Date msgTime = new Date(lastMessage.getLong(4));
+            Calendar startOfDay = Calendar.getInstance();
+            startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+            startOfDay.set(Calendar.MINUTE, 0);
+            startOfDay.set(Calendar.SECOND, 0);
+            startOfDay.set(Calendar.MILLISECOND, 0);
+            long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
+            String lastMessageDate;
+            if (diff <= 0)
+                lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+            else if (diff > 1000 * 60 * 60 * 24)
+                lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                        (msgTime);
+            else
+                lastMessageDate = new SimpleDateFormat("Yesterday", Locale.GERMANY).format(msgTime);
+            String lastMessageMessage = lastMessage.getString(2);
+            //TODO do something with the types and who send the message...
+
+            resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
+                    lastMessageMessage);
+            i++;
+        }
+
+        return resultChats;
     }
 
     public void addChat(String buddyId, String name){

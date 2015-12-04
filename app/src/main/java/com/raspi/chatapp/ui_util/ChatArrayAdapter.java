@@ -1,43 +1,37 @@
 package com.raspi.chatapp.ui_util;
 
 import android.content.Context;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatArrayAdapter extends ArrayAdapter<ChatMessage>{
-
-    private TextView chatText;
-    private TextView chatTime;
-    private List<ChatMessage> MessageList = new ArrayList<ChatMessage>();
-    private RelativeLayout layout;
+public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
+    private List<ChatEntry> chatList = new ArrayList<ChatEntry>();
 
     public ChatArrayAdapter(Context context, int textViewResourceId){
         super(context, textViewResourceId);
     }
 
     @Override
-    public void add(ChatMessage chatMessage){
-        MessageList.add(chatMessage);
+    public void add(ChatEntry chatEntry){
+        chatList.add(chatEntry);
         notifyDataSetChanged();
     }
 
     public int getCount(){
-        return MessageList.size();
+        return chatList.size();
     }
 
-    public ChatMessage getItem(int i){
-        return MessageList.get(i);
+    public ChatEntry getItem(int i){
+        return chatList.get(i);
     }
 
     public View getView(int position, View ConvertView, ViewGroup parent){
@@ -47,16 +41,16 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage>{
             v = inflater.inflate(R.layout.chat, parent, false);
         }
 
-        layout = (RelativeLayout) v.findViewById(R.id.chat_message);
-        ChatMessage msgObj = getItem(position);
+        ChatEntry chatObj = getItem(position);
 
-        chatText = (TextView) v.findViewById(R.id.chat_singleMessage);
-        chatText.setText(msgObj.message);
-        chatTime = (TextView) v.findViewById(R.id.chat_timeStamp);
-        chatTime.setText(msgObj.time);
-        chatText.setBackgroundResource(msgObj.left ? R.drawable.bubble_a1 : R.drawable.bubble_b1);
-
-        layout.setGravity(msgObj.left ? Gravity.LEFT : Gravity.RIGHT);
+        TextView name = (TextView) v.findViewById(R.id.chat_list_entry_name);
+        name.setText(chatObj.name);
+        TextView time = (TextView) v.findViewById(R.id.chat_list_entry_time);
+        time.setText(chatObj.lastMessageDate);
+        TextView msg = (TextView) v.findViewById(R.id.chat_list_entry_mess);
+        msg.setText(chatObj.lastMessageMessage);
+        ImageView status = (ImageView) v.findViewById(R.id.chat_list_entry_status);
+        status.setImageResource(R.drawable.haken_tmp);
 
         return v;
     }
