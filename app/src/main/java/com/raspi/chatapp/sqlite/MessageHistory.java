@@ -26,11 +26,11 @@ public class MessageHistory{
     MessageHistoryDbHelper mDbHelper;
 
     public MessageHistory(Context context){
-        Log.d("DEBUG", "Creating MessageHistory");
         mDbHelper = new MessageHistoryDbHelper(context);
     }
 
     public ChatEntry[] getChats(){
+        Log.d("DATABASE", "Getting chats");
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
         Cursor chats = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS, new
                         String[]{MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID,
@@ -40,9 +40,11 @@ public class MessageHistory{
         int chatCount = chats.getColumnCount();
         ChatEntry[] resultChats = new ChatEntry[chatCount];
         int i = 0;
-        while (chats.move(1)){
+        chats.moveToFirst();
+        do{
             String buddyId = chats.getString(0);
             String name = chats.getString(1);
+            Log.d("DATABASE", "retrieving entry: " + buddyId + " - " + name);
 
             String[] columns = new String[]{
                     MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
@@ -53,38 +55,52 @@ public class MessageHistory{
             };
             Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
                     MessageHistoryContract.MessageEntry
-                    .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", " LIMIT 1");
+                    .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", "1");
+            lastMessage.moveToFirst();
 
-            String lastMessageStatus = lastMessage.getString(3);
-            Date msgTime = new Date(lastMessage.getLong(4));
-            Calendar startOfDay = Calendar.getInstance();
-            startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-            startOfDay.set(Calendar.MINUTE, 0);
-            startOfDay.set(Calendar.SECOND, 0);
-            startOfDay.set(Calendar.MILLISECOND, 0);
-            long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
-            String lastMessageDate;
-            if (diff <= 0)
-                lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
-            else if (diff > 1000 * 60 * 60 * 24)
-                lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                        (msgTime);
-            else
-                lastMessageDate = new SimpleDateFormat("Yesterday", Locale.GERMANY).format(msgTime);
-            String lastMessageMessage = lastMessage.getString(2);
-            //TODO do something with the types and who send the message...
+            String lastMessageStatus = "";
+            String lastMessageDate = "";
+            String lastMessageMessage = "";
+            if (lastMessage.moveToFirst()){
+                lastMessageStatus = lastMessage.getString(3);
+                Date msgTime = new Date(lastMessage.getLong(4));
+                Calendar startOfDay = Calendar.getInstance();
+                startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+                startOfDay.set(Calendar.MINUTE, 0);
+                startOfDay.set(Calendar.SECOND, 0);
+                startOfDay.set(Calendar.MILLISECOND, 0);
+                long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
+                if (diff <= 0)
+                    lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+                else if (diff > 1000 * 60 * 60 * 24)
+                    lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                            (msgTime);
+                else
+                    lastMessageDate = new SimpleDateFormat("Yesterday", Locale.GERMANY).format(msgTime);
+                lastMessageMessage = lastMessage.getString(2);
+                //TODO do something with the types and who send the message...
 
+            }
             resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
                     lastMessageMessage);
             i++;
-        }
+        } while (chats.move(1));
 
         return resultChats;
     }
 
     public void addChat(String buddyId, String name){
+        Log.d("DATABASE", "Adding a chat: " + buddyId + " - " + name);
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
+        //remove everything after @ if it exists
+        int index = buddyId.indexOf('@');
+        if (index >= 0){
+            buddyId = buddyId.substring(0, index);
+        }
+        index = name.indexOf('@');
+        if (index >= 0){
+            name = name.substring(0, index);
+        }
         ContentValues values = new ContentValues();
         values.put(MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID, buddyId);
         values.put(MessageHistoryContract.ChatEntry.COLUMN_NAME_NAME, name);
@@ -92,7 +108,7 @@ public class MessageHistory{
             db.insertOrThrow(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS,
                     MessageHistoryContract.ChatEntry._ID, values);
         } catch (SQLException e){
-            Log.d("DB_DEBUG", "Couldn't insert --> is already inserted.");
+            Log.d("DATABASE", "Couldn't insert --> is already inserted.");
             return;
         } catch (Exception e){
             Log.e("ERROR", "got an error while inserting a row into " + MessageHistoryContract
@@ -106,7 +122,8 @@ public class MessageHistory{
         return getMessages(buddyId, limit, 0);
     }
 
-    public Cursor getMessages(String buddyId, int amount, int limit){
+    public Cursor getMessages(String buddyId, int amount, int offset){
+        Log.d("DATABASE", "Getting messages");
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
         String[] columns = new String[]{
                 MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
@@ -116,12 +133,22 @@ public class MessageHistory{
                 MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
         };
         return db.query(buddyId, columns, null, null, null, null, MessageHistoryContract.MessageEntry
-                .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", " LIMIT " + amount + " OFFSET " + limit);
+                .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", offset + "," + amount);
     }
 
     public void addMessage(String chatId, String buddyId, String type, String content, String
             status){
+        Log.d("DATABASE", "Adding a message");
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        //remove everything after @ if it exists
+        int index = buddyId.indexOf('@');
+        if (index >= 0){
+            buddyId = buddyId.substring(0, index);
+        }
+        index = chatId.indexOf('@');
+        if (index >= 0){
+            chatId = chatId.substring(0, index);
+        }
 
         ContentValues values = new ContentValues();
         values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID, buddyId);

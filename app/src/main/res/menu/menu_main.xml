@@ -1,8 +1,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" android:onClick="onSettingsClick"/>
-    <item android:id="@+id/action_add_chat" android:title="@string/action_add_chat"
-        android:orderInCategory="1" app:showAsAction="never" android:onClick="onAddChatClick"/>
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_settings"
+        android:onClick="onSettingsClick"
+        android:orderInCategory="3"
+        android:title="@string/action_settings"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_add_chat"
+        android:onClick="onAddChatClick"
+        android:orderInCategory="2"
+        android:title="@string/action_add_chat"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_db_manager"
+        android:onClick="onDatabaseDebug"
+        android:orderInCategory="1"
+        android:title="@string/action_database_debug"
+        app:showAsAction="never"/>
 </menu>

@@ -9,15 +9,18 @@ import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.service.MessageService;
+import com.raspi.chatapp.sqlite.AndroidDatabaseManager;
 import com.raspi.chatapp.sqlite.MessageHistory;
 import com.raspi.chatapp.ui_util.ChatArrayAdapter;
 import com.raspi.chatapp.ui_util.ChatEntry;
@@ -111,8 +114,14 @@ public class MainActivity extends AppCompatActivity{
         lv.setAdapter(caa);
         MessageHistory messageHistory = new MessageHistory(this);
         ChatEntry[] entries = messageHistory.getChats();
-        for (ChatEntry entry : entries)
-            caa.add(entry);
+        for (ChatEntry entry : entries){
+            if (entry != null){
+                Log.d("DEBUG", "adding entry to view: " + entry);
+                caa.add(entry);
+            } else {
+                Log.d("DEBUG", "a null entry");
+            }
+        }
         caa.registerDataSetObserver(new DataSetObserver(){
             @Override
             public void onChanged(){
@@ -157,6 +166,11 @@ public class MainActivity extends AppCompatActivity{
 
     public void onAddChatClick(MenuItem menuItem){
         Intent intent = new Intent(this, AddChatActivity.class);
+        startActivity(intent);
+    }
+
+    public void onDatabaseDebug(MenuItem menuItem){
+        Intent intent = new Intent(this, AndroidDatabaseManager.class);
         startActivity(intent);
     }
 

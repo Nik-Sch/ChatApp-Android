@@ -23,7 +23,7 @@ import org.jivesoftware.smack.roster.Roster;
 
 public class MessageService extends Service{
 
-    private static final String server = "192.168.2.116";
+    private static final String server = "raspi-server.ddns.net";
     private static final String service = "raspi-server.mooo.com";
     private static final int port = 5222;
 
@@ -181,6 +181,8 @@ public class MessageService extends Service{
                     .putExtra(MainActivity.MESSAGE_BODY, msg);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(msgIntent);
             new MyNotification(getApplicationContext()).createNotification(buddyId, name, message.getBody());
+
+            messageHistory.addChat(buddyId, buddyId);
             messageHistory.addMessage(buddyId, buddyId, MessageHistory.TYPE_TEXT, msg,
                     MessageHistory.STATUS_WAITING);
         }

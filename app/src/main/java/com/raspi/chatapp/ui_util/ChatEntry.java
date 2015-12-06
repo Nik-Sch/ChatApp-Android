@@ -1,8 +1,5 @@
 package com.raspi.chatapp.ui_util;
 
-/**
- * Created by gamer on 12/4/2015.
- */
 public class ChatEntry{
 
     public String buddyId;

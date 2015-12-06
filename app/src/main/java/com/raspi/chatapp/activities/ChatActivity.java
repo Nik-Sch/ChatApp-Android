@@ -102,9 +102,9 @@ public class ChatActivity extends AppCompatActivity{
         SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
         caa.add(new ChatMessage(false, message, df.format(new Date())));
         textIn.setText("");
-//        messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
-//                .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
-//                MessageHistory.STATUS_WAITING);
+        messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
+                .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
+                MessageHistory.STATUS_WAITING);
     }
 
 }

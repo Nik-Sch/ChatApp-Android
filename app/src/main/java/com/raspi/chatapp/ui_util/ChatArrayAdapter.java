@@ -38,20 +38,21 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
         View v = ConvertView;
         if (v == null){
             LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            v = inflater.inflate(R.layout.chat, parent, false);
+            v = inflater.inflate(R.layout.chat_list_entry, parent, false);
         }
 
         ChatEntry chatObj = getItem(position);
 
-        TextView name = (TextView) v.findViewById(R.id.chat_list_entry_name);
-        name.setText(chatObj.name);
-        TextView time = (TextView) v.findViewById(R.id.chat_list_entry_time);
-        time.setText(chatObj.lastMessageDate);
-        TextView msg = (TextView) v.findViewById(R.id.chat_list_entry_mess);
-        msg.setText(chatObj.lastMessageMessage);
-        ImageView status = (ImageView) v.findViewById(R.id.chat_list_entry_status);
-        status.setImageResource(R.drawable.haken_tmp);
-
+        ((TextView) v.findViewById(R.id.chat_list_entry_name)).setText(chatObj.name);
+        if (!chatObj.lastMessageStatus.equals("")){
+            ((TextView) v.findViewById(R.id.chat_list_entry_time)).setText(chatObj.lastMessageDate);
+            ((TextView) v.findViewById(R.id.chat_list_entry_mess)).setText(chatObj.lastMessageMessage);
+            ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageResource(R.drawable.haken_tmp);
+        } else {
+            ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageDrawable(null);
+            ((TextView) v.findViewById(R.id.chat_list_entry_time)).setText("");
+            ((TextView) v.findViewById(R.id.chat_list_entry_mess)).setText("");
+        }
         return v;
     }
 }
