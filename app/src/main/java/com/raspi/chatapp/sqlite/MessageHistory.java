@@ -2,12 +2,15 @@ package com.raspi.chatapp.sqlite;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.raspi.chatapp.activities.MainActivity;
 import com.raspi.chatapp.ui_util.ChatEntry;
+import com.raspi.chatapp.ui_util.ChatMessage;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,9 +27,11 @@ public class MessageHistory{
     public static final String STATUS_READ = "com.raspi.sqlite.MessageHistory.STATUS_READ";
 
     MessageHistoryDbHelper mDbHelper;
+    Context context;
 
     public MessageHistory(Context context){
         mDbHelper = new MessageHistoryDbHelper(context);
+        this.context = context;
     }
 
     public ChatEntry[] getChats(){
@@ -37,7 +42,7 @@ public class MessageHistory{
                         MessageHistoryContract.ChatEntry
                                 .COLUMN_NAME_NAME},
                 null, null, null, null, null);
-        int chatCount = chats.getColumnCount();
+        int chatCount = chats.getCount();
         ChatEntry[] resultChats = new ChatEntry[chatCount];
         int i = 0;
         chats.moveToFirst();
@@ -118,11 +123,11 @@ public class MessageHistory{
         mDbHelper.createMessageTable(buddyId);
     }
 
-    public Cursor getMessages(String buddyId, int limit){
+    public ChatMessage[] getMessages(String buddyId, int limit){
         return getMessages(buddyId, limit, 0);
     }
 
-    public Cursor getMessages(String buddyId, int amount, int offset){
+    public ChatMessage[] getMessages(String buddyId, int amount, int offset){
         Log.d("DATABASE", "Getting messages");
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
         String[] columns = new String[]{
@@ -132,8 +137,28 @@ public class MessageHistory{
                 MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
                 MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
         };
-        return db.query(buddyId, columns, null, null, null, null, MessageHistoryContract.MessageEntry
+        Cursor messages =  db.query(buddyId, columns, null, null, null, null, MessageHistoryContract
+                .MessageEntry
                 .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", offset + "," + amount);
+
+        messages.moveToLast();
+        int messageCount = messages.getCount();
+        ChatMessage[] result = new ChatMessage[messageCount];
+        int i = 0;
+        do{
+            String from = messages.getString(0);
+            SharedPreferences preferences = context.getSharedPreferences(MainActivity
+                    .PREFERENCES, 0);
+            String me = preferences.getString(MainActivity.USERNAME, "");
+            String type = messages.getString(1);
+            String content = messages.getString(2);
+            String status = messages.getString(3);
+            String time = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(messages.getLong(4));
+            result[i] = new ChatMessage(!me.equals(from), content, time);
+            i++;
+        } while (messages.move(-1));
+
+        return result;
     }
 
     public void addMessage(String chatId, String buddyId, String type, String content, String

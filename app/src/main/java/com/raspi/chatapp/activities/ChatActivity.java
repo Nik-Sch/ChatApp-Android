@@ -29,7 +29,7 @@ public class ChatActivity extends AppCompatActivity{
     private String buddyId;
     private String chatName;
 
-    private MessageArrayAdapter caa;
+    private MessageArrayAdapter maa;
     private MessageHistory messageHistory;
 
     private ListView listView;
@@ -65,7 +65,7 @@ public class ChatActivity extends AppCompatActivity{
     }
 
     private void initUI(){
-        caa = new MessageArrayAdapter(this, R.layout.chat);
+        maa = new MessageArrayAdapter(this, R.layout.chat);
 
         listView = (ListView) findViewById(R.id.chat_listview);
         textIn = (EditText) findViewById(R.id.chat_in);
@@ -79,16 +79,16 @@ public class ChatActivity extends AppCompatActivity{
         });
 
         listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-        listView.setAdapter(caa);
+        listView.setAdapter(maa);
 
-        caa.registerDataSetObserver(new DataSetObserver(){
+        maa.registerDataSetObserver(new DataSetObserver(){
             @Override
             public void onChanged(){
                 super.onChanged();
-                listView.setSelection(caa.getCount() - 1);
+                listView.setSelection(maa.getCount() - 1);
             }
         });
-        messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
+        showMessages();
     }
 
     private void sendMessage(String message){
@@ -100,11 +100,17 @@ public class ChatActivity extends AppCompatActivity{
             Log.e("ERROR", "There was an error with the connection while sending a message.");
 
         SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
-        caa.add(new ChatMessage(false, message, df.format(new Date())));
+        maa.add(new ChatMessage(false, message, df.format(new Date())));
         textIn.setText("");
         messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
-                .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
+                        .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
                 MessageHistory.STATUS_WAITING);
+    }
+
+    private void showMessages(){
+        ChatMessage[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
+        for (ChatMessage message : messages)
+            maa.add(message);
     }
 
 }

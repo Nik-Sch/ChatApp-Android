@@ -46,24 +46,6 @@ public class MainActivity extends AppCompatActivity{
     private ChatArrayAdapter caa;
     private ListView lv;
 
-/*
-    private BroadcastReceiver onConnectionEstablished = new BroadcastReceiver(){
-        @Override
-        public void onReceive(Context context, Intent intent){
-            XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
-            if (xmppManager != null){
-                Roster roster = xmppManager.getRoster();
-                if (roster != null){
-                    for (RosterEntry re : roster.getEntries())
-                        raa.add(re);
-                } else
-                    Log.e("ERROR", "There was an error while receiving the roster");
-            } else
-                Log.e("ERROR", "There was an error while receiving the roster");
-        }
-    };
-*/
-
     @Override
     protected void onCreate(Bundle savedInstanceState){
         Intent CallingIntent = getIntent();
@@ -86,8 +68,6 @@ public class MainActivity extends AppCompatActivity{
         setUserPwd();
 
         initUI();
-//        LocalBroadcastManager.getInstance(this).registerReceiver(onConnectionEstablished, new
-//                IntentFilter(CONN_ESTABLISHED));
 
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
                 (MyNotification.NOTIFICATION_ID);

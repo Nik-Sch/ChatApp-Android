@@ -109,18 +109,20 @@ public class XmppManager{
      * @return true if sending was successful
      */
     public boolean sendMessage(String message, String buddyJID){
+        if (buddyJID.indexOf('@') == -1)
+            buddyJID += "@" + service;
         ChatManager chatManager = ChatManager.getInstanceFor(connection);
         if (connection != null && connection.isConnected() && chatManager != null){
             Chat chat = chatManager.createChat(buddyJID);
             try{
                 chat.sendMessage(message);
                 Log.d("DEBUG", "Success: Sent message");
+                return true;
             } catch (Exception e){
                 Log.e("ERROR", "Couldn't send message.");
                 Log.e("ERROR", e.toString());
                 return false;
             }
-            return true;
         }
         Log.e("ERROR", "Sending failed: No connection.");
         return false;
