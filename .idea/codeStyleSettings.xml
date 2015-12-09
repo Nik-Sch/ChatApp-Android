@@ -31,7 +31,6 @@
           </value>
         </option>
         <option name="RIGHT_MARGIN" value="100" />
-        <option name="WRAP_WHEN_TYPING_REACHES_RIGHT_MARGIN" value="true" />
         <AndroidXmlCodeStyleSettings>
           <option name="USE_CUSTOM_SETTINGS" value="true" />
         </AndroidXmlCodeStyleSettings>
@@ -64,20 +63,10 @@
           </extensions>
         </Objective-C-extensions>
         <XML>
-          <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
+          <option name="XML_KEEP_LINE_BREAKS" value="false" />
+          <option name="XML_ALIGN_ATTRIBUTES" value="false" />
+          <option name="XML_SPACE_INSIDE_EMPTY_TAG" value="true" />
         </XML>
-        <codeStyleSettings language="JAVA">
-          <option name="SPACE_BEFORE_CLASS_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_METHOD_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_IF_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_WHILE_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_FOR_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_DO_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_SWITCH_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_TRY_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_CATCH_LBRACE" value="false" />
-          <option name="SPACE_BEFORE_SYNCHRONIZED_LBRACE" value="false" />
-        </codeStyleSettings>
         <codeStyleSettings language="XML">
           <option name="FORCE_REARRANGE_MODE" value="1" />
           <indentOptions>
@@ -90,7 +79,7 @@
                   <match>
                     <AND>
                       <NAME>xmlns:android</NAME>
-                      <XML_NAMESPACE>Namespace:</XML_NAMESPACE>
+                      <XML_NAMESPACE />
                     </AND>
                   </match>
                 </rule>
@@ -100,7 +89,7 @@
                   <match>
                     <AND>
                       <NAME>xmlns:.*</NAME>
-                      <XML_NAMESPACE>Namespace:</XML_NAMESPACE>
+                      <XML_NAMESPACE />
                     </AND>
                   </match>
                   <order>BY_NAME</order>
@@ -237,6 +226,6 @@
         </codeStyleSettings>
       </value>
     </option>
-    <option name="USE_PER_PROJECT_SETTINGS" value="true" />
+    <option name="PREFERRED_PROJECT_CODE_STYLE" value="Default (1)" />
   </component>
 </project>

@@ -1,8 +1,12 @@
 package com.raspi.chatapp.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -60,8 +64,21 @@ public class ChatActivity extends AppCompatActivity{
         }
         getSupportActionBar().setTitle((chatName != null) ? chatName : buddyId);
         messageHistory = new MessageHistory(this);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         initUI();
+        LocalBroadcastManager.getInstance(this).registerReceiver
+                (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
+    }
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver
+                (MessageReceiver);
+        super.onPause();
     }
 
     private void initUI(){
@@ -112,5 +129,12 @@ public class ChatActivity extends AppCompatActivity{
         for (ChatMessage message : messages)
             maa.add(message);
     }
+
+    private BroadcastReceiver MessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            initUI();
+        }
+    };
 
 }

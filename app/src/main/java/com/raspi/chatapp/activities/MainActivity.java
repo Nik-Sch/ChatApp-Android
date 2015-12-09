@@ -4,9 +4,11 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -67,14 +69,27 @@ public class MainActivity extends AppCompatActivity{
 
         setUserPwd();
 
-        initUI();
-
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
                 (MyNotification.NOTIFICATION_ID);
         new MyNotification(this).reset();
 
         //signal the service that the app is running
         this.startService(new Intent(this, MessageService.class).setAction(APP_CREATED));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initUI();
+        LocalBroadcastManager.getInstance(this).registerReceiver
+                (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
+    }
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver
+                (MessageReceiver);
+        super.onPause();
     }
 
     private void initUI(){
@@ -102,9 +117,9 @@ public class MainActivity extends AppCompatActivity{
                 Log.d("DEBUG", "a null entry");
             }
         }
-        caa.registerDataSetObserver(new DataSetObserver(){
+        caa.registerDataSetObserver(new DataSetObserver() {
             @Override
-            public void onChanged(){
+            public void onChanged() {
                 super.onChanged();
                 lv.setSelection(caa.getCount() - 1);
             }
@@ -178,4 +193,12 @@ public class MainActivity extends AppCompatActivity{
             }
         }
     }
+
+    //receiving intents from the MessageService that a new message was received
+    private BroadcastReceiver MessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            initUI();
+        }
+    };
 }

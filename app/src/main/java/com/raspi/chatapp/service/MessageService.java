@@ -175,16 +175,16 @@ public class MessageService extends Service{
             String buddyId = message.getFrom();
             String msg = message.getBody();
             String name = roster.contains(buddyId) ? roster.getEntry(buddyId).getName() : buddyId;
-
-            Intent msgIntent = new Intent(MainActivity.RECEIVE_MESSAGE)
-                    .putExtra(MainActivity.BUDDY_ID, buddyId)
-                    .putExtra(MainActivity.MESSAGE_BODY, msg);
-            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(msgIntent);
             new MyNotification(getApplicationContext()).createNotification(buddyId, name, message.getBody());
 
             messageHistory.addChat(buddyId, buddyId);
             messageHistory.addMessage(buddyId, buddyId, MessageHistory.TYPE_TEXT, msg,
                     MessageHistory.STATUS_WAITING);
+
+            Intent msgIntent = new Intent(MainActivity.RECEIVE_MESSAGE)
+                    .putExtra(MainActivity.BUDDY_ID, buddyId)
+                    .putExtra(MainActivity.MESSAGE_BODY, msg);
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(msgIntent);
         }
     }
 
