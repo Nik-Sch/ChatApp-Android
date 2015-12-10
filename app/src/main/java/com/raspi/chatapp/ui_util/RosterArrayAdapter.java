@@ -16,39 +16,39 @@ import java.util.List;
 
 public class RosterArrayAdapter extends ArrayAdapter<RosterEntry>{
 
-    private List<RosterEntry> rosterList = new ArrayList<RosterEntry>();
+  private List<RosterEntry> rosterList = new ArrayList<RosterEntry>();
 
-    public RosterArrayAdapter(Context context, int textViewResourceId){
-        super(context, textViewResourceId);
-    }
+  public RosterArrayAdapter(Context context, int textViewResourceId){
+    super(context, textViewResourceId);
+  }
 
-    @Override
-    public void add(RosterEntry object){
-        rosterList.add(object);
-        notifyDataSetChanged();
-    }
+  @Override
+  public void add(RosterEntry object){
+    rosterList.add(object);
+    notifyDataSetChanged();
+  }
 
-    @Override
-    public RosterEntry getItem(int position){
-        return rosterList.get(position);
-    }
+  @Override
+  public RosterEntry getItem(int position){
+    return rosterList.get(position);
+  }
 
-    @Override
-    public int getCount(){
-        return rosterList.size();
-    }
+  @Override
+  public int getCount(){
+    return rosterList.size();
+  }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent){
-        View v = convertView;
-        if (v == null)
-            v = ((LayoutInflater) this.getContext()
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE))
-                    .inflate(R.layout.roster, parent, false);
+  @Override
+  public View getView(int position, View convertView, ViewGroup parent){
+    View v = convertView;
+    if (v == null)
+      v = ((LayoutInflater) this.getContext()
+              .getSystemService(Context.LAYOUT_INFLATER_SERVICE))
+              .inflate(R.layout.roster, parent, false);
 
-        RosterEntry rosterObj = getItem(position);
-        ((TextView) v.findViewById(R.id.roster_entry_name)).setText(rosterObj.getName());
+    RosterEntry rosterObj = getItem(position);
+    ((TextView) v.findViewById(R.id.roster_entry_name)).setText(rosterObj.getName());
 
-        return v;
-    }
+    return v;
+  }
 }

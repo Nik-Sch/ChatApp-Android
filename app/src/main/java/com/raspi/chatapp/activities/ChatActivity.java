@@ -28,113 +28,115 @@ import java.util.Date;
 import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity{
-    private static final int MESSAGE_LIMIT = 30;
+  private static final int MESSAGE_LIMIT = 30;
 
-    private String buddyId;
-    private String chatName;
+  private String buddyId;
+  private String chatName;
 
-    private MessageArrayAdapter maa;
-    private MessageHistory messageHistory;
+  private MessageArrayAdapter maa;
+  private MessageHistory messageHistory;
 
-    private ListView listView;
-    private EditText textIn;
+  private ListView listView;
+  private EditText textIn;
 
+  @Override
+  protected void onCreate(Bundle savedInstanceState){
+    super.onCreate(savedInstanceState);
+
+    setContentView(R.layout.activity_chat);
+    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    setSupportActionBar(toolbar);
+    try{
+      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }catch (NullPointerException e){
+      e.printStackTrace();
+    }
+
+    Intent in = getIntent();
+    if (in != null){
+      Bundle extras = in.getExtras();
+      if (extras != null){
+        if (extras.containsKey(MainActivity.BUDDY_ID))
+          buddyId = extras.getString(MainActivity.BUDDY_ID);
+        if (extras.containsKey(MainActivity.CHAT_NAME))
+          chatName = extras.getString(MainActivity.CHAT_NAME);
+      }else
+        return;
+    }else
+      return;
+    getSupportActionBar().setTitle((chatName != null) ? chatName : buddyId);
+    messageHistory = new MessageHistory(this);
+  }
+
+  @Override
+  protected void onResume(){
+    super.onResume();
+    initUI();
+    LocalBroadcastManager.getInstance(this).registerReceiver
+            (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
+  }
+
+  @Override
+  protected void onPause(){
+    LocalBroadcastManager.getInstance(this).unregisterReceiver
+            (MessageReceiver);
+    super.onPause();
+  }
+
+  private void initUI(){
+    maa = new MessageArrayAdapter(this, R.layout.chat);
+
+    listView = (ListView) findViewById(R.id.chat_listview);
+    textIn = (EditText) findViewById(R.id.chat_in);
+    Button sendBtn = (Button) findViewById(R.id.chat_sendBtn);
+
+    sendBtn.setOnClickListener(new View.OnClickListener(){
+      @Override
+      public void onClick(View v){
+        sendMessage(textIn.getText().toString());
+      }
+    });
+
+    listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+    listView.setAdapter(maa);
+
+    maa.registerDataSetObserver(new DataSetObserver(){
+      @Override
+      public void onChanged(){
+        super.onChanged();
+        listView.setSelection(maa.getCount() - 1);
+      }
+    });
+    showMessages();
+  }
+
+  private void sendMessage(String message){
+    XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
+
+    if (xmppManager != null && xmppManager.isConnected()){
+      xmppManager.sendMessage(message, buddyId);
+    }else
+      Log.e("ERROR", "There was an error with the connection while sending a message.");
+
+    SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
+    maa.add(new ChatMessage(false, message, df.format(new Date())));
+    textIn.setText("");
+    messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
+                    .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
+            MessageHistory.STATUS_WAITING);
+  }
+
+  private void showMessages(){
+    ChatMessage[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
+    for (ChatMessage message : messages)
+      maa.add(message);
+  }
+
+  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
     @Override
-    protected void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_chat);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        try{
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        } catch (NullPointerException e){
-            e.printStackTrace();
-        }
-
-        Intent in = getIntent();
-        if (in != null){
-            Bundle extras = in.getExtras();
-            if (extras != null){
-                if (extras.containsKey(MainActivity.BUDDY_ID))
-                    buddyId = extras.getString(MainActivity.BUDDY_ID);
-                if (extras.containsKey(MainActivity.CHAT_NAME))
-                    chatName = extras.getString(MainActivity.CHAT_NAME);
-            }
-        }
-        getSupportActionBar().setTitle((chatName != null) ? chatName : buddyId);
-        messageHistory = new MessageHistory(this);
+    public void onReceive(Context context, Intent intent){
+      initUI();
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        initUI();
-        LocalBroadcastManager.getInstance(this).registerReceiver
-                (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
-    }
-
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver
-                (MessageReceiver);
-        super.onPause();
-    }
-
-    private void initUI(){
-        maa = new MessageArrayAdapter(this, R.layout.chat);
-
-        listView = (ListView) findViewById(R.id.chat_listview);
-        textIn = (EditText) findViewById(R.id.chat_in);
-        Button sendBtn = (Button) findViewById(R.id.chat_sendBtn);
-
-        sendBtn.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                sendMessage(textIn.getText().toString());
-            }
-        });
-
-        listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-        listView.setAdapter(maa);
-
-        maa.registerDataSetObserver(new DataSetObserver(){
-            @Override
-            public void onChanged(){
-                super.onChanged();
-                listView.setSelection(maa.getCount() - 1);
-            }
-        });
-        showMessages();
-    }
-
-    private void sendMessage(String message){
-        XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
-
-        if (xmppManager != null && xmppManager.isConnected()){
-            xmppManager.sendMessage(message, buddyId);
-        } else
-            Log.e("ERROR", "There was an error with the connection while sending a message.");
-
-        SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
-        maa.add(new ChatMessage(false, message, df.format(new Date())));
-        textIn.setText("");
-        messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
-                        .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
-                MessageHistory.STATUS_WAITING);
-    }
-
-    private void showMessages(){
-        ChatMessage[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
-        for (ChatMessage message : messages)
-            maa.add(message);
-    }
-
-    private BroadcastReceiver MessageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            initUI();
-        }
-    };
+  };
 
 }

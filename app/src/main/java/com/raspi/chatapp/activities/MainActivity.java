@@ -50,18 +50,6 @@ public class MainActivity extends AppCompatActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
-        Intent CallingIntent = getIntent();
-        if (CallingIntent != null && CallingIntent.getAction().equals(MyNotification
-                .NOTIFICATION_CLICK)){
-            Bundle extras = CallingIntent.getExtras();
-            if (extras != null && extras.containsKey(BUDDY_ID) && extras.containsKey(CHAT_NAME)){
-                Intent intent = new Intent(this, ChatActivity.class);
-                intent.putExtra(BUDDY_ID, extras.getString(BUDDY_ID));
-                intent.putExtra(CHAT_NAME, extras.getString(CHAT_NAME));
-                startActivity(intent);
-            }
-        }
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -75,6 +63,24 @@ public class MainActivity extends AppCompatActivity{
 
         //signal the service that the app is running
         this.startService(new Intent(this, MessageService.class).setAction(APP_CREATED));
+
+        Intent callingIntent = getIntent();
+        if (callingIntent != null && MyNotification.NOTIFICATION_CLICK.equals
+                (callingIntent.getAction())){
+            Log.d("DEBUG", "received intend not click");
+            Bundle extras = callingIntent.getExtras();
+            if (extras != null && extras.containsKey(BUDDY_ID) && extras.containsKey(CHAT_NAME)){
+                Intent intent = new Intent(this, ChatActivity.class);
+                String buddyId = extras.getString(BUDDY_ID);
+                int index = buddyId.indexOf("@");
+                if (index != -1)
+                    buddyId = buddyId.substring(0, index);
+                intent.putExtra(BUDDY_ID, buddyId);
+                intent.putExtra(CHAT_NAME, extras.getString(CHAT_NAME));
+                startActivity(intent);
+                Log.d("DEBUG", "starting chatActivity due to pendingIntent");
+            }
+        }
     }
 
     @Override

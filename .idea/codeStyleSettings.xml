@@ -67,6 +67,28 @@
           <option name="XML_ALIGN_ATTRIBUTES" value="false" />
           <option name="XML_SPACE_INSIDE_EMPTY_TAG" value="true" />
         </XML>
+        <codeStyleSettings language="JAVA">
+          <option name="SPACE_BEFORE_CLASS_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_METHOD_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_IF_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_ELSE_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_WHILE_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_FOR_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_DO_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_SWITCH_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_TRY_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_CATCH_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_FINALLY_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_SYNCHRONIZED_LBRACE" value="false" />
+          <option name="SPACE_BEFORE_ELSE_KEYWORD" value="false" />
+          <option name="SPACE_BEFORE_WHILE_KEYWORD" value="false" />
+          <option name="SPACE_BEFORE_CATCH_KEYWORD" value="false" />
+          <option name="SPACE_BEFORE_FINALLY_KEYWORD" value="false" />
+          <indentOptions>
+            <option name="INDENT_SIZE" value="2" />
+            <option name="TAB_SIZE" value="2" />
+          </indentOptions>
+        </codeStyleSettings>
         <codeStyleSettings language="XML">
           <option name="FORCE_REARRANGE_MODE" value="1" />
           <indentOptions>
@@ -226,6 +248,6 @@
         </codeStyleSettings>
       </value>
     </option>
-    <option name="PREFERRED_PROJECT_CODE_STYLE" value="Default (1)" />
+    <option name="USE_PER_PROJECT_SETTINGS" value="true" />
   </component>
 </project>
