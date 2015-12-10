@@ -66,6 +66,7 @@ public class MessageService extends Service{
     }else if (MainActivity.APP_CREATED.equals(intent.getAction())){
       Log.d("DEBUG", "MessageService app created.");
       isAppRunning = true;
+      publicize();
     }else if (MainActivity.APP_DESTROYED.equals(intent.getAction())){
       Log.d("DEBUG", "MessageService app destroyed.");
       isAppRunning = false;

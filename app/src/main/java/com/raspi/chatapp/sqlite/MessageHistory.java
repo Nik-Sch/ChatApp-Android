@@ -84,14 +84,17 @@ public class MessageHistory{
           else
             lastMessageDate = "Yesterday";
           lastMessageMessage = lastMessage.getString(2);
-          //TODO do something with the types and who send the message...
 
         }
+        SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
+        boolean sent = buddyId.equals(preferences.getString(MainActivity.USERNAME, ""));
+        boolean newMessage = !MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
         resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
-                lastMessageMessage);
+                lastMessageMessage, newMessage && !sent, sent);
         i++;
       }while (chats.move(1));
-
+    chats.close();
+    db.close();
     return resultChats;
   }
 
@@ -122,6 +125,7 @@ public class MessageHistory{
       return;
     }
     mDbHelper.createMessageTable(buddyId);
+    db.close();
   }
 
   public TextMessage[] getMessages(String buddyId, int limit){
@@ -136,7 +140,8 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
-            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
+            MessageHistoryContract.MessageEntry._ID
     };
     Cursor messages = db.query(buddyId, columns, null, null, null, null, MessageHistoryContract
             .MessageEntry
@@ -155,11 +160,13 @@ public class MessageHistory{
         String type = messages.getString(1);
         String content = messages.getString(2);
         String status = messages.getString(3);
-        Long time = messages.getLong(4);
-        result[i] = new TextMessage(!me.equals(from), content, time, status);
+        long time = messages.getLong(4);
+        long _ID = messages.getLong(5);
+        result[i] = new TextMessage(!me.equals(from), content, time, status, _ID);
         i++;
       }while (messages.move(-1));
-
+    db.close();
+    messages.close();
     return result;
   }
 
@@ -184,7 +191,17 @@ public class MessageHistory{
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, status);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP, new Date().getTime());
     db.insert(chatId, MessageHistoryContract.MessageEntry._ID, values);
+    db.close();
   }
 
-
+  public void updateMessageStatus(String chatId, long _ID, String newStatus){
+    Log.d("DATABASE", "Changing MessageStatus");
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, newStatus);
+    String whereClause = MessageHistoryContract.MessageEntry._ID
+            + " == ?";
+    db.update(chatId, values, whereClause, new String[]{Long.toString(_ID)});
+    db.close();
+  }
 }

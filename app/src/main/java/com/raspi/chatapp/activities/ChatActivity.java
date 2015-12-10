@@ -16,16 +16,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.raspi.chatapp.R;
 import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.ui_util.message_array.Date;
 import com.raspi.chatapp.ui_util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui_util.message_array.TextMessage;
-import com.raspi.chatapp.ui_util.message_array.Date;
 import com.raspi.chatapp.util.Globals;
-import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.XmppManager;
-
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity{
   private static final int MESSAGE_LIMIT = 30;
@@ -114,11 +111,12 @@ public class ChatActivity extends AppCompatActivity{
     XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
 
     String status = MessageHistory.STATUS_WAITING;
-    if (xmppManager != null && xmppManager.isConnected()){
-      if (xmppManager.sendMessage(message, buddyId))
-        status = MessageHistory.STATUS_SENT;
-    }else
+    if (xmppManager != null && xmppManager.isConnected() && xmppManager.sendMessage(message, buddyId))
+      status = MessageHistory.STATUS_SENT;
+    else{
       Log.e("ERROR", "There was an error with the connection while sending a message.");
+      //TODO messageHistory.addSendRequest(buddyId, message);
+    }
     messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
                     .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
             status);
@@ -135,6 +133,8 @@ public class ChatActivity extends AppCompatActivity{
         maa.add(new Date(message.time));
       oldDate = message.time;
       maa.add(message);
+      if (message.left)
+        messageHistory.updateMessageStatus(buddyId, message._ID, MessageHistory.STATUS_READ);
     }
   }
 

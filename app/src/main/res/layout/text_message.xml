@@ -40,14 +40,14 @@
 
             <ImageView
                 android:id="@+id/chat_status"
-                android:layout_width="13dp"
+                android:layout_width="19dp"
                 android:layout_height="13dp"
                 android:layout_alignEnd="@+id/chat_timeStamp"
                 android:layout_alignRight="@+id/chat_timeStamp"
                 android:layout_marginEnd="2dp"
                 android:layout_marginRight="2dp"
                 android:layout_marginTop="6dp"
-                android:src="@drawable/haken_tmp" />
+                android:src="@drawable/two_grey_hook" />
         </RelativeLayout>
     </RelativeLayout>
 
