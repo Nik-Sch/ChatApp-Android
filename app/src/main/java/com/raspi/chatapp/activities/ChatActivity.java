@@ -17,14 +17,14 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.raspi.chatapp.sqlite.MessageHistory;
-import com.raspi.chatapp.ui_util.MessageArrayAdapter;
-import com.raspi.chatapp.ui_util.ChatMessage;
+import com.raspi.chatapp.ui_util.message_array.MessageArrayAdapter;
+import com.raspi.chatapp.ui_util.message_array.TextMessage;
+import com.raspi.chatapp.ui_util.message_array.Date;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.XmppManager;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
 public class ChatActivity extends AppCompatActivity{
@@ -84,7 +84,7 @@ public class ChatActivity extends AppCompatActivity{
   }
 
   private void initUI(){
-    maa = new MessageArrayAdapter(this, R.layout.chat);
+    maa = new MessageArrayAdapter(this, R.layout.text_message);
 
     listView = (ListView) findViewById(R.id.chat_listview);
     textIn = (EditText) findViewById(R.id.chat_in);
@@ -113,29 +113,35 @@ public class ChatActivity extends AppCompatActivity{
   private void sendMessage(String message){
     XmppManager xmppManager = ((Globals) getApplication()).getXmppManager();
 
+    String status = MessageHistory.STATUS_WAITING;
     if (xmppManager != null && xmppManager.isConnected()){
-      xmppManager.sendMessage(message, buddyId);
+      if (xmppManager.sendMessage(message, buddyId))
+        status = MessageHistory.STATUS_SENT;
     }else
       Log.e("ERROR", "There was an error with the connection while sending a message.");
-
-    SimpleDateFormat df = new SimpleDateFormat("HH:mm", Locale.GERMANY);
-    maa.add(new ChatMessage(false, message, df.format(new Date())));
-    textIn.setText("");
     messageHistory.addMessage(buddyId, getSharedPreferences(MainActivity.PREFERENCES, 0)
                     .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
-            MessageHistory.STATUS_WAITING);
+            status);
+    textIn.setText("");
+    showMessages();
   }
 
   private void showMessages(){
-    ChatMessage[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
-    for (ChatMessage message : messages)
+    TextMessage[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
+    long oldDate = 0;
+    final int c = 24 * 60 * 60 * 1000;
+    for (TextMessage message : messages){
+      if ((message.time - oldDate) / c > 0)
+        maa.add(new Date(message.time));
+      oldDate = message.time;
       maa.add(message);
+    }
   }
 
   private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
-      initUI();
+      showMessages();
     }
   };
 
