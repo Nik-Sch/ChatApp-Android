@@ -17,7 +17,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
@@ -33,13 +32,14 @@ public class MainActivity extends AppCompatActivity{
   public static final String PREFERENCES = "com.raspi.chatapp.activities.MainActivity.PREFERENCES";
   public static final String USERNAME = "com.raspi.chatapp.activities.MainActivity.USERNAME";
   public static final String PASSWORD = "com.raspi.chatapp.activities.MainActivity.PASSWORD";
-  public static final String CONN_TIMEOUT = "com.raspi.chatapp.activities.MainActivity.CONN_TIMEOUT";
   public static final String RECONNECT = "com.raspi.chatapp.activities.MainActivity.RECONNECT";
-  public static final String APP_CREATED = "con.raspi.chatapp.MainActivity.APP_CREATED";
-  public static final String APP_DESTROYED = "con.raspi.chatapp.MainActivity.APP_DESTROYED";
+  public static final String APP_LAUNCHED = "con.raspi.chatapp.MainActivity.APP_CREATED";
+  public static final String APP_CLOSED = "con.raspi.chatapp.MainActivity.APP_DESTROYED";
   public static final String BUDDY_ID = "com.raspi.chatapp.activities.MainActivity.BUDDY_ID";
   public static final String CHAT_NAME = "com.raspi.chatapp.activities.MainActivity.CHAT_NAME";
   public static final String MESSAGE_BODY = "com.raspi.chatapp.activities.MainActivity.MESSAGE_BODY";
+  public static final String PRESENCE_CHANGED = "com.raspi.chatapp.activities.MainActivity.PRESENCE_CHANGED";
+  public static final String PRESENCE_STATUS = "com.raspi.chatapp.activities.MainActivity.PRESENCE_STATUS";
   public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.activities.MainActivity.RECEIVE_MESSAGE";
   public static final String CONN_ESTABLISHED = "com.raspi.chatapp.activities.MainActivity.CONN_ESTABLISHED";
   public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
@@ -60,9 +60,6 @@ public class MainActivity extends AppCompatActivity{
     ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
             (MyNotification.NOTIFICATION_ID);
     new MyNotification(this).reset();
-
-    //signal the service that the app is running
-    this.startService(new Intent(this, MessageService.class).setAction(APP_CREATED));
 
     Intent callingIntent = getIntent();
     if (callingIntent != null && MyNotification.NOTIFICATION_CLICK.equals
@@ -89,13 +86,25 @@ public class MainActivity extends AppCompatActivity{
     initUI();
     LocalBroadcastManager.getInstance(this).registerReceiver
             (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
+    this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
+    new MyNotification(this).reset();
+    ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
+            .cancel(MyNotification.NOTIFICATION_ID);
   }
 
   @Override
   protected void onPause(){
     LocalBroadcastManager.getInstance(this).unregisterReceiver
             (MessageReceiver);
+    this.startService(new Intent(this, MessageService.class).setAction(APP_CLOSED));
     super.onPause();
+  }
+
+  @Override
+  protected void onDestroy(){
+    //signal the service that the app is about to get destroyed
+    this.startService(new Intent(this, MessageService.class).setAction(APP_CLOSED));
+    super.onDestroy();
   }
 
   private void initUI(){
@@ -130,13 +139,6 @@ public class MainActivity extends AppCompatActivity{
         lv.setSelection(caa.getCount() - 1);
       }
     });
-  }
-
-  @Override
-  protected void onDestroy(){
-    //signal the service that the app is about to get destroyed
-    this.startService(new Intent(this, MessageService.class).setAction(APP_DESTROYED));
-    super.onDestroy();
   }
 
   @Override
@@ -205,6 +207,9 @@ public class MainActivity extends AppCompatActivity{
     @Override
     public void onReceive(Context context, Intent intent){
       initUI();
+      new MyNotification(getApplicationContext()).reset();
+      ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
+              .cancel(MyNotification.NOTIFICATION_ID);
     }
   };
 }

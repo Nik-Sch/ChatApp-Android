@@ -8,18 +8,23 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.raspi.chatapp.activities.MainActivity;
 import com.raspi.chatapp.sqlite.MessageHistory;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.MyNotification;
 import com.raspi.chatapp.util.XmppManager;
-import com.raspi.chatapp.activities.MainActivity;
 
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterListener;
+
+import java.util.Collection;
+import java.util.Date;
 
 public class MessageService extends Service{
 
@@ -63,13 +68,25 @@ public class MessageService extends Service{
                   (MainActivity.CONN_ESTABLISHED));
         }
       }).start();
-    }else if (MainActivity.APP_CREATED.equals(intent.getAction())){
+    }else if (MainActivity.APP_LAUNCHED.equals(intent.getAction())){
       Log.d("DEBUG", "MessageService app created.");
       isAppRunning = true;
+      while (xmppManager == null)
+        try{
+          Thread.sleep(10);
+        }catch (Exception e){
+        }
+      xmppManager.setStatus(true, "online");
       publicize();
-    }else if (MainActivity.APP_DESTROYED.equals(intent.getAction())){
+    }else if (MainActivity.APP_CLOSED.equals(intent.getAction())){
       Log.d("DEBUG", "MessageService app destroyed.");
       isAppRunning = false;
+      while (xmppManager == null)
+        try{
+          Thread.sleep(10);
+        }catch (Exception e){
+        }
+      xmppManager.setStatus(true, Long.toString(new Date().getTime()));
     }else{
       Log.d("DEBUG", "MessageService received unknown intend.");
     }
@@ -112,10 +129,41 @@ public class MessageService extends Service{
             Log.e("ERROR", "Couldn't load the roster");
             e.printStackTrace();
           }
+        roster.addRosterListener(new RosterListener(){
+          @Override
+          public void entriesAdded(Collection<String> collection){
+          }
+
+          @Override
+          public void entriesUpdated(Collection<String> collection){
+          }
+
+          @Override
+          public void entriesDeleted(Collection<String> collection){
+          }
+
+          @Override
+          public void presenceChanged(Presence presence){
+            if (Presence.Type.available.equals(presence.getType()) &&
+                    presence.getStatus() != null){
+              String from = presence.getFrom();
+              int index = from.indexOf('@');
+              if (index >= 0){
+                from = from.substring(0, index);
+              }
+              String status = presence.getStatus();
+              Intent intent = new Intent(MainActivity.PRESENCE_CHANGED);
+              intent.putExtra(MainActivity.BUDDY_ID, from);
+              intent.putExtra(MainActivity.PRESENCE_STATUS, status);
+              LocalBroadcastManager.getInstance(getApplicationContext())
+                      .sendBroadcast(intent);
+              messageHistory.setOnline(from, status);
+            }
+          }
+        });
       }else{
         Log.e("ERROR", "There was an error with the connection");
       }
-
       ChatManagerListener managerListener = new MyChatManagerListener();
       ChatManager.getInstanceFor(xmppManager.getConnection())
               .addChatListener(managerListener);

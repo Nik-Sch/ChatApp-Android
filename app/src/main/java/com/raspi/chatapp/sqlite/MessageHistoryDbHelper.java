@@ -11,14 +11,14 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class MessageHistoryDbHelper extends SQLiteOpenHelper{
-  public static final int DATABASE_VERSION = 1;
+  public static final int DATABASE_VERSION = 2;
   public static final String DATABASE_NAME = "MessageHistory.db";
   private static final String CREATE_ALL_CHATS = "CREATE TABLE IF NOT EXISTS " +
           MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS + " (" + MessageHistoryContract
           .ChatEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + MessageHistoryContract
           .ChatEntry.COLUMN_NAME_BUDDY_ID + " TEXT UNIQUE, " + MessageHistoryContract
           .ChatEntry
-          .COLUMN_NAME_NAME + " TEXT)";
+          .COLUMN_NAME_NAME + " TEXT, " + MessageHistoryContract.ChatEntry.COLUMN_NAME_LAST_ONLINE + " TEXT)";
 
 
   public MessageHistoryDbHelper(Context context){
@@ -44,7 +44,8 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
-
+    db.execSQL("DROP TABLE IF EXISTS " + MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS);
+    onCreate(db);
   }
 
   @Override

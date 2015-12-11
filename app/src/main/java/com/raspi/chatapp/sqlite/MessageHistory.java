@@ -129,6 +129,41 @@ public class MessageHistory{
     db.close();
   }
 
+  public String getOnline(String buddyId){
+    int index = buddyId.indexOf('@');
+    if (index >= 0){
+      buddyId = buddyId.substring(0, index);
+    }
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    Cursor c = db.query(MessageHistoryContract.ChatEntry
+            .TABLE_NAME_ALL_CHATS, new String[]{MessageHistoryContract
+            .ChatEntry.COLUMN_NAME_LAST_ONLINE}, MessageHistoryContract
+                    .ChatEntry.COLUMN_NAME_BUDDY_ID + "=?", new
+                    String[]{buddyId},
+            null, null, null);
+    c.moveToFirst();
+    if (c.getCount() > 0)
+      return c.getString(0);
+    else
+      return null;
+  }
+
+  public void setOnline(String buddyId, String status){
+    int index = buddyId.indexOf('@');
+    if (index >= 0){
+      buddyId = buddyId.substring(0, index);
+    }
+    Log.d("DATABASE", "Changing OnlineStatus");
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(MessageHistoryContract.ChatEntry.COLUMN_NAME_LAST_ONLINE, status);
+    String whereClause = MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID
+            + " == ?";
+    db.update(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS, values, whereClause, new
+            String[]{buddyId});
+    db.close();
+  }
+
   public TextMessage[] getMessages(String buddyId, int limit){
     return getMessages(buddyId, limit, 0);
   }

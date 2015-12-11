@@ -10,6 +10,7 @@ public class MessageHistoryContract{
     public static final String TABLE_NAME_ALL_CHATS = "allchats";
     public static final String COLUMN_NAME_BUDDY_ID = "buddyid";
     public static final String COLUMN_NAME_NAME = "name";
+    public static final String COLUMN_NAME_LAST_ONLINE = "online";
 
   }
 
