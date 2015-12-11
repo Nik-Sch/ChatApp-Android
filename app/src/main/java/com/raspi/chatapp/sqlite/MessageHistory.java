@@ -87,10 +87,11 @@ public class MessageHistory{
 
         }
         SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
-        boolean sent = buddyId.equals(preferences.getString(MainActivity.USERNAME, ""));
-        boolean newMessage = !MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
+        String me = preferences.getString(MainActivity.USERNAME, "");
+        boolean sent = me.equals(lastMessage.getString(0));
+        boolean read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
         resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
-                lastMessageMessage, newMessage && !sent, sent);
+                lastMessageMessage, read, sent);
         i++;
       }while (chats.move(1));
     chats.close();

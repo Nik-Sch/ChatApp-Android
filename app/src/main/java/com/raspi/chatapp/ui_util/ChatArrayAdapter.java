@@ -1,17 +1,14 @@
 package com.raspi.chatapp.ui_util;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.activities.MainActivity;
 import com.raspi.chatapp.sqlite.MessageHistory;
 
 import java.util.ArrayList;
@@ -69,7 +66,7 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
         }
       else{
         ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageDrawable(null);
-        if (chatObj.newMessage)
+        if (!chatObj.sent && !chatObj.read)
           v.findViewById(R.id.chat_list_entry).setBackgroundColor(0xFF55AAFF);
         else
           v.findViewById(R.id.chat_list_entry).setBackgroundColor(0xFFFFFF);
