@@ -29,7 +29,7 @@ import java.util.Date;
 public class MessageService extends Service{
 
   private static final String server = "raspi-server.ddns.net";
-  private static final String service = "raspi-server.mooo.com";
+  private static final String service = "chatapp.com";
   private static final int port = 5222;
 
   XmppManager xmppManager = null;

@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity{
     preferences.edit().putString(USERNAME, "niklas").apply();
 
     //if (!preferences.contains(PASSWORD))
-    preferences.edit().putString(PASSWORD, "passwNiklas").apply();
+    preferences.edit().putString(PASSWORD, "passwdNiklas").apply();
   }
 
   //receiving boot intents

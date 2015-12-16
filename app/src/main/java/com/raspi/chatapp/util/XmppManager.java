@@ -51,7 +51,7 @@ public class XmppManager{
             .setServiceName(service)
             .setHost(server)
             .setPort(port)
-            .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled).build();
+            .setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible).build();
     connection = new XMPPTCPConnection(config);
     try{
       connection.connect();
