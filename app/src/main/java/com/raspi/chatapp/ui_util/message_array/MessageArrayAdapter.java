@@ -31,6 +31,12 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     notifyDataSetChanged();
   }
 
+  @Override
+  public void clear(){
+    MessageList.clear();
+    notifyDataSetChanged();
+  }
+
   public int getCount(){
     return MessageList.size();
   }

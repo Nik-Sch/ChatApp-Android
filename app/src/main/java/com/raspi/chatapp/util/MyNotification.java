@@ -35,6 +35,11 @@ public class MyNotification{
   }
 
   public void createNotification(String buddyId, String name, String message){
+    int index = buddyId.indexOf("@");
+    if (index != -1)
+      buddyId = buddyId.substring(0, index);
+    if (name == null)
+      name = buddyId;
     Log.d("DEBUG", "creating notification: " + buddyId + "|" + name + "|" + message);
     Intent resultIntent = new Intent(context, MainActivity.class);
     resultIntent.setAction(NOTIFICATION_CLICK);

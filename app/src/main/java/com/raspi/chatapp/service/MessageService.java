@@ -21,6 +21,7 @@ import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
 
 import java.util.Collection;
@@ -41,6 +42,7 @@ public class MessageService extends Service{
     super.onCreate();
     Log.d("DEBUG", "MessageService created.");
     messageHistory = new MessageHistory(this);
+    /*
     new Thread(new Runnable(){
       @Override
       public void run(){
@@ -50,10 +52,19 @@ public class MessageService extends Service{
                 (MainActivity.CONN_ESTABLISHED));
       }
     }).start();
+    */
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId){
+    if (xmppManager == null || !xmppManager.isConnected())
+      new Thread(new Runnable(){
+        @Override
+        public void run(){
+          reconnect();
+          publicize();
+        }
+      }).start();
     Log.d("DEBUG", "MessageService launched.");
     if (intent == null){
       Log.d("DEBUG", "MessageService received a null intent.");
@@ -95,8 +106,10 @@ public class MessageService extends Service{
 
   private void reconnect(){
     Log.d("DEBUG", "MessageService reconnecting");
-    if (((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE))
-            .getActiveNetworkInfo().isConnected()){
+     ConnectivityManager connManager = (ConnectivityManager) getSystemService
+            (Context.CONNECTIVITY_SERVICE);
+    if (connManager != null && connManager.getActiveNetworkInfo() != null &&
+            connManager.getActiveNetworkInfo().isConnected()){
       //I am connected
       if (xmppManager == null)
         initialize();
@@ -106,7 +119,7 @@ public class MessageService extends Service{
       }
     }else{
       //I am disconnected
-      xmppManager.disconnect();
+      //xmppManager.disconnect();
     }
   }
 
@@ -129,13 +142,27 @@ public class MessageService extends Service{
             Log.e("ERROR", "Couldn't load the roster");
             e.printStackTrace();
           }
+
+        Collection<RosterEntry> entries = roster.getEntries();
+        for (RosterEntry entry : entries)
+          presenceReceived(roster.getPresence(entry.getUser()));
         roster.addRosterListener(new RosterListener(){
           @Override
           public void entriesAdded(Collection<String> collection){
+
+            Roster roster = xmppManager.getRoster();
+            Collection<RosterEntry> entries = roster.getEntries();
+            for (RosterEntry entry : entries)
+              presenceReceived(roster.getPresence(entry.getUser()));
           }
 
           @Override
           public void entriesUpdated(Collection<String> collection){
+
+            Roster roster = xmppManager.getRoster();
+            Collection<RosterEntry> entries = roster.getEntries();
+            for (RosterEntry entry : entries)
+              presenceReceived(roster.getPresence(entry.getUser()));
           }
 
           @Override
@@ -144,21 +171,7 @@ public class MessageService extends Service{
 
           @Override
           public void presenceChanged(Presence presence){
-            if (Presence.Type.available.equals(presence.getType()) &&
-                    presence.getStatus() != null){
-              String from = presence.getFrom();
-              int index = from.indexOf('@');
-              if (index >= 0){
-                from = from.substring(0, index);
-              }
-              String status = presence.getStatus();
-              Intent intent = new Intent(MainActivity.PRESENCE_CHANGED);
-              intent.putExtra(MainActivity.BUDDY_ID, from);
-              intent.putExtra(MainActivity.PRESENCE_STATUS, status);
-              LocalBroadcastManager.getInstance(getApplicationContext())
-                      .sendBroadcast(intent);
-              messageHistory.setOnline(from, status);
-            }
+            presenceReceived(presence);
           }
         });
       }else{
@@ -170,6 +183,24 @@ public class MessageService extends Service{
     }catch (Exception e){
       Log.e("ERROR", "An error while running the MessageService occurred.");
       e.printStackTrace();
+    }
+  }
+
+  private void presenceReceived(Presence presence){
+    if (Presence.Type.available.equals(presence.getType()) &&
+            presence.getStatus() != null){
+      String from = presence.getFrom();
+      int index = from.indexOf('@');
+      if (index >= 0){
+        from = from.substring(0, index);
+      }
+      String status = presence.getStatus();
+      Intent intent = new Intent(MainActivity.PRESENCE_CHANGED);
+      intent.putExtra(MainActivity.BUDDY_ID, from);
+      intent.putExtra(MainActivity.PRESENCE_STATUS, status);
+      LocalBroadcastManager.getInstance(getApplicationContext())
+              .sendBroadcast(intent);
+      messageHistory.setOnline(from, status);
     }
   }
 
@@ -213,7 +244,9 @@ public class MessageService extends Service{
         }
       String buddyId = message.getFrom();
       String msg = message.getBody();
-      String name = roster.contains(buddyId) ? roster.getEntry(buddyId).getName() : buddyId;
+      String name = roster.contains(buddyId)
+              ? roster.getEntry(buddyId).getName()
+              : buddyId;
       new MyNotification(getApplicationContext()).createNotification(buddyId, name, message.getBody());
 
       messageHistory.addChat(buddyId, buddyId);

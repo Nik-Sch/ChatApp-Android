@@ -69,9 +69,6 @@ public class MainActivity extends AppCompatActivity{
       if (extras != null && extras.containsKey(BUDDY_ID) && extras.containsKey(CHAT_NAME)){
         Intent intent = new Intent(this, ChatActivity.class);
         String buddyId = extras.getString(BUDDY_ID);
-        int index = buddyId.indexOf("@");
-        if (index != -1)
-          buddyId = buddyId.substring(0, index);
         intent.putExtra(BUDDY_ID, buddyId);
         intent.putExtra(CHAT_NAME, extras.getString(CHAT_NAME));
         startActivity(intent);
@@ -180,10 +177,10 @@ public class MainActivity extends AppCompatActivity{
   private void setUserPwd(){
     SharedPreferences preferences = getSharedPreferences(PREFERENCES, 0);
     //if (!preferences.contains(USERNAME))
-    preferences.edit().putString(USERNAME, "niklas").apply();
+    preferences.edit().putString(USERNAME, "aylin").apply();
 
     //if (!preferences.contains(PASSWORD))
-    preferences.edit().putString(PASSWORD, "passwdNiklas").apply();
+    preferences.edit().putString(PASSWORD, "passwdAylin").apply();
   }
 
   //receiving boot intents

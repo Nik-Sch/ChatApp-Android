@@ -82,7 +82,6 @@ public class ChatActivity extends AppCompatActivity{
     LocalBroadcastManager.getInstance(this).registerReceiver
             (PresenceChangeReceiver, new IntentFilter(MainActivity.PRESENCE_CHANGED));
     this.startService(new Intent(this, MessageService.class).setAction(MainActivity.APP_LAUNCHED));
-
   }
 
   @Override
@@ -119,7 +118,7 @@ public class ChatActivity extends AppCompatActivity{
         listView.setSelection(maa.getCount() - 1);
       }
     });
-    showMessages();
+    reloadMessages();
     String lastOnline = messageHistory.getOnline(buddyId);
     updateStatus(lastOnline);
   }
@@ -138,10 +137,12 @@ public class ChatActivity extends AppCompatActivity{
                     .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
             status);
     textIn.setText("");
-    showMessages();
+    maa.clear();
+    reloadMessages();
   }
 
-  private void showMessages(){
+  private void reloadMessages(){
+    maa.clear();
     TextMessage[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
     long oldDate = 0;
     final int c = 24 * 60 * 60 * 1000;
@@ -183,7 +184,7 @@ public class ChatActivity extends AppCompatActivity{
   private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
-      showMessages();
+      reloadMessages();
       new MyNotification(getApplicationContext()).reset();
       ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
               .cancel(MyNotification.NOTIFICATION_ID);

@@ -35,7 +35,7 @@ public class MessageHistory{
   }
 
   public ChatEntry[] getChats(){
-    Log.d("DATABASE", "Getting chats");
+    //Log.d("DATABASE", "Getting chats");
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     Cursor chats = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS, new
                     String[]{MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID,
@@ -50,7 +50,7 @@ public class MessageHistory{
       do{
         String buddyId = chats.getString(0);
         String name = chats.getString(1);
-        Log.d("DATABASE", "retrieving entry: " + buddyId + " - " + name);
+        //Log.d("DATABASE", "retrieving entry: " + buddyId + " - " + name);
 
         String[] columns = new String[]{
                 MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
@@ -100,7 +100,7 @@ public class MessageHistory{
   }
 
   public void addChat(String buddyId, String name){
-    Log.d("DATABASE", "Adding a text_message: " + buddyId + " - " + name);
+    //Log.d("DATABASE", "Adding a text_message: " + buddyId + " - " + name);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     //remove everything after @ if it exists
     int index = buddyId.indexOf('@');
@@ -153,7 +153,7 @@ public class MessageHistory{
     if (index >= 0){
       buddyId = buddyId.substring(0, index);
     }
-    Log.d("DATABASE", "Changing OnlineStatus");
+    //Log.d("DATABASE", "Changing OnlineStatus");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(MessageHistoryContract.ChatEntry.COLUMN_NAME_LAST_ONLINE, status);
@@ -169,7 +169,7 @@ public class MessageHistory{
   }
 
   public TextMessage[] getMessages(String buddyId, int amount, int offset){
-    Log.d("DATABASE", "Getting messages");
+    //Log.d("DATABASE", "Getting messages");
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     String[] columns = new String[]{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
@@ -208,7 +208,7 @@ public class MessageHistory{
 
   public void addMessage(String chatId, String buddyId, String type, String content, String
           status){
-    Log.d("DATABASE", "Adding a message");
+    //Log.d("DATABASE", "Adding a message");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     //remove everything after @ if it exists
     int index = buddyId.indexOf('@');
@@ -231,7 +231,7 @@ public class MessageHistory{
   }
 
   public void updateMessageStatus(String chatId, long _ID, String newStatus){
-    Log.d("DATABASE", "Changing MessageStatus");
+    //Log.d("DATABASE", "Changing MessageStatus");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, newStatus);
