@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -52,14 +53,16 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     if (Obj.getClass() == TextMessage.class){
       LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       v = inflater.inflate(R.layout.text_message, parent, false);
+      
 
       TextMessage msgObj = (TextMessage) Obj;
       RelativeLayout layoutOuter = (RelativeLayout) v.findViewById(R.id.text_message);
-      RelativeLayout layoutInner = (RelativeLayout) v.findViewById(R.id.chat_message_inner);
+      LinearLayout layoutInner = (LinearLayout) v.findViewById(R.id
+              .text_message_inner);
       layoutInner.setBackgroundResource(msgObj.left ? R.drawable.bubble_a1 : R.drawable.bubble_b1);
-      TextView chatText = (TextView) v.findViewById(R.id.chat_messageText);
+      TextView chatText = (TextView) v.findViewById(R.id.text_message_text);
       chatText.setText(msgObj.message);
-      TextView chatTime = (TextView) v.findViewById(R.id.chat_timeStamp);
+      TextView chatTime = (TextView) v.findViewById(R.id.text_message_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgObj.time));
       if (msgObj.left){
         layoutOuter.setGravity(Gravity.START);
