@@ -1,0 +1,58 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.MainActivity">
+
+    <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="1dp"
+        >
+
+        <ListView
+            android:id="@+id/chat_listview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/chat_form"
+            android:layout_alignParentTop="true"
+            android:divider="@null"
+            android:dividerHeight="0dp"/>
+
+        <RelativeLayout
+            android:id="@+id/chat_form"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true">
+
+            <EditText
+                android:id="@+id/chat_in"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_toLeftOf="@+id/chat_sendBtn"
+                android:layout_toStartOf="@+id/chat_sendBtn"
+                android:ems="10"
+                android:inputType="textMultiLine"
+                android:maxLines="3"
+                android:minLines="1"
+                android:textSize="@dimen/font_size"/>
+
+            <Button
+                android:id="@+id/chat_sendBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/chat_in"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:text="@string/chat_send"/>
+        </RelativeLayout>
+    </RelativeLayout>
+
+</FrameLayout>

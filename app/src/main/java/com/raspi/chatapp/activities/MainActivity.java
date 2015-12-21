@@ -4,30 +4,26 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.DataSetObserver;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ListView;
 
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.activities.fragments.ChatFragment;
+import com.raspi.chatapp.activities.fragments.ChatListFragment;
 import com.raspi.chatapp.service.MessageService;
 import com.raspi.chatapp.sqlite.AndroidDatabaseManager;
-import com.raspi.chatapp.sqlite.MessageHistory;
-import com.raspi.chatapp.ui_util.ChatArrayAdapter;
-import com.raspi.chatapp.ui_util.ChatEntry;
 import com.raspi.chatapp.util.MyNotification;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity implements
+        FragmentManager.OnBackStackChangedListener, ChatListFragment
+        .OnFragmentInteractionListener, ChatFragment
+        .OnFragmentInteractionListener{
 
   public static final String PREFERENCES = "com.raspi.chatapp.activities.MainActivity.PREFERENCES";
   public static final String USERNAME = "com.raspi.chatapp.activities.MainActivity.USERNAME";
@@ -44,9 +40,6 @@ public class MainActivity extends AppCompatActivity{
   public static final String CONN_ESTABLISHED = "com.raspi.chatapp.activities.MainActivity.CONN_ESTABLISHED";
   public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
 
-  //private MessageReceiver messageReceiver;
-  private ChatArrayAdapter caa;
-  private ListView lv;
 
   @Override
   protected void onCreate(Bundle savedInstanceState){
@@ -54,6 +47,9 @@ public class MainActivity extends AppCompatActivity{
     setContentView(R.layout.activity_main);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
+
+    getSupportFragmentManager().addOnBackStackChangedListener(this);
+    shouldDisplayHomeUp();
 
     setUserPwd();
 
@@ -67,22 +63,20 @@ public class MainActivity extends AppCompatActivity{
       Log.d("DEBUG", "received intend not click");
       Bundle extras = callingIntent.getExtras();
       if (extras != null && extras.containsKey(BUDDY_ID) && extras.containsKey(CHAT_NAME)){
-        Intent intent = new Intent(this, ChatActivity.class);
-        String buddyId = extras.getString(BUDDY_ID);
-        intent.putExtra(BUDDY_ID, buddyId);
-        intent.putExtra(CHAT_NAME, extras.getString(CHAT_NAME));
-        startActivity(intent);
-        Log.d("DEBUG", "starting chatActivity due to pendingIntent");
+        ChatFragment fragment = new ChatFragment();
+        fragment.setArguments(extras);
+        getSupportFragmentManager().beginTransaction().add(R.id
+                .fragment_container, fragment).commit();
+        return;
       }
     }
+    getSupportFragmentManager().beginTransaction().add(R.id
+            .fragment_container, new ChatListFragment()).commit();
   }
 
   @Override
   protected void onResume(){
     super.onResume();
-    initUI();
-    LocalBroadcastManager.getInstance(this).registerReceiver
-            (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
     this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
     new MyNotification(this).reset();
     ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
@@ -91,8 +85,6 @@ public class MainActivity extends AppCompatActivity{
 
   @Override
   protected void onPause(){
-    LocalBroadcastManager.getInstance(this).unregisterReceiver
-            (MessageReceiver);
     this.startService(new Intent(this, MessageService.class).setAction(APP_CLOSED));
     super.onPause();
   }
@@ -104,44 +96,10 @@ public class MainActivity extends AppCompatActivity{
     super.onDestroy();
   }
 
-  private void initUI(){
-    caa = new ChatArrayAdapter(this, R.layout.chat_list_entry);
-    lv = (ListView) findViewById(R.id.main_listview);
-    lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-    lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-      @Override
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id){
-        ChatEntry chatEntry = caa.getItem(position);
-        Intent intent = new Intent(getApplicationContext(), ChatActivity.class);
-        intent.putExtra(BUDDY_ID, chatEntry.buddyId);
-        intent.putExtra(CHAT_NAME, chatEntry.name);
-        startActivity(intent);
-      }
-    });
-    lv.setAdapter(caa);
-    MessageHistory messageHistory = new MessageHistory(this);
-    ChatEntry[] entries = messageHistory.getChats();
-    for (ChatEntry entry : entries){
-      if (entry != null){
-        Log.d("DEBUG", "adding entry to view: " + entry);
-        caa.add(entry);
-      }else{
-        Log.d("DEBUG", "a null entry");
-      }
-    }
-    caa.registerDataSetObserver(new DataSetObserver(){
-      @Override
-      public void onChanged(){
-        super.onChanged();
-        lv.setSelection(caa.getCount() - 1);
-      }
-    });
-  }
-
   @Override
   public boolean onCreateOptionsMenu(Menu menu){
     // Inflate the menu; this adds items to the action bar if it is present.
-    getMenuInflater().inflate(R.menu.menu_main, menu);
+    getMenuInflater().inflate(R.menu.menu_chat_list, menu);
     return true;
   }
 
@@ -183,6 +141,39 @@ public class MainActivity extends AppCompatActivity{
     preferences.edit().putString(PASSWORD, "passwdAylin").apply();
   }
 
+  @Override
+  public void onChatOpened(String buddyId, String name){
+    ChatFragment fragment = new ChatFragment();
+    Bundle extras = new Bundle();
+    extras.putString(MainActivity.BUDDY_ID, buddyId);
+    extras.putString(MainActivity.CHAT_NAME, name);
+    fragment.setArguments(extras);
+    getSupportFragmentManager().beginTransaction().replace(R.id
+            .fragment_container, fragment).addToBackStack(null).commit();
+  }
+
+  @Override
+  public void onAttachClicked(String buddyId){
+
+  }
+
+  @Override
+  public void onBackStackChanged(){
+    shouldDisplayHomeUp();
+  }
+
+  public void shouldDisplayHomeUp(){
+    boolean canBack = getSupportFragmentManager().getBackStackEntryCount() > 0;
+    getSupportActionBar().setDisplayHomeAsUpEnabled(canBack);
+    getSupportActionBar().setHomeButtonEnabled(canBack);
+  }
+
+  @Override
+  public boolean onSupportNavigateUp(){
+    getSupportFragmentManager().popBackStack();
+    return true;
+  }
+
   //receiving boot intents
   public static class BootReceiver extends BroadcastReceiver{
 
@@ -198,15 +189,4 @@ public class MainActivity extends AppCompatActivity{
       }
     }
   }
-
-  //receiving intents from the MessageService that a new message was received
-  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
-    @Override
-    public void onReceive(Context context, Intent intent){
-      initUI();
-      new MyNotification(getApplicationContext()).reset();
-      ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
-              .cancel(MyNotification.NOTIFICATION_ID);
-    }
-  };
 }

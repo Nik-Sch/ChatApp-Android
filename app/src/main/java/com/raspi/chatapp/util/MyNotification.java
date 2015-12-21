@@ -13,7 +13,6 @@ import android.util.Log;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.activities.MainActivity;
-import com.raspi.chatapp.activities.ChatActivity;
 
 import org.json.JSONArray;
 
@@ -56,7 +55,8 @@ public class MyNotification{
     }
 
     TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-    stackBuilder.addParentStack(ChatActivity.class);
+    //TODO ParentStack?!
+    //stackBuilder.addParentStack(ChatActivity.class);
     stackBuilder.addNextIntent(resultIntent);
     PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
             PendingIntent.FLAG_UPDATE_CURRENT);

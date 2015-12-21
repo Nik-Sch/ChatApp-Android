@@ -51,15 +51,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainActivity"/>
         </activity>
-        <activity
-            android:name=".activities.ChatActivity"
-            android:label="@string/title_activity_chat"
-            android:parentActivityName=".activities.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity"/>
-        </activity>
 
         <service android:name=".service.MessageService"/>
 
