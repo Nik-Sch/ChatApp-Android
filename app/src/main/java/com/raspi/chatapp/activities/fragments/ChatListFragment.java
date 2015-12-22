@@ -42,16 +42,6 @@ public class ChatListFragment extends Fragment{
   private OnFragmentInteractionListener mListener;
   private ChatArrayAdapter caa;
   private ListView lv;
-  //receiving intents from the MessageService that a new message was received
-  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
-    @Override
-    public void onReceive(Context context, Intent intent){
-      initUI();
-      new MyNotification(getContext()).reset();
-      ((NotificationManager) getActivity().getSystemService(Context
-              .NOTIFICATION_SERVICE)).cancel(MyNotification.NOTIFICATION_ID);
-    }
-  };
 
   /**
    * Use this factory method to create a new instance of
@@ -159,6 +149,16 @@ public class ChatListFragment extends Fragment{
     actionBar.setTitle(R.string.app_name);
     actionBar.setSubtitle(null);
   }
+
+  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      initUI();
+      new MyNotification(getContext()).reset();
+      ((NotificationManager) getActivity().getSystemService(Context
+              .NOTIFICATION_SERVICE)).cancel(MyNotification.NOTIFICATION_ID);
+    }
+  };
 
   /**
    * This interface must be implemented by activities that contain this

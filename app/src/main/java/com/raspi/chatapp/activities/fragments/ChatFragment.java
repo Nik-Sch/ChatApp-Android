@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -33,6 +35,8 @@ import com.raspi.chatapp.ui_util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.MyNotification;
 import com.raspi.chatapp.util.XmppManager;
+
+import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -158,7 +162,7 @@ public class ChatFragment extends Fragment{
       case R.id.action_settings:
         return false;
       case R.id.action_attach:
-        mListener.onAttachClicked(buddyId);
+        mListener.onAttachClicked();
         return true;
       case R.id.home:
       default:
@@ -261,12 +265,14 @@ public class ChatFragment extends Fragment{
       startOfDay.set(Calendar.MILLISECOND, 0);
       long diff = startOfDay.getTimeInMillis() - time;
       if (diff <= 0)
-        lastOnline = "today at ";
+        lastOnline = getResources().getString(R.string.last_online_today) + " ";
       else if (diff > 1000 * 60 * 60 * 24)
         lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                (time) + " at ";
+                (time) + " " + getResources().getString(R.string
+                .last_online_at) + " ";
       else
-        lastOnline = "yesterday at ";
+        lastOnline = getResources().getString(R.string.last_online_yesterday)
+                + " ";
       lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
               .format(time);
       if (actionBar != null)
@@ -290,6 +296,6 @@ public class ChatFragment extends Fragment{
    * >Communicating with Other Fragments</a> for more information.
    */
   public interface OnFragmentInteractionListener{
-    void onAttachClicked(String buddyId);
+    void onAttachClicked();
   }
 }

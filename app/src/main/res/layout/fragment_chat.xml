@@ -10,8 +10,7 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="1dp"
-        >
+        android:padding="1dp">
 
         <ListView
             android:id="@+id/chat_listview"
@@ -51,7 +50,7 @@
                 android:layout_alignBottom="@+id/chat_in"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
-                android:text="@string/chat_send"/>
+                android:text="@string/send"/>
         </RelativeLayout>
     </RelativeLayout>
 

@@ -55,8 +55,7 @@ public class MyNotification{
     }
 
     TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-    //TODO ParentStack?!
-    //stackBuilder.addParentStack(ChatActivity.class);
+    stackBuilder.addParentStack(MainActivity.class);
     stackBuilder.addNextIntent(resultIntent);
     PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
             PendingIntent.FLAG_UPDATE_CURRENT);
