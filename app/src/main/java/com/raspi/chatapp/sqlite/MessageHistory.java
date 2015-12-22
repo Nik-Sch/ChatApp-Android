@@ -10,8 +10,13 @@ import android.util.Log;
 
 import com.raspi.chatapp.activities.MainActivity;
 import com.raspi.chatapp.ui_util.ChatEntry;
+import com.raspi.chatapp.ui_util.message_array.ImageMessage;
+import com.raspi.chatapp.ui_util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui_util.message_array.TextMessage;
 
+import org.json.JSONArray;
+
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -164,11 +169,11 @@ public class MessageHistory{
     db.close();
   }
 
-  public TextMessage[] getMessages(String buddyId, int limit){
+  public MessageArrayContent[] getMessages(String buddyId, int limit){
     return getMessages(buddyId, limit, 0);
   }
 
-  public TextMessage[] getMessages(String buddyId, int amount, int offset){
+  public MessageArrayContent[] getMessages(String buddyId, int amount, int offset){
     //Log.d("DATABASE", "Getting messages");
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     String[] columns = new String[]{
@@ -185,7 +190,7 @@ public class MessageHistory{
 
     messages.moveToLast();
     int messageCount = messages.getCount();
-    TextMessage[] result = new TextMessage[messageCount];
+    MessageArrayContent[] result = new MessageArrayContent[messageCount];
     int i = 0;
     if (messages.getCount() > 0)
       do{
@@ -198,7 +203,26 @@ public class MessageHistory{
         String status = messages.getString(3);
         long time = messages.getLong(4);
         long _ID = messages.getLong(5);
-        result[i] = new TextMessage(!me.equals(from), content, time, status, _ID);
+        switch (type){
+          case (MessageHistory.TYPE_TEXT):
+            result[i] = new TextMessage(!me.equals(from), content, time, status, _ID);
+            break;
+          case (MessageHistory.TYPE_IMAGE):
+            try{
+              JSONArray contentJSON = new JSONArray(content);
+              result[i] = new ImageMessage(
+                      !me.equals(from),                   //left
+                      new File(contentJSON.getString(0)), //File
+                      contentJSON.getString(1),           //description
+                      time,                               //timeStamp
+                      contentJSON.getDouble(2),           //progress
+                      status,                             //status
+                      _ID);                               //_ID
+            }catch (Exception e){
+              e.printStackTrace();
+            }
+            break;
+        }
         i++;
       }while (messages.move(-1));
     db.close();

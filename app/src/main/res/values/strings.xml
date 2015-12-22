@@ -11,6 +11,7 @@
     <string name="last_online_at">um</string>
     <string name="send">Senden</string>
     <string name="cancel">Abbrechen</string>
+    <string name="retry">Wiederholen</string>
 
     <!-- Strings related to Settings -->
 

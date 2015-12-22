@@ -56,10 +56,10 @@ public class MainActivity extends AppCompatActivity implements
           ".MainActivity.CONN_ESTABLISHED";
   public static final String IMAGE_URI = "com.raspi.chatapp.activities" +
           ".MainActivity.IMAGE_URI";
-  /*public static final String CHAT_LIST_FRAG = "com.raspi.chatapp.activities" +
-          ".MainActivity.CHAT_LIST_FRAG";
-  public static final String CHAT_FRAG = "com.raspi.chatapp.activities" +
-          ".MainActivity.CHAT_FRAG";*/
+
+  public static final String SENT_FILE_DIR = R.string.app_name + "/sent";
+  public static final String RECEIVED_FILE_DIR = R.string.app_name
+          + "/received";
 
   public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
 

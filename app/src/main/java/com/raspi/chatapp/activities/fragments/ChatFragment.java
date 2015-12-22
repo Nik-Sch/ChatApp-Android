@@ -6,8 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -30,13 +28,13 @@ import com.raspi.chatapp.R;
 import com.raspi.chatapp.activities.MainActivity;
 import com.raspi.chatapp.sqlite.MessageHistory;
 import com.raspi.chatapp.ui_util.message_array.Date;
+import com.raspi.chatapp.ui_util.message_array.ImageMessage;
 import com.raspi.chatapp.ui_util.message_array.MessageArrayAdapter;
+import com.raspi.chatapp.ui_util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui_util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.MyNotification;
 import com.raspi.chatapp.util.XmppManager;
-
-import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -191,7 +189,7 @@ public class ChatFragment extends Fragment{
   private void initUI(){
     if (actionBar != null)
       actionBar.setTitle(chatName);
-    maa = new MessageArrayAdapter(getContext(), R.layout.text_message);
+    maa = new MessageArrayAdapter(getContext(), R.layout.message_text);
 
     listView = (ListView) getView().findViewById(R.id.chat_listview);
     textIn = (EditText) getView().findViewById(R.id.chat_in);
@@ -231,10 +229,8 @@ public class ChatFragment extends Fragment{
       //TODO messageHistory.addSendRequest(buddyId, message);
     }
     messageHistory.addMessage(buddyId, getContext().getSharedPreferences
-                    (MainActivity
-                            .PREFERENCES, 0)
-                    .getString(MainActivity.USERNAME, ""), MessageHistory.TYPE_TEXT, message,
-            status);
+            (MainActivity.PREFERENCES, 0).getString(MainActivity
+            .USERNAME, ""), MessageHistory.TYPE_TEXT, message, status);
     textIn.setText("");
     maa.clear();
     reloadMessages();
@@ -242,16 +238,29 @@ public class ChatFragment extends Fragment{
 
   private void reloadMessages(){
     maa.clear();
-    TextMessage[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
+    MessageArrayContent[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
     long oldDate = 0;
     final int c = 24 * 60 * 60 * 1000;
-    for (TextMessage message : messages){
-      if ((message.time - oldDate) / c > 0)
-        maa.add(new Date(message.time));
-      oldDate = message.time;
-      maa.add(message);
-      if (message.left)
-        messageHistory.updateMessageStatus(buddyId, message._ID, MessageHistory.STATUS_READ);
+    for (MessageArrayContent message : messages){
+      if (message instanceof TextMessage){
+        TextMessage msg = (TextMessage) message;
+        if ((msg.time - oldDate) / c > 0)
+          maa.add(new Date(msg.time));
+        oldDate = msg.time;
+        maa.add(msg);
+        if (msg.left)
+          messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
+                  .STATUS_READ);
+      }else if (message instanceof ImageMessage){
+        ImageMessage msg = (ImageMessage) message;
+        if ((msg.time - oldDate) / c > 0)
+          maa.add(new Date(msg.time));
+        oldDate = msg.time;
+        maa.add(msg);
+        if (msg.left)
+          messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
+                  .STATUS_READ);
+      }
     }
   }
 

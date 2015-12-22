@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
-    android:id="@+id/text_message"
+    android:id="@+id/message_text"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="6dp">
 
     <LinearLayout
-        android:id="@+id/text_message_inner"
+        android:id="@+id/message_text_inner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/bubble_a1"
         android:padding="1dp">
 
         <TextView
-            android:id="@+id/text_message_text"
+            android:id="@+id/message_text_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_gravity="center"
             android:layout_margin="5dp"
+            android:layout_weight="1"
             android:text="Hello World"
             android:textColor="@android:color/black"
             android:textSize="@dimen/font_size"/>
 
         <RelativeLayout
-            android:id="@+id/text_message_info"
+            android:id="@+id/message_text_info"
             android:layout_width="wrap_content"
-            android:layout_weight="0"
             android:layout_height="wrap_content"
-            android:padding="3dp"
             android:layout_marginEnd="3dp"
-            android:layout_marginRight="3dp">
+            android:layout_marginRight="3dp"
+            android:layout_weight="0"
+            android:padding="3dp">
 
             <TextView
-                android:id="@+id/text_message_timeStamp"
+                android:id="@+id/message_text_timeStamp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/chat_status"
+                android:layout_below="@+id/message_text_status"
                 android:text="00:00"
                 android:textColor="@color/colorTimeStamp"/>
 
             <ImageView
-                android:id="@+id/chat_status"
+                android:id="@+id/message_text_status"
                 android:layout_width="19dp"
                 android:layout_height="13dp"
-                android:layout_alignEnd="@+id/text_message_timeStamp"
-                android:layout_alignRight="@+id/text_message_timeStamp"
+                android:layout_alignEnd="@+id/message_text_timeStamp"
+                android:layout_alignRight="@+id/message_text_timeStamp"
                 android:layout_marginEnd="2dp"
                 android:layout_marginRight="2dp"
                 android:layout_marginTop="6dp"

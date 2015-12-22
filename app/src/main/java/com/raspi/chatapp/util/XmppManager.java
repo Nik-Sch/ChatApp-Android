@@ -1,16 +1,23 @@
 package com.raspi.chatapp.util;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackConfiguration;
+import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.filetransfer.FileTransfer;
+import org.jivesoftware.smackx.filetransfer.FileTransferManager;
+import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
+
+import java.io.File;
 
 public class XmppManager{
 
@@ -187,5 +194,71 @@ public class XmppManager{
 
   public XMPPTCPConnection getConnection(){
     return connection;
+  }
+
+  private class UploadImageTask extends AsyncTask<UploadTask, Double,
+          Boolean[]>{
+    @Override
+    protected Boolean[] doInBackground(UploadTask... tasks){
+      Boolean[] result = new Boolean[tasks.length];
+      Double[] progress = new Double[tasks.length];
+      FileTransferManager manager = FileTransferManager.getInstanceFor
+              (connection);
+      for (int i=0;i<tasks.length;i++){
+        OutgoingFileTransfer transfer = manager.createOutgoingFileTransfer
+                (tasks[i].buddyId);
+        try{
+          transfer.sendFile(tasks[i].file, tasks[i].description);
+        }catch (SmackException e){
+          e.printStackTrace();
+        }
+        while (!transfer.isDone()){
+          if (transfer.getStatus().equals(FileTransfer.Status.error)){
+            //Connection lost?
+            result[i] = false;
+            continue;
+          }else if (FileTransfer.Status.cancelled.equals(transfer.getStatus())){
+            //user interruption
+            result[i] = false;
+            continue;
+          }else if (FileTransfer.Status.refused.equals(transfer.getStatus())){
+            //buddy doesn't want the file
+            result[i] = false;
+            continue;
+          }
+          progress[i] = transfer.getProgress();
+          publishProgress(progress);
+          try{
+            Thread.sleep(100);
+          }catch (InterruptedException e){
+            e.printStackTrace();
+          }
+        }
+        result[i] = true;
+      }
+      return result;
+    }
+
+    @Override
+    protected void onProgressUpdate(Double... progress){
+      super.onProgressUpdate(progress);
+    }
+
+    @Override
+    protected void onPostExecute(Boolean[] booleans){
+      super.onPostExecute(booleans);
+    }
+  }
+
+  public class UploadTask{
+    File file;
+    String description;
+    String buddyId;
+
+    public UploadTask(File file, String description, String buddyId){
+      this.file = file;
+      this.description = description;
+      this.buddyId = buddyId;
+    }
   }
 }
