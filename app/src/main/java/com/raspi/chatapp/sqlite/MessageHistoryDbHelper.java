@@ -11,7 +11,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class MessageHistoryDbHelper extends SQLiteOpenHelper{
-  public static final int DATABASE_VERSION = 2;
+  public static final int DATABASE_VERSION = 6;
   public static final String DATABASE_NAME = "MessageHistory.db";
   private static final String CREATE_ALL_CHATS = "CREATE TABLE IF NOT EXISTS " +
           MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS + " (" + MessageHistoryContract
@@ -33,6 +33,7 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
             .COLUMN_NAME_BUDDY_ID + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_TYPE + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_CONTENT + " TEXT, " + MessageHistoryContract.MessageEntry
+            .COLUMN_NAME_MESSAGE_PROGRESS + " REAL, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_STATUS + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_TIMESTAMP + " INTEGER)");
   }
@@ -44,6 +45,14 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
+    Cursor chats = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS, new
+                    String[]{MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID},
+            null, null, null, null, null);
+    chats.moveToFirst();
+    if (chats.getCount() > 0)
+      do{
+        db.execSQL("DROP TABLE IF EXISTS " + chats.getString(0));
+      }while (chats.move(1));
     db.execSQL("DROP TABLE IF EXISTS " + MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS);
     onCreate(db);
   }

@@ -17,16 +17,17 @@
             android:id="@+id/message_image_wrapper"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_marginStart="5dp"
-            android:layout_marginTop="12dp">
+            android:layout_marginEnd="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="15dp">
 
             <ImageView
                 android:id="@+id/message_image_image"
-                android:layout_width="280dp"
-                android:layout_height="280dp"/>
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:scaleType="centerCrop"/>
 
             <Button
                 android:id="@+id/message_image_retry"

@@ -57,9 +57,7 @@ public class MainActivity extends AppCompatActivity implements
   public static final String IMAGE_URI = "com.raspi.chatapp.activities" +
           ".MainActivity.IMAGE_URI";
 
-  public static final String SENT_FILE_DIR = R.string.app_name + "/sent";
-  public static final String RECEIVED_FILE_DIR = R.string.app_name
-          + "/received";
+  public static final String IMAGE_DIR = "ChatApp Images";
 
   public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
 

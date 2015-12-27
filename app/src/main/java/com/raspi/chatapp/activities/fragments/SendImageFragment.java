@@ -1,12 +1,9 @@
 package com.raspi.chatapp.activities.fragments;
 
 import android.content.Context;
-import android.content.CursorLoader;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,13 +14,16 @@ import android.widget.TextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.activities.MainActivity;
 import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.util.FileUtils;
 
 import org.json.JSONArray;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -130,19 +130,23 @@ public class SendImageFragment extends Fragment{
 
   private void sendImage(){
     if (isExternalStorageWritable()){
-      String root = Environment.getExternalStoragePublicDirectory
-              (Environment.DIRECTORY_PICTURES).toString();
-      File myDir = new File(root + "/" + MainActivity.SENT_FILE_DIR);
-      myDir.mkdirs();
-      File file = new File(myDir, getFileName());
       try{
+        //creating the directory
+        String root = Environment.getExternalStoragePublicDirectory
+                (Environment.DIRECTORY_PICTURES).getAbsolutePath();
+        File myDir = new File(root + "/" + MainActivity.IMAGE_DIR);
+        myDir.mkdirs();
+        File file = new File(myDir, getFileName());
+        //creating the file
         if (file.exists()) file.delete();
         file.createNewFile();
-        copyFile(new File(getRealPathFromURI(imageUri)), file);
+        //moving the given image into the file
+        copyFile(FileUtils.getFile(getContext(), imageUri), file);
+        //adding the image message to the messageHistory
         JSONArray contentJSON = new JSONArray();
         contentJSON.put(file.getAbsolutePath());
         contentJSON.put(((TextView) getView().findViewById(R.id
-                .message_image_description)).getText());
+                .send_image_description)).getText());
         contentJSON.put(0d);//progress
         MessageHistory messageHistory = new MessageHistory(getContext());
         messageHistory.addMessage(
@@ -159,26 +163,15 @@ public class SendImageFragment extends Fragment{
   }
 
   private void copyFile(File sourceFile, File destFile) throws IOException{
-    if (!sourceFile.exists()) return;
-    FileChannel source = new FileInputStream(sourceFile).getChannel();
-    FileChannel dest = new FileInputStream(destFile).getChannel();
-    if (source != null && dest != null)
-      dest.transferFrom(source, 0, source.size());
-    if (source != null) source.close();
-    if (dest != null) dest.close();
-  }
+    InputStream in = new FileInputStream(sourceFile);
+    OutputStream out = new FileOutputStream(destFile);
 
-  private String getRealPathFromURI(Uri contentUri){
-    String[] proj = {MediaStore.Images.Media.DATA};
-    CursorLoader loader = new CursorLoader(getContext(), contentUri, proj,
-            null, null, null);
-    Cursor cursor = loader.loadInBackground();
-    int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media
-            .DATA);
-    cursor.moveToFirst();
-    String result = cursor.getString(columnIndex);
-    cursor.close();
-    return result;
+    byte[] buf = new byte[1024];
+    int len;
+    while ((len = in.read(buf)) > 0)
+      out.write(buf, 0, len);
+    in.close();
+    out.close();
   }
 
   private String getFileName(){

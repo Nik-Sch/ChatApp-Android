@@ -1,8 +1,11 @@
 package com.raspi.chatapp.util;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+
+import com.raspi.chatapp.sqlite.MessageHistory;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackConfiguration;
@@ -17,19 +20,20 @@ import org.jivesoftware.smackx.filetransfer.FileTransfer;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
 
-import java.io.File;
-
 public class XmppManager{
 
-  private static final int packetReplyTime = 5000;
+  public static final int STATUS_ERROR = 0;
+  public static final int STATUS_SENT = 1;
+  public static final int STATUS_SENDING = 2;
 
-  private Context context;
+  private static final int packetReplyTime = 5000;
 
   private String server;
   private String service;
   private int port;
 
   private XMPPTCPConnection connection;
+  private MessageHistory messageHistory;
 
   /**
    * creates a IM Manager with the given server ID
@@ -42,7 +46,7 @@ public class XmppManager{
     this.server = server;
     this.service = service;
     this.port = port;
-    this.context = context;
+    messageHistory = new MessageHistory(context);
     Log.d("DEBUG", "Success: created xmppManager");
   }
 
@@ -137,6 +141,107 @@ public class XmppManager{
   }
 
   /**
+   * uploads the image that is specified by the given task
+   * @param task the uploadTask that should be executed
+   */
+  public void sendImage(final UploadTask task, final Handler mHandler){
+    new Thread(new Runnable(){
+      @Override
+      public void run(){
+        //reporting to the UI Thread
+        FileTransferManager manager = FileTransferManager.getInstanceFor
+                (connection);
+        String chatId = task.chatId;
+        long messageID = task.messageID;
+        messageHistory = task.messageHistory;
+        messageHistory.updateMessageStatus(chatId, messageID, MessageHistory.STATUS_SENDING);
+        try{
+        OutgoingFileTransfer transfer = manager.createOutgoingFileTransfer
+                (task.chatId + "@" + service);
+          transfer.sendFile(task.file, task.description);
+        while (!transfer.isDone()){
+          if (transfer.getStatus().equals(FileTransfer.Status.error)){
+            //connection lost?
+            if (mHandler != null){
+              Message message = mHandler.obtainMessage(XmppManager
+                      .STATUS_ERROR, new UploadHandlerTask(transfer
+                      .getProgress(), task.chatId, task.messageID));
+              message.sendToTarget();
+            }
+            messageHistory.updateMessageStatus(task.chatId, task.messageID,
+                    MessageHistory.STATUS_WAITING);
+            messageHistory.updateMessageProgress(task.chatId, task.messageID,
+                    0);
+          }else if (FileTransfer.Status.cancelled.equals(transfer.getStatus())){
+            //user interruption
+            if (mHandler != null){
+              Message message = mHandler.obtainMessage(XmppManager
+                      .STATUS_ERROR, new UploadHandlerTask(transfer
+                      .getProgress(), task.chatId, task.messageID));
+              message.sendToTarget();
+            }
+            messageHistory.updateMessageStatus(task.chatId, task.messageID,
+                    MessageHistory.STATUS_WAITING);
+            messageHistory.updateMessageProgress(task.chatId, task.messageID,
+                    0);
+          }else if (FileTransfer.Status.refused.equals(transfer.getStatus())){
+            //buddy doesn't want the file
+            if (mHandler != null){
+              Message message = mHandler.obtainMessage(XmppManager
+                      .STATUS_ERROR, new UploadHandlerTask(transfer
+                      .getProgress(), task.chatId, task.messageID));
+              message.sendToTarget();
+            }
+            messageHistory.updateMessageStatus(task.chatId, task.messageID,
+                    MessageHistory.STATUS_WAITING);
+            messageHistory.updateMessageProgress(task.chatId, task.messageID,
+                    0);
+          }
+          //report progress
+          if (mHandler != null){
+            Message message = mHandler.obtainMessage(XmppManager
+                    .STATUS_SENDING, new UploadHandlerTask(transfer
+                    .getProgress(), task.chatId, task.messageID));
+            message.sendToTarget();
+          }else{
+            messageHistory.updateMessageProgress(task.chatId, task.messageID,
+                    transfer.getProgress());
+          }
+          try{
+            Thread.sleep(100);
+          }catch (InterruptedException e){
+            e.printStackTrace();
+          }
+        }
+        if (mHandler != null){
+          Message message = mHandler.obtainMessage(XmppManager
+                  .STATUS_SENT, new UploadHandlerTask(transfer
+                  .getProgress(), task.chatId, task.messageID));
+          message.sendToTarget();
+        }
+        messageHistory.updateMessageProgress(task.chatId, task.messageID, 1);
+        messageHistory.updateMessageStatus(task.chatId, task.messageID,
+                MessageHistory.STATUS_SENT);
+        }catch (SmackException e){
+          e.printStackTrace();
+        }
+      }
+    }).start();
+  }
+
+  public class UploadHandlerTask{
+    public double progress;
+    public String chatId;
+    public long messageID;
+
+    public UploadHandlerTask(double progress, String chatId, long messageID){
+      this.progress = progress;
+      this.chatId = chatId;
+      this.messageID = messageID;
+    }
+  }
+
+  /**
    * sets the status
    *
    * @param available if true the status type will be set to available otherwise to unavailable
@@ -194,71 +299,5 @@ public class XmppManager{
 
   public XMPPTCPConnection getConnection(){
     return connection;
-  }
-
-  private class UploadImageTask extends AsyncTask<UploadTask, Double,
-          Boolean[]>{
-    @Override
-    protected Boolean[] doInBackground(UploadTask... tasks){
-      Boolean[] result = new Boolean[tasks.length];
-      Double[] progress = new Double[tasks.length];
-      FileTransferManager manager = FileTransferManager.getInstanceFor
-              (connection);
-      for (int i=0;i<tasks.length;i++){
-        OutgoingFileTransfer transfer = manager.createOutgoingFileTransfer
-                (tasks[i].buddyId);
-        try{
-          transfer.sendFile(tasks[i].file, tasks[i].description);
-        }catch (SmackException e){
-          e.printStackTrace();
-        }
-        while (!transfer.isDone()){
-          if (transfer.getStatus().equals(FileTransfer.Status.error)){
-            //Connection lost?
-            result[i] = false;
-            continue;
-          }else if (FileTransfer.Status.cancelled.equals(transfer.getStatus())){
-            //user interruption
-            result[i] = false;
-            continue;
-          }else if (FileTransfer.Status.refused.equals(transfer.getStatus())){
-            //buddy doesn't want the file
-            result[i] = false;
-            continue;
-          }
-          progress[i] = transfer.getProgress();
-          publishProgress(progress);
-          try{
-            Thread.sleep(100);
-          }catch (InterruptedException e){
-            e.printStackTrace();
-          }
-        }
-        result[i] = true;
-      }
-      return result;
-    }
-
-    @Override
-    protected void onProgressUpdate(Double... progress){
-      super.onProgressUpdate(progress);
-    }
-
-    @Override
-    protected void onPostExecute(Boolean[] booleans){
-      super.onPostExecute(booleans);
-    }
-  }
-
-  public class UploadTask{
-    File file;
-    String description;
-    String buddyId;
-
-    public UploadTask(File file, String description, String buddyId){
-      this.file = file;
-      this.description = description;
-      this.buddyId = buddyId;
-    }
   }
 }

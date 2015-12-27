@@ -1,6 +1,7 @@
 package com.raspi.chatapp.ui_util.message_array;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -109,6 +110,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
               R.drawable.bubble_b1);
       TextView description = (TextView) v.findViewById(R.id.message_image_description);
       description.setText(msgObj.description);
+      ImageView image = (ImageView) v.findViewById(R.id.message_image_image);
+      image.setImageBitmap(BitmapFactory.decodeFile(msgObj.file.getAbsolutePath()));
       TextView chatTime = (TextView) v.findViewById(R.id.message_image_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
               (msgObj.time));
@@ -116,30 +119,51 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       if (msgObj.left){
         layoutOuter.setGravity(Gravity.START);
         v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
+        v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
+        v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
       }else{
         layoutOuter.setGravity(Gravity.END);
+        ImageView imageView;
+        ProgressBar progressBar;
+
         switch (msgObj.status){
           case MessageHistory.STATUS_WAITING:
             v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
-            ProgressBar progressBar = (ProgressBar)v.findViewById(R.id
+             progressBar = (ProgressBar)v.findViewById(R.id
                     .message_image_progress);
+            progressBar.setVisibility(View.VISIBLE);
+            progressBar.setProgress(0);
+            v.findViewById(R.id.message_image_retry).setVisibility(View.VISIBLE);
+            break;
+          case MessageHistory.STATUS_SENDING:
+            v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
+            progressBar = (ProgressBar)v.findViewById(R.id
+                    .message_image_progress);
+            progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress((int) (msgObj.progress * 100));
+            v.findViewById(R.id.message_image_retry).setVisibility(View.VISIBLE);
             break;
           case MessageHistory.STATUS_SENT:
-            ((ImageView)v.findViewById(R.id.message_image_status))
-                    .setImageResource(R.drawable.single_grey_hook);
-            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
+            imageView = (ImageView)v.findViewById(R.id
+                    .message_image_status);
+            imageView.setImageResource(R.drawable.single_grey_hook);
+            imageView.setVisibility(View.VISIBLE);
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
+            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             break;
           case MessageHistory.STATUS_RECEIVED:
-            ((ImageView)v.findViewById(R.id.message_image_status))
-                    .setImageResource(R.drawable.two_grey_hook);
+            imageView = (ImageView)v.findViewById(R.id
+                    .message_image_status);
+            imageView.setImageResource(R.drawable.two_grey_hook);
+            imageView.setVisibility(View.VISIBLE);
             v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
             break;
           case MessageHistory.STATUS_READ:
-            ((ImageView)v.findViewById(R.id.message_image_status))
-                    .setImageResource(R.drawable.two_blue_hook);
+            imageView = (ImageView)v.findViewById(R.id
+                    .message_image_status);
+            imageView.setImageResource(R.drawable.two_blue_hook);
+            imageView.setVisibility(View.VISIBLE);
             v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
             break;

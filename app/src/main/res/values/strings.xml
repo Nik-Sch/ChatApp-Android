@@ -13,6 +13,9 @@
     <string name="cancel">Abbrechen</string>
     <string name="retry">Wiederholen</string>
 
+    <string name="home">Home</string>
+    <string name="sd_card">SD Card</string>
+
     <!-- Strings related to Settings -->
 
     <!-- Example General settings -->

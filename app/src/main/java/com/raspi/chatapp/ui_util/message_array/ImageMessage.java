@@ -9,18 +9,18 @@ public class ImageMessage extends MessageArrayContent{
   public boolean left;
   public File file;
   public String description;
-  public long time;
   public double progress;
+  public long time;
   public String status;
   public long _ID;
 
-  public ImageMessage(boolean left, File file, String description, long time,
-                      double progress, String status, long _ID){
+  public ImageMessage(boolean left, File file, String description,
+                      double progress, long time, String status, long _ID){
     this.left = left;
     this.file = file;
     this.description = description;
-    this.time = time;
     this.progress = progress;
+    this.time = time;
     this.status = status;
     this._ID = _ID;
   }

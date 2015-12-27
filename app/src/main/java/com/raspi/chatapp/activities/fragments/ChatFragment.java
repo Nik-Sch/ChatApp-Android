@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
@@ -34,6 +37,7 @@ import com.raspi.chatapp.ui_util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui_util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.MyNotification;
+import com.raspi.chatapp.util.UploadTask;
 import com.raspi.chatapp.util.XmppManager;
 
 import java.text.SimpleDateFormat;
@@ -62,6 +66,8 @@ public class ChatFragment extends Fragment{
   private ActionBar actionBar;
 
   private OnFragmentInteractionListener mListener;
+  private Handler mHandler;
+
   private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
@@ -120,6 +126,38 @@ public class ChatFragment extends Fragment{
     }else
       return;
     messageHistory = new MessageHistory(getContext());
+
+    //See XmppManager for further explanation
+    mHandler = new Handler(Looper.getMainLooper()){
+      @Override
+      public void handleMessage(Message msg){
+        XmppManager.UploadHandlerTask progress = (XmppManager.UploadHandlerTask) msg.obj;
+        if (progress != null && chatName.equals(progress.chatId)){
+          int i;
+          for (i = maa.getCount(); i>=0;i--){
+            MessageArrayContent mac = maa.getItem(i);
+            if ((mac instanceof ImageMessage) && ((ImageMessage) mac)._ID ==
+                    progress.messageID){
+              ImageMessage im = (ImageMessage) mac;
+              im.progress = progress.progress;
+              switch (msg.what){
+                case (XmppManager.STATUS_ERROR):
+                  im.status = MessageHistory.STATUS_WAITING;
+                  break;
+                case (XmppManager.STATUS_SENDING):
+                  im.status = MessageHistory.STATUS_SENDING;
+                  break;
+                case (XmppManager.STATUS_SENT):
+                  im.status = MessageHistory.STATUS_SENT;
+                  im.progress = 0;
+                  break;
+              }
+              maa.notifyDataSetInvalidated();
+            }
+          }
+        }
+      }
+    };
   }
 
   @Override
@@ -260,6 +298,15 @@ public class ChatFragment extends Fragment{
         if (msg.left)
           messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
                   .STATUS_READ);
+        else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
+          XmppManager xmppManager = ((Globals) getActivity().getApplication())
+                  .getXmppManager();
+          if (xmppManager != null){
+            UploadTask task = new UploadTask(msg.file, msg.description,
+                    buddyId, msg._ID, xmppManager.getConnection(), messageHistory);
+            xmppManager.sendImage(task, mHandler);
+          }
+        }
       }
     }
   }
@@ -294,6 +341,48 @@ public class ChatFragment extends Fragment{
     }
   }
 
+
+  /*
+   * functions for the uploadImage.
+   * If an image is uploaded, the task response to the GUI via the interface
+   * declaring there functions.
+   * /
+
+  @Override
+  public void onProgressUpdate(String chatId, long messageID, double progress){
+    if (chatId.equals(buddyId)){
+      int c = maa.getCount();
+      int i;
+      for (i = 0; i < c; i++){
+        try{
+          ImageMessage msg = (ImageMessage) maa.getItem(i);
+          if (msg._ID == messageID){
+            msg.progress = progress;
+          }
+        }catch (ClassCastException e){
+        }
+      }
+    }
+  }
+
+  @Override
+  public void onPostUpload(String chatId, long messageID, boolean success){
+    if (chatId.equals(buddyId)){
+      int c = maa.getCount();
+      int i;
+      for (i = 0; i < c; i++){
+        try{
+          ImageMessage msg = (ImageMessage) maa.getItem(i);
+          if (msg._ID == messageID){
+            msg.progress = 1;
+            msg.status = MessageHistory.STATUS_SENT;
+          }
+        }catch (ClassCastException e){
+        }
+      }
+    }
+  }
+*/
   /**
    * This interface must be implemented by activities that contain this
    * fragment to allow an interaction in this fragment to be communicated

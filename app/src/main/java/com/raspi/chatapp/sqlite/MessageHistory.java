@@ -27,6 +27,7 @@ public class MessageHistory{
   public static final String TYPE_IMAGE = "com.raspi.sqlite.MessageHistory.TYPE_IMAGE";
 
   public static final String STATUS_WAITING = "com.raspi.sqlite.MessageHistory.STATUS_WAITING";
+  public static final String STATUS_SENDING = "com.raspi.sqlite.MessageHistory.STATUS_SENDING";
   public static final String STATUS_SENT = "com.raspi.sqlite.MessageHistory.STATUS_SENT";
   public static final String STATUS_RECEIVED = "com.raspi.sqlite.MessageHistory.STATUS_RECEIVED";
   public static final String STATUS_READ = "com.raspi.sqlite.MessageHistory.STATUS_READ";
@@ -72,7 +73,9 @@ public class MessageHistory{
         String lastMessageStatus = "";
         String lastMessageDate = "";
         String lastMessageMessage = "";
-        if (lastMessage.moveToFirst()){
+        boolean sent = false;
+        boolean read = false;
+        if (lastMessage.getCount() !=  0 && lastMessage.moveToFirst()){
           lastMessageStatus = lastMessage.getString(3);
           Date msgTime = new Date(lastMessage.getLong(4));
           Calendar startOfDay = Calendar.getInstance();
@@ -89,12 +92,11 @@ public class MessageHistory{
           else
             lastMessageDate = "Yesterday";
           lastMessageMessage = lastMessage.getString(2);
-
-        }
         SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
         String me = preferences.getString(MainActivity.USERNAME, "");
-        boolean sent = me.equals(lastMessage.getString(0));
-        boolean read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
+        sent = me.equals(lastMessage.getString(0));
+        read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
+        }
         resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
                 lastMessageMessage, read, sent);
         i++;
@@ -180,6 +182,7 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
             MessageHistoryContract.MessageEntry._ID
@@ -200,9 +203,10 @@ public class MessageHistory{
         String me = preferences.getString(MainActivity.USERNAME, "");
         String type = messages.getString(1);
         String content = messages.getString(2);
-        String status = messages.getString(3);
-        long time = messages.getLong(4);
-        long _ID = messages.getLong(5);
+        double progress = messages.getDouble(3);
+        String status = messages.getString(4);
+        long time = messages.getLong(5);
+        long _ID = messages.getLong(6);
         switch (type){
           case (MessageHistory.TYPE_TEXT):
             result[i] = new TextMessage(!me.equals(from), content, time, status, _ID);
@@ -214,8 +218,8 @@ public class MessageHistory{
                       !me.equals(from),                   //left
                       new File(contentJSON.getString(0)), //File
                       contentJSON.getString(1),           //description
+                      progress,                           //progress
                       time,                               //timeStamp
-                      contentJSON.getDouble(2),           //progress
                       status,                             //status
                       _ID);                               //_ID
             }catch (Exception e){
@@ -230,8 +234,8 @@ public class MessageHistory{
     return result;
   }
 
-  public void addMessage(String chatId, String buddyId, String type, String content, String
-          status){
+  public void addMessage(String chatId, String buddyId, String type, String
+          content, String progress, String status){
     //Log.d("DATABASE", "Adding a message");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     //remove everything after @ if it exists
@@ -248,10 +252,17 @@ public class MessageHistory{
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID, buddyId);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE, type);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT, content);
+    values.put(MessageHistoryContract.MessageEntry
+            .COLUMN_NAME_MESSAGE_PROGRESS, progress);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, status);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP, new Date().getTime());
     db.insert(chatId, MessageHistoryContract.MessageEntry._ID, values);
     db.close();
+  }
+
+  public void addMessage(String chatId, String buddyId, String type, String content, String
+          status){
+    addMessage(chatId, buddyId, type, content, "0", status);
   }
 
   public void updateMessageStatus(String chatId, long _ID, String newStatus){
@@ -259,8 +270,18 @@ public class MessageHistory{
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, newStatus);
-    String whereClause = MessageHistoryContract.MessageEntry._ID
-            + " == ?";
+    String whereClause = MessageHistoryContract.MessageEntry._ID + " == ?";
+    db.update(chatId, values, whereClause, new String[]{Long.toString(_ID)});
+    db.close();
+  }
+
+  public void updateMessageProgress(String chatId, long _ID, double
+          newProgress){
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    ContentValues values = new ContentValues();
+    values.put(MessageHistoryContract.MessageEntry
+            .COLUMN_NAME_MESSAGE_PROGRESS, newProgress);
+    String whereClause = MessageHistoryContract.MessageEntry._ID + " == ?";
     db.update(chatId, values, whereClause, new String[]{Long.toString(_ID)});
     db.close();
   }
