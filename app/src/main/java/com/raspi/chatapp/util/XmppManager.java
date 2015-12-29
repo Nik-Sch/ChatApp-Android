@@ -140,6 +140,7 @@ public class XmppManager{
     return false;
   }
 
+  // TODO: should be implemented as AsyncTask...
   /**
    * uploads the image that is specified by the given task
    * @param task the uploadTask that should be executed
