@@ -1,13 +1,16 @@
 package com.raspi.chatapp.activities.fragments;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -103,8 +106,26 @@ public class SendImageFragment extends Fragment{
   }
 
   private void initUI(){
-    ((ImageView) getView().findViewById(R.id
-            .send_image_image)).setImageURI(imageUri);
+    ImageView imageView = ((ImageView) getView().findViewById(R.id
+            .send_image_image));
+    String imagePath = FileUtils.getPath(getContext(), imageUri);
+
+    // First decode with inJustDecodeBounds=true to check dimensions
+    final BitmapFactory.Options options = new BitmapFactory.Options();
+    options.inJustDecodeBounds = true;
+    BitmapFactory.decodeFile(imagePath, options);
+
+    // Calculate inSampleSize
+    DisplayMetrics d = new DisplayMetrics();
+    ((WindowManager) getContext().getSystemService(Context
+            .WINDOW_SERVICE)).getDefaultDisplay().getMetrics(d);
+    options.inSampleSize = calculateInSampleSize(options, d.widthPixels / 2, d
+            .heightPixels / 2);
+
+    // Decode bitmap with inSampleSize set
+    options.inJustDecodeBounds = false;
+    imageView.setImageBitmap(BitmapFactory.decodeFile(imagePath, options));
+
     //Cancel button pressed
     getView().findViewById(R.id.send_image_cancel)
             .setOnClickListener(new View.OnClickListener(){
@@ -185,6 +206,28 @@ public class SendImageFragment extends Fragment{
       return true;
     }
     return false;
+  }
+
+  private int calculateInSampleSize(
+          BitmapFactory.Options options, int reqWidth, int reqHeight){
+    // Raw height and width of image
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
+
+    if (height > reqHeight || width > reqWidth){
+
+      final int halfHeight = height / 2;
+      final int halfWidth = width / 2;
+
+      // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+      // height and width larger than the requested height and width.
+      while ((halfHeight / inSampleSize) > reqHeight
+              && (halfWidth / inSampleSize) > reqWidth){
+        inSampleSize *= 2;
+      }
+    }
+    return inSampleSize;
   }
 
   /**

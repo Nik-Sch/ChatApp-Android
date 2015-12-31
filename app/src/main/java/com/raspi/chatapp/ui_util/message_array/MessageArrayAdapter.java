@@ -2,6 +2,7 @@ package com.raspi.chatapp.ui_util.message_array;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -80,17 +81,17 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             layoutInner.setAlpha(0.2f);
             break;
           case MessageHistory.STATUS_SENT:
-            ((ImageView)v.findViewById(R.id.message_text_status))
+            ((ImageView) v.findViewById(R.id.message_text_status))
                     .setImageResource(R.drawable.single_grey_hook);
             layoutInner.setAlpha(1f);
             break;
           case MessageHistory.STATUS_RECEIVED:
-            ((ImageView)v.findViewById(R.id.message_text_status))
+            ((ImageView) v.findViewById(R.id.message_text_status))
                     .setImageResource(R.drawable.two_grey_hook);
             layoutInner.setAlpha(1f);
             break;
           case MessageHistory.STATUS_READ:
-            ((ImageView)v.findViewById(R.id.message_text_status))
+            ((ImageView) v.findViewById(R.id.message_text_status))
                     .setImageResource(R.drawable.two_blue_hook);
             layoutInner.setAlpha(1f);
             break;
@@ -111,7 +112,24 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       TextView description = (TextView) v.findViewById(R.id.message_image_description);
       description.setText(msgObj.description);
       ImageView image = (ImageView) v.findViewById(R.id.message_image_image);
-      image.setImageBitmap(BitmapFactory.decodeFile(msgObj.file.getAbsolutePath()));
+      if (image.getDrawable() != null)
+        ((BitmapDrawable) image.getDrawable()).getBitmap().recycle();
+
+      // First decode with inJustDecodeBounds=true to check dimensions
+      final BitmapFactory.Options options = new BitmapFactory.Options();
+      options.inJustDecodeBounds = true;
+      BitmapFactory.decodeFile(msgObj.file.getAbsolutePath(), options);
+
+      // Calculate inSampleSize
+      options.inSampleSize = calculateInSampleSize(options, image
+                      .getLayoutParams().width / 4,
+              image.getLayoutParams().height / 4);
+
+      // Decode bitmap with inSampleSize set
+      options.inJustDecodeBounds = false;
+      image.setImageBitmap(BitmapFactory.decodeFile(msgObj.file
+              .getAbsolutePath(), options));
+
       TextView chatTime = (TextView) v.findViewById(R.id.message_image_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
               (msgObj.time));
@@ -129,7 +147,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
         switch (msgObj.status){
           case MessageHistory.STATUS_WAITING:
             v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
-             progressBar = (ProgressBar)v.findViewById(R.id
+            progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress(0);
@@ -137,14 +155,14 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             break;
           case MessageHistory.STATUS_SENDING:
             v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
-            progressBar = (ProgressBar)v.findViewById(R.id
+            progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress((int) (msgObj.progress * 100));
             v.findViewById(R.id.message_image_retry).setVisibility(View.VISIBLE);
             break;
           case MessageHistory.STATUS_SENT:
-            imageView = (ImageView)v.findViewById(R.id
+            imageView = (ImageView) v.findViewById(R.id
                     .message_image_status);
             imageView.setImageResource(R.drawable.single_grey_hook);
             imageView.setVisibility(View.VISIBLE);
@@ -152,7 +170,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             break;
           case MessageHistory.STATUS_RECEIVED:
-            imageView = (ImageView)v.findViewById(R.id
+            imageView = (ImageView) v.findViewById(R.id
                     .message_image_status);
             imageView.setImageResource(R.drawable.two_grey_hook);
             imageView.setVisibility(View.VISIBLE);
@@ -160,7 +178,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
             break;
           case MessageHistory.STATUS_READ:
-            imageView = (ImageView)v.findViewById(R.id
+            imageView = (ImageView) v.findViewById(R.id
                     .message_image_status);
             imageView.setImageResource(R.drawable.two_blue_hook);
             imageView.setVisibility(View.VISIBLE);
@@ -177,5 +195,27 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       date.setText(new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format(((Date) Obj).date));
     }
     return v;
+  }
+
+  private int calculateInSampleSize(
+          BitmapFactory.Options options, int reqWidth, int reqHeight){
+    // Raw height and width of image
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
+
+    if (height > reqHeight || width > reqWidth){
+
+      final int halfHeight = height / 2;
+      final int halfWidth = width / 2;
+
+      // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+      // height and width larger than the requested height and width.
+      while ((halfHeight / inSampleSize) > reqHeight
+              && (halfWidth / inSampleSize) > reqWidth){
+        inSampleSize *= 2;
+      }
+    }
+    return inSampleSize;
   }
 }

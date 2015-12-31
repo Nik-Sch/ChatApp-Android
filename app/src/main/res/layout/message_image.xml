@@ -42,7 +42,7 @@
                 android:id="@+id/message_image_progress"
                 style="@android:style/Widget.ProgressBar.Horizontal"
                 android:layout_width="wrap_content"
-                android:layout_height="3dp"
+                android:layout_height="5dp"
                 android:layout_alignBottom="@+id/message_image_image"
                 android:layout_alignEnd="@+id/message_image_image"
                 android:layout_alignLeft="@+id/message_image_image"
