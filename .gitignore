@@ -33,3 +33,6 @@ captures/
 
 # vim swp files
 *.swp
+
+#bin images folder
+images/

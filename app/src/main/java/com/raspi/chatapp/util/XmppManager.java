@@ -231,6 +231,7 @@ public class XmppManager{
           OutgoingFileTransfer transfer = manager.createOutgoingFileTransfer
                   (task.chatId + "@" + service + "/Smack");
           transfer.sendFile(task.file, task.description);
+          int count = 0;
           while (!transfer.isDone()){
             if (transfer.getStatus().equals(FileTransfer.Status.error)){
               //connection lost?
@@ -246,8 +247,13 @@ public class XmppManager{
               return new Upload.Result(-1d, task.chatId, task.messageID);
             }else{
               //report progress
-              Log.d("IMAGE", "PROGRESS: " + transfer.getProgress());
-              publishProgress(new Upload.Result(transfer.getProgress(), task.chatId, task
+              double prog = transfer.getProgress();
+              if ((int) prog == 0)
+                count++;
+              if (count >= 100)
+                return new Upload.Result(-1d, task.chatId, task.messageID);
+              Log.d("IMAGE", "PROGRESS: " + prog +  " " + transfer.getError());
+              publishProgress(new Upload.Result(prog, task.chatId, task
                       .messageID));
             }
             try{
