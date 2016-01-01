@@ -1,6 +1,7 @@
 package com.raspi.chatapp.util;
 
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -20,6 +21,8 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.filetransfer.FileTransfer;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
+
+import java.lang.ref.WeakReference;
 
 public class XmppManager{
 
@@ -248,7 +251,7 @@ public class XmppManager{
             }else{
               //report progress
               double prog = transfer.getProgress();
-              if ((int) prog == 0)
+              if ((int) (prog*100) == 0)
                 count++;
               if (count >= 100)
                 return new Upload.Result(-1d, task.chatId, task.messageID);

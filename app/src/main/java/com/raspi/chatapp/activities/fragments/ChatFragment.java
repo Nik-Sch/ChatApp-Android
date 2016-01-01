@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -20,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -206,6 +208,26 @@ public class ChatFragment extends Fragment{
 
     listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
     listView.setAdapter(maa);
+    listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+      @Override
+      public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+        MessageArrayContent mac = maa.getItem(position);
+        if (mac instanceof ImageMessage){
+          ImageMessage im = (ImageMessage) mac;
+          Intent pickIntent = new Intent(Intent.ACTION_VIEW);
+          pickIntent.setDataAndType(Uri.fromFile(im.file),
+                  "image/*");
+          startActivity(pickIntent);
+        }
+      }
+    });
+    listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+      @Override
+      public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id){
+        //TODO
+        return false;
+      }
+    });
 
     maa.registerDataSetObserver(new DataSetObserver(){
       @Override

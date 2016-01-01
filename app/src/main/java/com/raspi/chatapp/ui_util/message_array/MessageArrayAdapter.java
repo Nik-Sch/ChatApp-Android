@@ -1,8 +1,12 @@
 package com.raspi.chatapp.ui_util.message_array;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +21,8 @@ import android.widget.TextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.sqlite.MessageHistory;
 
+import java.io.File;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,24 +117,10 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
               R.drawable.bubble_b1);
       TextView description = (TextView) v.findViewById(R.id.message_image_description);
       description.setText(msgObj.description);
-      ImageView image = (ImageView) v.findViewById(R.id.message_image_image);
-      if (image.getDrawable() != null)
-        ((BitmapDrawable) image.getDrawable()).getBitmap().recycle();
 
-      // First decode with inJustDecodeBounds=true to check dimensions
-      final BitmapFactory.Options options = new BitmapFactory.Options();
-      options.inJustDecodeBounds = true;
-      BitmapFactory.decodeFile(msgObj.file.getAbsolutePath(), options);
-
-      // Calculate inSampleSize
-      options.inSampleSize = calculateInSampleSize(options, image
-                      .getLayoutParams().width / 4,
-              image.getLayoutParams().height / 4);
-
-      // Decode bitmap with inSampleSize set
-      options.inJustDecodeBounds = false;
-      image.setImageBitmap(BitmapFactory.decodeFile(msgObj.file
-              .getAbsolutePath(), options));
+      ImageView imageView = (ImageView) v.findViewById(R.id
+              .message_image_image);
+      loadBitmap(msgObj.file, imageView);
 
       TextView chatTime = (TextView) v.findViewById(R.id.message_image_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
@@ -141,7 +133,6 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
         v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
       }else{
         layoutOuter.setGravity(Gravity.END);
-        ImageView imageView;
         ProgressBar progressBar;
 
         switch (msgObj.status){
@@ -220,25 +211,119 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     return v;
   }
 
-  private int calculateInSampleSize(
-          BitmapFactory.Options options, int reqWidth, int reqHeight){
-    // Raw height and width of image
-    final int height = options.outHeight;
-    final int width = options.outWidth;
-    int inSampleSize = 1;
+  private void loadBitmap(File file, ImageView imageView){
+    if (cancelPotentialWork(file, imageView)){
+      final BitmapWorkerTask task = new BitmapWorkerTask(imageView, imageView
+              .getLayoutParams().width, imageView.getLayoutParams()
+              .height);
+      imageView.setImageDrawable(new AsyncDrawable(getContext().getResources
+              (), BitmapFactory.decodeResource(getContext().getResources(),
+              R.drawable.placeholder), task));
+      task.execute(file);
 
-    if (height > reqHeight || width > reqWidth){
+    }
+  }
 
-      final int halfHeight = height / 2;
-      final int halfWidth = width / 2;
+  private static boolean cancelPotentialWork(File file, ImageView imageView){
+    final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+    if (bitmapWorkerTask != null){
+      final File bitmapFile = bitmapWorkerTask.data;
+      if (bitmapFile == null || bitmapFile != file)
+        bitmapWorkerTask.cancel(true);
+      else return true;
+    }
+    return true;
+  }
 
-      // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-      // height and width larger than the requested height and width.
-      while ((halfHeight / inSampleSize) > reqHeight
-              && (halfWidth / inSampleSize) > reqWidth){
-        inSampleSize *= 2;
+  private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView){
+    if (imageView != null){
+      final Drawable drawable = imageView.getDrawable();
+      if (drawable instanceof AsyncDrawable){
+        final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
+        return asyncDrawable.getBitmapWorkerTask();
       }
     }
-    return inSampleSize;
+    return null;
+  }
+
+  static class AsyncDrawable extends BitmapDrawable{
+    private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskWeakReference;
+
+    public AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask
+            bitmapWorkerTask){
+      super(res, bitmap);
+      bitmapWorkerTaskWeakReference = new WeakReference<BitmapWorkerTask>
+              (bitmapWorkerTask);
+    }
+
+    public BitmapWorkerTask getBitmapWorkerTask(){
+      return bitmapWorkerTaskWeakReference.get();
+    }
+  }
+
+  private class BitmapWorkerTask extends AsyncTask<File, Void, Bitmap>{
+    private final WeakReference<ImageView> imageViewWeakReference;
+    private File data;
+    private int width, height;
+
+    public BitmapWorkerTask(ImageView imageView, int width, int height){
+      imageViewWeakReference = new WeakReference<ImageView>(imageView);
+      this.width = width;
+      this.height = height;
+    }
+
+    @Override
+    protected Bitmap doInBackground(File... params){
+      data = params[0];
+
+      // First decode with inJustDecodeBounds=true to check dimensions
+      final BitmapFactory.Options options = new BitmapFactory.Options();
+      options.inJustDecodeBounds = true;
+      BitmapFactory.decodeFile(data.getAbsolutePath(), options);
+
+      // Calculate inSampleSize
+      options.inSampleSize = calculateInSampleSize(options, width, height);
+
+      // Decode bitmap with inSampleSize set
+      options.inJustDecodeBounds = false;
+      return BitmapFactory.decodeFile(data.getAbsolutePath(), options);
+    }
+
+    @Override
+    protected void onPostExecute(Bitmap bitmap){
+      if (isCancelled())
+        bitmap = null;
+
+      if (imageViewWeakReference != null && bitmap != null){
+        final ImageView imageView = imageViewWeakReference.get();
+        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask
+                (imageView);
+        if (this == bitmapWorkerTask && imageView != null)
+          imageView.setImageBitmap(bitmap);
+      }
+    }
+
+
+    private int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight){
+      // Raw height and width of image
+      final int height = options.outHeight;
+      final int width = options.outWidth;
+      int inSampleSize = 1;
+
+      if (height > reqHeight || width > reqWidth){
+
+        final int halfHeight = height / 2;
+        final int halfWidth = width / 2;
+
+        // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+        // height and width larger than the requested height and width.
+        while ((halfHeight / inSampleSize) > reqHeight
+                && (halfWidth / inSampleSize) > reqWidth){
+          inSampleSize *= 2;
+        }
+      }
+      return inSampleSize;
+    }
   }
 }
