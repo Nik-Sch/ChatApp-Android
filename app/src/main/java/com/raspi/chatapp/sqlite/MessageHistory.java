@@ -27,6 +27,7 @@ public class MessageHistory{
   public static final String TYPE_IMAGE = "com.raspi.sqlite.MessageHistory.TYPE_IMAGE";
 
   public static final String STATUS_WAITING = "com.raspi.sqlite.MessageHistory.STATUS_WAITING";
+  public static final String STATUS_CANCELED = "com.raspi.sqlite.MessageHistory.STATUS_CANCELED";
   public static final String STATUS_SENDING = "com.raspi.sqlite.MessageHistory.STATUS_SENDING";
   public static final String STATUS_SENT = "com.raspi.sqlite.MessageHistory.STATUS_SENT";
   public static final String STATUS_RECEIVED = "com.raspi.sqlite.MessageHistory.STATUS_RECEIVED";
@@ -221,7 +222,8 @@ public class MessageHistory{
                       progress,                           //progress
                       time,                               //timeStamp
                       status,                             //status
-                      _ID);                               //_ID
+                      _ID,                                //_ID
+                      buddyId);                           //buddyID
             }catch (Exception e){
               e.printStackTrace();
             }

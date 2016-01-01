@@ -303,12 +303,12 @@ public class XmppManager{
           }
         }else{
           messageHistory.updateMessageStatus(result.chatId, result.messageID,
-                  MessageHistory.STATUS_WAITING);
+                  MessageHistory.STATUS_CANCELED);
           messageHistory.updateMessageProgress(result.chatId, result.messageID,
                   0);
 
           if (UImsg != null && maa != null){
-            UImsg.status = MessageHistory.STATUS_WAITING;
+            UImsg.status = MessageHistory.STATUS_CANCELED;
             UImsg.progress = 0;
             maa.notifyDataSetChanged();
           }

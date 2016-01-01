@@ -102,7 +102,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
               .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       v = inflater.inflate(R.layout.message_image, parent, false);
 
-      ImageMessage msgObj = (ImageMessage) Obj;
+      final ImageMessage msgObj = (ImageMessage) Obj;
       RelativeLayout layoutOuter = (RelativeLayout) v.findViewById(R.id
               .message_image);
       RelativeLayout layoutInner = (RelativeLayout) v.findViewById(R.id
@@ -150,8 +150,31 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
+            progressBar.setProgress(1);
+            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
+            break;
+          case MessageHistory.STATUS_CANCELED:
+            v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
+            progressBar = (ProgressBar) v.findViewById(R.id
+                    .message_image_progress);
+            progressBar.setVisibility(View.GONE);
             progressBar.setProgress(0);
             v.findViewById(R.id.message_image_retry).setVisibility(View.VISIBLE);
+            final MessageArrayAdapter maa = this;
+            v.findViewById(R.id.message_image_retry).setOnClickListener(new View.OnClickListener(){
+              @Override
+              public void onClick(View v){
+                //cannot cast to globals...
+                /*
+                XmppManager xmppManager = ((Globals) getContext())
+                        .getXmppManager();
+                if (xmppManager != null)
+                  xmppManager.new sendImage(msgObj, maa).execute(new Upload
+                          .Task(msgObj.file, msgObj.description, msgObj.chatId,
+                          msgObj._ID, xmppManager.getConnection(), new
+                          MessageHistory(getContext())));*/
+              }
+            });
             break;
           case MessageHistory.STATUS_SENDING:
             v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
@@ -159,7 +182,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress((int) (msgObj.progress * 100));
-            v.findViewById(R.id.message_image_retry).setVisibility(View.VISIBLE);
+            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             break;
           case MessageHistory.STATUS_SENT:
             imageView = (ImageView) v.findViewById(R.id
