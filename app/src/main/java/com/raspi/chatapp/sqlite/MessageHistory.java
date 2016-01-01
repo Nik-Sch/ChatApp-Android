@@ -149,11 +149,15 @@ public class MessageHistory{
                     .ChatEntry.COLUMN_NAME_BUDDY_ID + "=?", new
                     String[]{buddyId},
             null, null, null);
-    c.moveToFirst();
-    if (c.getCount() > 0)
-      return c.getString(0);
-    else
-      return null;
+    try{
+      c.moveToFirst();
+      if (c.getCount() > 0)
+        return c.getString(0);
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+    c.close();
+    return null;
   }
 
   public void setOnline(String buddyId, String status){

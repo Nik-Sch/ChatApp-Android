@@ -168,7 +168,6 @@ public class SendImageFragment extends Fragment{
         contentJSON.put(file.getAbsolutePath());
         contentJSON.put(((TextView) getView().findViewById(R.id
                 .send_image_description)).getText());
-        contentJSON.put(0d);//progress
         MessageHistory messageHistory = new MessageHistory(getContext());
         messageHistory.addMessage(
                 buddyId,
