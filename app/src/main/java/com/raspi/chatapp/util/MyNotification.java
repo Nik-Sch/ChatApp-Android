@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.RingtoneManager;
+import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -34,63 +36,78 @@ public class MyNotification{
   }
 
   public void createNotification(String buddyId, String name, String message){
-    int index = buddyId.indexOf("@");
-    if (index != -1)
-      buddyId = buddyId.substring(0, index);
-    if (name == null)
-      name = buddyId;
-    Log.d("DEBUG", "creating notification: " + buddyId + "|" + name + "|" + message);
-    Intent resultIntent = new Intent(context, MainActivity.class);
-    resultIntent.setAction(NOTIFICATION_CLICK);
-    String oldBuddyId = getOldBuddyId();
-    Log.d("DEBUG", (oldBuddyId == null) ? ("oldBuddy is null (later " + buddyId) : ("oldBuddy: " +
-            oldBuddyId));
-    if (oldBuddyId == null || oldBuddyId.equals("")){
-      oldBuddyId = buddyId;
-      setOldBuddyId(buddyId);
+    SharedPreferences defaultSharedPreferences = PreferenceManager
+            .getDefaultSharedPreferences(context);
+
+    if (defaultSharedPreferences.getBoolean(context.getResources().getString(R.string
+            .pref_key_new_message_notifications), true)){
+      int index = buddyId.indexOf("@");
+      if (index != -1)
+        buddyId = buddyId.substring(0, index);
+      if (name == null)
+        name = buddyId;
+      Log.d("DEBUG", "creating notification: " + buddyId + "|" + name + "|" + message);
+      Intent resultIntent = new Intent(context, MainActivity.class);
+      resultIntent.setAction(NOTIFICATION_CLICK);
+      String oldBuddyId = getOldBuddyId();
+      Log.d("DEBUG", (oldBuddyId == null) ? ("oldBuddy is null (later " + buddyId) : ("oldBuddy: " +
+              oldBuddyId));
+      if (oldBuddyId == null || oldBuddyId.equals("")){
+        oldBuddyId = buddyId;
+        setOldBuddyId(buddyId);
+      }
+      if (oldBuddyId.equals(buddyId)){
+        resultIntent.putExtra(MainActivity.BUDDY_ID, buddyId);
+        resultIntent.putExtra(MainActivity.CHAT_NAME, name);
+      }
+
+      TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+      stackBuilder.addParentStack(MainActivity.class);
+      stackBuilder.addNextIntent(resultIntent);
+      PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
+              PendingIntent.FLAG_UPDATE_CURRENT);
+
+      NotificationManager nm = ((NotificationManager) context.getSystemService(Context
+              .NOTIFICATION_SERVICE));
+      NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+
+      String[] previousNotifications = readJSONArray(CURRENT_NOTIFICATIONS);
+      String[] currentNotifications = Arrays.copyOf(previousNotifications,
+              previousNotifications.length + 1);
+      currentNotifications[currentNotifications.length - 1] = name + ": " + message;
+      for (String s : currentNotifications)
+        if (s != null && !"".equals(s))
+          inboxStyle.addLine(s);
+      inboxStyle.setSummaryText((currentNotifications.length > 2) ? ("+" + (currentNotifications
+              .length - 2) + " more") : null);
+      inboxStyle.setBigContentTitle((currentNotifications.length > 1) ? "New messages" : "New " +
+              "message");
+      writeJSONArray(currentNotifications, CURRENT_NOTIFICATIONS);
+
+      NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+              .setContentTitle("New Message")
+              .setContentText(currentNotifications[currentNotifications
+                      .length - 1])
+              .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+              .setStyle(inboxStyle)
+              .setAutoCancel(true)
+              .setContentIntent(resultPendingIntent);
+      String str = context.getResources().getString(R.string.pref_key_vibrate);
+      if (defaultSharedPreferences.getBoolean(str, true))
+        mBuilder.setVibrate(new long[]{500, 300, 500, 300});
+
+      context.getResources().getString(R.string.pref_key_led);
+      if (defaultSharedPreferences.getBoolean(str, true))
+        mBuilder.setLights(Color.BLUE, 500, 500);
+
+      str = defaultSharedPreferences.getString(context.getResources().getString(R
+              .string.pref_key_ringtone), "");
+      mBuilder.setSound("".equals(str) ? RingtoneManager
+              .getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) : Uri
+              .parse(str));
+
+      nm.notify(NOTIFICATION_ID, mBuilder.build());
     }
-    if (oldBuddyId.equals(buddyId)){
-      resultIntent.putExtra(MainActivity.BUDDY_ID, buddyId);
-      resultIntent.putExtra(MainActivity.CHAT_NAME, name);
-    }
-
-    TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-    stackBuilder.addParentStack(MainActivity.class);
-    stackBuilder.addNextIntent(resultIntent);
-    PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
-            PendingIntent.FLAG_UPDATE_CURRENT);
-
-    NotificationManager nm = ((NotificationManager) context.getSystemService(Context
-            .NOTIFICATION_SERVICE));
-    NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-
-    String[] previousNotifications = readJSONArray(CURRENT_NOTIFICATIONS);
-    String[] currentNotifications = Arrays.copyOf(previousNotifications,
-            previousNotifications.length + 1);
-    currentNotifications[currentNotifications.length - 1] = name + ": " + message;
-    for (String s : currentNotifications)
-      if (s != null && !"".equals(s))
-        inboxStyle.addLine(s);
-    inboxStyle.setSummaryText((currentNotifications.length > 2) ? ("+" + (currentNotifications
-            .length - 2) + " more") : null);
-    inboxStyle.setBigContentTitle((currentNotifications.length > 1) ? "New messages" : "New " +
-            "message");
-    writeJSONArray(currentNotifications, CURRENT_NOTIFICATIONS);
-
-
-    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-            .setContentTitle("New Message")
-            .setContentText(currentNotifications[currentNotifications
-                    .length - 1])
-            .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-            .setStyle(inboxStyle)
-            .setAutoCancel(true)
-            .setVibrate(new long[]{500, 300, 500, 300})
-            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            .setLights(Color.BLUE, 500, 500)
-            .setContentIntent(resultPendingIntent);
-
-    nm.notify(NOTIFICATION_ID, mBuilder.build());
   }
 
   public void reset(){

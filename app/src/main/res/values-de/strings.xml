@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ChatApp</string>
+    <string name="action_attach">Datei anhängen</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="last_message_yesterday">GESTERN</string>
+    <string name="last_online_at">um</string>
+    <string name="last_online_today">Heute um</string>
+    <string name="last_online_yesterday">Gestern um</string>
+    <string name="pref_header_general">Allgemein</string>
+    <string name="pref_header_notifications">Benachrichtungen</string>
+    <string name="pref_ringtone_silent">Stumm</string>
+    <string name="pref_title_ringtone">Benachrichtungston</string>
+    <string name="select_image">Bild auswählen</string>
+    <string name="send">Senden</string>
+    <string name="title_activity_settings">Senden</string>
+    <string name="action_add_chat">Neuen Chat</string>
+    <string name="pref_title_new_message_notifications">Benachrichtungen bei neuen Nachrichten</string>
+    <string name="pref_title_vibrate">Vibrieren</string>
+    <string name="retry">Wiederholen</string>
+    <string name="pref_title_banner">Zeige Benachrichtigung als Banner</string>
+</resources>
