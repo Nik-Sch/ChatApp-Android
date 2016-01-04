@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_entries_privacy">
+        <item>@string/pref_value1_privacy</item>
+        <item>@string/pref_value2_privacy</item>
+        <item>@string/pref_value3_privacy</item>
+    </string-array>
+</resources>

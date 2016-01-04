@@ -1,6 +1,5 @@
 package com.raspi.chatapp.activities.fragments;
 
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -35,7 +34,6 @@ import com.raspi.chatapp.ui_util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui_util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui_util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
-import com.raspi.chatapp.util.MyNotification;
 import com.raspi.chatapp.util.Upload;
 import com.raspi.chatapp.util.XmppManager;
 
@@ -69,13 +67,18 @@ public class ChatFragment extends Fragment{
   private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
-      reloadMessages();
-      new MyNotification(getContext()).reset();
-      ((NotificationManager) getContext().getSystemService(Context
-              .NOTIFICATION_SERVICE))
-              .cancel(MyNotification.NOTIFICATION_ID);
+      Bundle extras = intent.getExtras();
+      String intentBuddyId = extras.getString(MainActivity.BUDDY_ID);
+      int index = intentBuddyId.indexOf('@');
+      if (index >= 0)
+        intentBuddyId = intentBuddyId.substring(0, index);
+      if (buddyId.equals(intentBuddyId)){
+        reloadMessages();
+        abortBroadcast();
+      }
     }
   };
+
   private BroadcastReceiver PresenceChangeReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
@@ -129,8 +132,9 @@ public class ChatFragment extends Fragment{
   @Override
   public void onResume(){
     super.onResume();
-    LocalBroadcastManager.getInstance(getContext()).registerReceiver
-            (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
+    IntentFilter filter = new IntentFilter(MainActivity.RECEIVE_MESSAGE);
+    filter.setPriority(1);
+    getContext().registerReceiver(MessageReceiver, filter);
     LocalBroadcastManager.getInstance(getContext()).registerReceiver
             (PresenceChangeReceiver, new IntentFilter(MainActivity.PRESENCE_CHANGED));
     initUI();
@@ -138,8 +142,7 @@ public class ChatFragment extends Fragment{
 
   @Override
   public void onPause(){
-    LocalBroadcastManager.getInstance(getContext()).unregisterReceiver
-            (MessageReceiver);
+    getContext().unregisterReceiver(MessageReceiver);
     LocalBroadcastManager.getInstance(getContext()).unregisterReceiver
             (PresenceChangeReceiver);
     super.onPause();

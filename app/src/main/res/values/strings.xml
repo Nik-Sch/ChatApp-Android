@@ -27,20 +27,37 @@
 
     <string name="pref_title_new_message_notifications">New message
         notifications</string>
-    <string name="pref_key_new_message_notifications">notifications_new_message</string>
+    <string name="pref_summary_new_message_notifications">Enable
+        notifications for new messages</string>
+    <string name="pref_key_new_message_notifications" translatable="false">notifications_new_message</string>
 
     <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_key_ringtone">notifications_new_message_ringtone</string>
+    <string name="pref_key_ringtone" translatable="false">notifications_new_message_ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
-    <string name="pref_key_vibrate">notifications_new_message_vibrate</string>
+    <string name="pref_summary_vibrate">Enable vibration for the
+        notifications</string>
+    <string name="pref_key_vibrate" translatable="false">notifications_new_message_vibrate</string>
 
     <string name="pref_title_led">Blink LED</string>
-    <string name="pref_key_led">notifications_new_message_led</string>
+    <string name="pref_summary_led">Enable the LED blink for the
+        notifications</string>
+    <string name="pref_key_led" translatable="false">notifications_new_message_led</string>
 
     <string name="pref_title_banner">Show notification banner</string>
-    <string name="pref_key_banner">notifications_new_message_as_banner</string>
+    <string name="pref_summary_banner">Enable to show the notification
+        in the notification drawer until you clicked on it or discarded
+    it</string>
+    <string name="pref_key_banner" translatable="false">notifications_new_message_as_banner</string>
+
+    <string name="pref_key_privacy" translatable="false">notifications_new_message_privacy</string>
+    <string name="pref_title_privacy">Notification privacy</string>
+    <string name="pref_detail_privacy">Choose what to show on lock
+        screen</string>
+    <string name="pref_value1_privacy">Show nothing</string>
+    <string name="pref_value2_privacy">Show basic information</string>
+    <string name="pref_value3_privacy">Show everything</string>
 
     <string name="title_activity_add_chat" translatable="false">AddChatActivity</string>
     <string name="large_text" translatable="false">

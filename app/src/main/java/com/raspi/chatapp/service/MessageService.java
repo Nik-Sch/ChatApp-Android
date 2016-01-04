@@ -1,9 +1,11 @@
 package com.raspi.chatapp.service;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -247,16 +249,29 @@ public class MessageService extends Service{
       String name = roster.contains(buddyId)
               ? roster.getEntry(buddyId).getName()
               : buddyId;
-      new MyNotification(getApplicationContext()).createNotification(buddyId, name, message.getBody());
 
       messageHistory.addChat(buddyId, buddyId);
       messageHistory.addMessage(buddyId, buddyId, MessageHistory.TYPE_TEXT, msg,
-              MessageHistory.STATUS_WAITING);
+              MessageHistory.STATUS_RECEIVED);
 
       Intent msgIntent = new Intent(MainActivity.RECEIVE_MESSAGE)
               .putExtra(MainActivity.BUDDY_ID, buddyId)
+              .putExtra(MainActivity.CHAT_NAME, name)
               .putExtra(MainActivity.MESSAGE_BODY, msg);
-      LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(msgIntent);
+      getApplicationContext().sendOrderedBroadcast(msgIntent, null);
+    }
+  }
+
+  public static class RaiseMessageNotification extends BroadcastReceiver{
+    public RaiseMessageNotification(){}
+
+    @Override
+    public void onReceive(Context context, Intent intent){
+      Bundle extras = intent.getExtras();
+      String buddyId = extras.getString(MainActivity.BUDDY_ID);
+      String name = extras.getString(MainActivity.CHAT_NAME);
+      String msg = extras.getString(MainActivity.MESSAGE_BODY);
+      new MyNotification(context).createNotification(buddyId, name, msg);
     }
   }
 

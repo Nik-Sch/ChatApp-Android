@@ -1,6 +1,5 @@
 package com.raspi.chatapp.activities.fragments;
 
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +7,6 @@ import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -26,7 +24,6 @@ import com.raspi.chatapp.activities.MainActivity;
 import com.raspi.chatapp.sqlite.MessageHistory;
 import com.raspi.chatapp.ui_util.ChatArrayAdapter;
 import com.raspi.chatapp.ui_util.ChatEntry;
-import com.raspi.chatapp.util.MyNotification;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -57,18 +54,18 @@ public class ChatListFragment extends Fragment{
   }
 
   @Override
-  public void onPause(){
-    super.onPause();
-    LocalBroadcastManager.getInstance(getContext()).unregisterReceiver
-            (MessageReceiver);
-  }
-
-  @Override
   public void onResume(){
     super.onResume();
     initUI();
-    LocalBroadcastManager.getInstance(getContext()).registerReceiver
-            (MessageReceiver, new IntentFilter(MainActivity.RECEIVE_MESSAGE));
+    IntentFilter filter = new IntentFilter(MainActivity.RECEIVE_MESSAGE);
+    filter.setPriority(1);
+    getContext().registerReceiver(MessageReceiver, filter);
+  }
+
+  @Override
+  public void onPause(){
+    super.onPause();
+    getContext().unregisterReceiver(MessageReceiver);
   }
 
   @Override
@@ -154,9 +151,7 @@ public class ChatListFragment extends Fragment{
     @Override
     public void onReceive(Context context, Intent intent){
       initUI();
-      new MyNotification(getContext()).reset();
-      ((NotificationManager) getActivity().getSystemService(Context
-              .NOTIFICATION_SERVICE)).cancel(MyNotification.NOTIFICATION_ID);
+      abortBroadcast();
     }
   };
 

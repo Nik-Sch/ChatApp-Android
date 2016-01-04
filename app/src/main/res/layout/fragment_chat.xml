@@ -19,7 +19,8 @@
             android:layout_above="@+id/chat_form"
             android:layout_alignParentTop="true"
             android:divider="@null"
-            android:dividerHeight="0dp"/>
+            android:dividerHeight="0dp"
+            android:scrollbars="none"/>
 
         <RelativeLayout
             android:id="@+id/chat_form"

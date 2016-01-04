@@ -20,4 +20,14 @@
     <string name="pref_title_vibrate">Vibrieren</string>
     <string name="retry">Wiederholen</string>
     <string name="pref_title_banner">Zeige Benachrichtigung als Banner</string>
+    <string name="pref_value3_privacy">Zeige alles</string>
+    <string name="pref_detail_privacy">Wähle was im Sperrbildschirm gezeigt werden soll</string>
+    <string name="pref_title_led">LED Leuchte</string>
+    <string name="pref_title_privacy">Wähle die Benachrichtigungsprivatsphäre</string>
+    <string name="pref_value1_privacy">Zeige keine Informationen</string>
+    <string name="pref_value2_privacy">Zeige grundsätzliche Informationen</string>
+    <string name="pref_summary_banner">Aktivieren um Benachrichtigungen im Benarichtigungsauszug anzuzeigen, bis sie geöffnet oder ignoriert wurden</string>
+    <string name="pref_summary_led">Aktivieren der LED Leuchte bei Benachrichtigungen</string>
+    <string name="pref_summary_new_message_notifications">Aktivieren von Benachrichtigungen für neue Nachrichten</string>
+    <string name="pref_summary_vibrate">Aktivieren von Vibration bei neuen Nachrichten</string>
 </resources>

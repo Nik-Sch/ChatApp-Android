@@ -103,8 +103,6 @@ public class MainActivity extends AppCompatActivity implements
     super.onResume();
     this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
     new MyNotification(this).reset();
-    ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE))
-            .cancel(MyNotification.NOTIFICATION_ID);
   }
 
   @Override
