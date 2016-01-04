@@ -3,6 +3,7 @@
     <SwitchPreference
         android:key="@string/pref_key_new_message_notifications"
         android:title="@string/pref_title_new_message_notifications"
+        android:summary="@string/pref_summary_new_message_notifications"
         android:defaultValue="true" />
 
     <RingtonePreference
@@ -16,18 +17,31 @@
         android:dependency="@string/pref_key_new_message_notifications"
         android:key="@string/pref_key_vibrate"
         android:title="@string/pref_title_vibrate"
-        android:defaultValue="true"/>
-
-    <SwitchPreference
-        android:dependency="@string/pref_key_new_message_notifications"
-        android:key="@string/pref_key_banner"
-        android:title="@string/pref_title_banner"
+        android:summary="@string/pref_summary_vibrate"
         android:defaultValue="true"/>
 
     <SwitchPreference
         android:dependency="@string/pref_key_new_message_notifications"
         android:key="@string/pref_key_led"
         android:title="@string/pref_title_led"
+        android:summary="@string/pref_summary_led"
+        android:defaultValue="true"/>
+
+    <ListPreference
+        android:dependency="@string/pref_key_new_message_notifications"
+        android:key="@string/pref_key_privacy"
+        android:title="@string/pref_title_privacy"
+        android:summary="%s"
+        android:dialogTitle="@string/pref_detail_privacy"
+        android:entries="@array/pref_entries_privacy"
+        android:entryValues="@array/pref_entries_privacy"
+        android:defaultValue="@string/pref_value3_privacy"/>
+
+    <SwitchPreference
+        android:dependency="@string/pref_key_new_message_notifications"
+        android:key="@string/pref_key_banner"
+        android:title="@string/pref_title_banner"
+        android:summary="@string/pref_summary_banner"
         android:defaultValue="true"/>
 
 </PreferenceScreen>
