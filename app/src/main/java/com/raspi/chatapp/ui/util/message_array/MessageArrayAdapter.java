@@ -1,4 +1,4 @@
-package com.raspi.chatapp.ui_util.message_array;
+package com.raspi.chatapp.ui.util.message_array;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -19,7 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
 
 import java.io.File;
 import java.lang.ref.WeakReference;

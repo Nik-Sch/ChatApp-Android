@@ -1,4 +1,4 @@
-package com.raspi.chatapp.ui_util;
+package com.raspi.chatapp.ui.util;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

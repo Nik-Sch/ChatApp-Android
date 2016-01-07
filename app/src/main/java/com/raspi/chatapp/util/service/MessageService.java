@@ -1,4 +1,4 @@
-package com.raspi.chatapp.service;
+package com.raspi.chatapp.util.service;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -10,10 +10,10 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.raspi.chatapp.activities.MainActivity;
-import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.ui.chatting.ChatActivity;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
 import com.raspi.chatapp.util.Globals;
-import com.raspi.chatapp.util.MyNotification;
+import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.XmppManager;
 
 import org.jivesoftware.smack.chat.Chat;
@@ -51,7 +51,7 @@ public class MessageService extends Service{
         reconnect();
         publicize();
         LocalBroadcastManager.getInstance(getApplication()).sendBroadcast(new Intent
-                (MainActivity.CONN_ESTABLISHED));
+                (ChatActivity.CONN_ESTABLISHED));
       }
     }).start();
     */
@@ -70,7 +70,7 @@ public class MessageService extends Service{
     Log.d("DEBUG", "MessageService launched.");
     if (intent == null){
       Log.d("DEBUG", "MessageService received a null intent.");
-    }else if (MainActivity.RECONNECT.equals(intent.getAction())){
+    }else if (ChatActivity.RECONNECT.equals(intent.getAction())){
       Log.d("DEBUG", "MessageService reconnect.");
       new Thread(new Runnable(){
         @Override
@@ -78,10 +78,10 @@ public class MessageService extends Service{
           reconnect();
           publicize();
           LocalBroadcastManager.getInstance(getApplication()).sendBroadcast(new Intent
-                  (MainActivity.CONN_ESTABLISHED));
+                  (ChatActivity.CONN_ESTABLISHED));
         }
       }).start();
-    }else if (MainActivity.APP_LAUNCHED.equals(intent.getAction())){
+    }else if (ChatActivity.APP_LAUNCHED.equals(intent.getAction())){
       Log.d("DEBUG", "MessageService app created.");
       isAppRunning = true;
       while (xmppManager == null)
@@ -91,7 +91,7 @@ public class MessageService extends Service{
         }
       xmppManager.setStatus(true, "online");
       publicize();
-    }else if (MainActivity.APP_CLOSED.equals(intent.getAction())){
+    }else if (ChatActivity.APP_CLOSED.equals(intent.getAction())){
       Log.d("DEBUG", "MessageService app destroyed.");
       isAppRunning = false;
       while (xmppManager == null)
@@ -197,9 +197,9 @@ public class MessageService extends Service{
         from = from.substring(0, index);
       }
       String status = presence.getStatus();
-      Intent intent = new Intent(MainActivity.PRESENCE_CHANGED);
-      intent.putExtra(MainActivity.BUDDY_ID, from);
-      intent.putExtra(MainActivity.PRESENCE_STATUS, status);
+      Intent intent = new Intent(ChatActivity.PRESENCE_CHANGED);
+      intent.putExtra(ChatActivity.BUDDY_ID, from);
+      intent.putExtra(ChatActivity.PRESENCE_STATUS, status);
       LocalBroadcastManager.getInstance(getApplicationContext())
               .sendBroadcast(intent);
       messageHistory.setOnline(from, status);
@@ -213,11 +213,11 @@ public class MessageService extends Service{
   }
 
   private String getUserName(){
-    return getSharedPreferences(MainActivity.PREFERENCES, 0).getString(MainActivity.USERNAME, "");
+    return getSharedPreferences(ChatActivity.PREFERENCES, 0).getString(ChatActivity.USERNAME, "");
   }
 
   private String getPassword(){
-    return getSharedPreferences(MainActivity.PREFERENCES, 0).getString(MainActivity.PASSWORD, "");
+    return getSharedPreferences(ChatActivity.PREFERENCES, 0).getString(ChatActivity.PASSWORD, "");
   }
 
   @Override
@@ -254,10 +254,10 @@ public class MessageService extends Service{
       messageHistory.addMessage(buddyId, buddyId, MessageHistory.TYPE_TEXT, msg,
               MessageHistory.STATUS_RECEIVED);
 
-      Intent msgIntent = new Intent(MainActivity.RECEIVE_MESSAGE)
-              .putExtra(MainActivity.BUDDY_ID, buddyId)
-              .putExtra(MainActivity.CHAT_NAME, name)
-              .putExtra(MainActivity.MESSAGE_BODY, msg);
+      Intent msgIntent = new Intent(ChatActivity.RECEIVE_MESSAGE)
+              .putExtra(ChatActivity.BUDDY_ID, buddyId)
+              .putExtra(ChatActivity.CHAT_NAME, name)
+              .putExtra(ChatActivity.MESSAGE_BODY, msg);
       getApplicationContext().sendOrderedBroadcast(msgIntent, null);
     }
   }
@@ -268,10 +268,10 @@ public class MessageService extends Service{
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
-      String buddyId = extras.getString(MainActivity.BUDDY_ID);
-      String name = extras.getString(MainActivity.CHAT_NAME);
-      String msg = extras.getString(MainActivity.MESSAGE_BODY);
-      new MyNotification(context).createNotification(buddyId, name, msg);
+      String buddyId = extras.getString(ChatActivity.BUDDY_ID);
+      String name = extras.getString(ChatActivity.CHAT_NAME);
+      String msg = extras.getString(ChatActivity.MESSAGE_BODY);
+      new Notification(context).createNotification(buddyId, name, msg);
     }
   }
 

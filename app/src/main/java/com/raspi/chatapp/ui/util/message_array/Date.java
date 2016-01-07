@@ -1,4 +1,4 @@
-package com.raspi.chatapp.ui_util.message_array;
+package com.raspi.chatapp.ui.util.message_array;
 
 public class Date extends MessageArrayContent{
   long date;

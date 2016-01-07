@@ -1,4 +1,4 @@
-package com.raspi.chatapp.activities.fragments;
+package com.raspi.chatapp.ui.chatting;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -26,13 +26,12 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.activities.MainActivity;
-import com.raspi.chatapp.sqlite.MessageHistory;
-import com.raspi.chatapp.ui_util.message_array.Date;
-import com.raspi.chatapp.ui_util.message_array.ImageMessage;
-import com.raspi.chatapp.ui_util.message_array.MessageArrayAdapter;
-import com.raspi.chatapp.ui_util.message_array.MessageArrayContent;
-import com.raspi.chatapp.ui_util.message_array.TextMessage;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.ui.util.message_array.Date;
+import com.raspi.chatapp.ui.util.message_array.ImageMessage;
+import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
+import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
+import com.raspi.chatapp.ui.util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.Upload;
 import com.raspi.chatapp.util.XmppManager;
@@ -68,7 +67,7 @@ public class ChatFragment extends Fragment{
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
-      String intentBuddyId = extras.getString(MainActivity.BUDDY_ID);
+      String intentBuddyId = extras.getString(ChatActivity.BUDDY_ID);
       int index = intentBuddyId.indexOf('@');
       if (index >= 0)
         intentBuddyId = intentBuddyId.substring(0, index);
@@ -83,9 +82,9 @@ public class ChatFragment extends Fragment{
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
-      if (extras != null && extras.containsKey(MainActivity.BUDDY_ID) && extras.containsKey(MainActivity.PRESENCE_STATUS)){
-        if (buddyId.equals(extras.getString(MainActivity.BUDDY_ID))){
-          updateStatus(extras.getString(MainActivity.PRESENCE_STATUS));
+      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras.containsKey(ChatActivity.PRESENCE_STATUS)){
+        if (buddyId.equals(extras.getString(ChatActivity.BUDDY_ID))){
+          updateStatus(extras.getString(ChatActivity.PRESENCE_STATUS));
         }
       }
     }
@@ -106,8 +105,8 @@ public class ChatFragment extends Fragment{
   public static ChatFragment newInstance(String buddyId, String chatName){
     ChatFragment fragment = new ChatFragment();
     Bundle args = new Bundle();
-    args.putString(MainActivity.BUDDY_ID, buddyId);
-    args.putString(MainActivity.CHAT_NAME, chatName);
+    args.putString(ChatActivity.BUDDY_ID, buddyId);
+    args.putString(ChatActivity.CHAT_NAME, chatName);
     fragment.setArguments(args);
     return fragment;
   }
@@ -122,8 +121,8 @@ public class ChatFragment extends Fragment{
   public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
     if (getArguments() != null){
-      buddyId = getArguments().getString(MainActivity.BUDDY_ID);
-      chatName = getArguments().getString(MainActivity.CHAT_NAME);
+      buddyId = getArguments().getString(ChatActivity.BUDDY_ID);
+      chatName = getArguments().getString(ChatActivity.CHAT_NAME);
     }else
       return;
     messageHistory = new MessageHistory(getContext());
@@ -132,11 +131,11 @@ public class ChatFragment extends Fragment{
   @Override
   public void onResume(){
     super.onResume();
-    IntentFilter filter = new IntentFilter(MainActivity.RECEIVE_MESSAGE);
+    IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
     filter.setPriority(1);
     getContext().registerReceiver(MessageReceiver, filter);
     LocalBroadcastManager.getInstance(getContext()).registerReceiver
-            (PresenceChangeReceiver, new IntentFilter(MainActivity.PRESENCE_CHANGED));
+            (PresenceChangeReceiver, new IntentFilter(ChatActivity.PRESENCE_CHANGED));
     initUI();
   }
 
@@ -256,7 +255,7 @@ public class ChatFragment extends Fragment{
       //TODO messageHistory.addSendRequest(buddyId, message);
     }
     messageHistory.addMessage(buddyId, getContext().getSharedPreferences
-            (MainActivity.PREFERENCES, 0).getString(MainActivity
+            (ChatActivity.PREFERENCES, 0).getString(ChatActivity
             .USERNAME, ""), MessageHistory.TYPE_TEXT, message, status);
     textIn.setText("");
     maa.clear();
@@ -332,9 +331,9 @@ public class ChatFragment extends Fragment{
   }
 
   /**
-   * This interface must be implemented by activities that contain this
+   * This interface must be implemented by ui that contain this
    * fragment to allow an interaction in this fragment to be communicated
-   * to the activity and potentially other fragments contained in that
+   * to the activity and potentially other chatting contained in that
    * activity.
    * <p/>
    * See the Android Training lesson <a href=

@@ -1,4 +1,4 @@
-package com.raspi.chatapp.sqlite;
+package com.raspi.chatapp.util.sqlite;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -22,8 +22,6 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.raspi.chatapp.R;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

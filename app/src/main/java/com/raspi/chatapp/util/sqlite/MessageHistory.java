@@ -1,4 +1,4 @@
-package com.raspi.chatapp.sqlite;
+package com.raspi.chatapp.util.sqlite;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,11 +8,11 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.raspi.chatapp.activities.MainActivity;
-import com.raspi.chatapp.ui_util.ChatEntry;
-import com.raspi.chatapp.ui_util.message_array.ImageMessage;
-import com.raspi.chatapp.ui_util.message_array.MessageArrayContent;
-import com.raspi.chatapp.ui_util.message_array.TextMessage;
+import com.raspi.chatapp.ui.chatting.ChatActivity;
+import com.raspi.chatapp.ui.util.ChatEntry;
+import com.raspi.chatapp.ui.util.message_array.ImageMessage;
+import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
+import com.raspi.chatapp.ui.util.message_array.TextMessage;
 
 import org.json.JSONArray;
 
@@ -93,8 +93,8 @@ public class MessageHistory{
           else
             lastMessageDate = "Yesterday";
           lastMessageMessage = lastMessage.getString(2);
-        SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
-        String me = preferences.getString(MainActivity.USERNAME, "");
+        SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+        String me = preferences.getString(ChatActivity.USERNAME, "");
         sent = me.equals(lastMessage.getString(0));
         read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
         }
@@ -203,9 +203,9 @@ public class MessageHistory{
     if (messages.getCount() > 0)
       do{
         String from = messages.getString(0);
-        SharedPreferences preferences = context.getSharedPreferences(MainActivity
+        SharedPreferences preferences = context.getSharedPreferences(ChatActivity
                 .PREFERENCES, 0);
-        String me = preferences.getString(MainActivity.USERNAME, "");
+        String me = preferences.getString(ChatActivity.USERNAME, "");
         String type = messages.getString(1);
         String content = messages.getString(2);
         double progress = messages.getDouble(3);

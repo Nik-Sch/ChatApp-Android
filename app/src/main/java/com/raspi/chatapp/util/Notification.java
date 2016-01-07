@@ -21,25 +21,25 @@ import android.util.Log;
 import android.util.TypedValue;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.activities.MainActivity;
+import com.raspi.chatapp.ui.chatting.ChatActivity;
 
 import org.json.JSONArray;
 
 import java.util.Arrays;
 import java.util.Random;
 
-public class MyNotification{
+public class Notification{
   public static final int NOTIFICATION_ID = 42;
-  public static final String NOTIFICATION_CLICK = "com.raspi.chatapp.util.MyNotification" +
+  public static final String NOTIFICATION_CLICK = "com.raspi.chatapp.util.Notification" +
           ".NOTIFICATION_CLICK";
-  public static final String NOTIFICATION_OLD_BUDDY = "com.raspi.chatapp.util.MyNotification" +
+  public static final String NOTIFICATION_OLD_BUDDY = "com.raspi.chatapp.util.Notification" +
           ".NOTIFICATION_OLD_BUDDY";
-  public static final String CURRENT_NOTIFICATIONS = "com.raspi.chatapp.util.MyNotification" +
+  public static final String CURRENT_NOTIFICATIONS = "com.raspi.chatapp.util.Notification" +
           ".CURRENT_NOTIFICATIONS";
 
   Context context;
 
-  public MyNotification(Context context){
+  public Notification(Context context){
     this.context = context;
   }
 
@@ -55,7 +55,7 @@ public class MyNotification{
       if (name == null)
         name = buddyId;
       Log.d("DEBUG", "creating notification: " + buddyId + "|" + name + "|" + message);
-      Intent resultIntent = new Intent(context, MainActivity.class);
+      Intent resultIntent = new Intent(context, ChatActivity.class);
       resultIntent.setAction(NOTIFICATION_CLICK);
       String oldBuddyId = getOldBuddyId();
       Log.d("DEBUG", (oldBuddyId == null) ? ("oldBuddy is null (later " + buddyId) : ("oldBuddy: " +
@@ -65,12 +65,12 @@ public class MyNotification{
         setOldBuddyId(buddyId);
       }
       if (oldBuddyId.equals(buddyId)){
-        resultIntent.putExtra(MainActivity.BUDDY_ID, buddyId);
-        resultIntent.putExtra(MainActivity.CHAT_NAME, name);
+        resultIntent.putExtra(ChatActivity.BUDDY_ID, buddyId);
+        resultIntent.putExtra(ChatActivity.CHAT_NAME, name);
       }
 
       TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-      stackBuilder.addParentStack(MainActivity.class);
+      stackBuilder.addParentStack(ChatActivity.class);
       stackBuilder.addNextIntent(resultIntent);
       PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,
               PendingIntent.FLAG_UPDATE_CURRENT);
@@ -183,25 +183,25 @@ public class MyNotification{
   }
 
   public void reset(){
-    SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
     preferences.edit().putString(NOTIFICATION_OLD_BUDDY, "").putString(CURRENT_NOTIFICATIONS,
             "").apply();
     ((NotificationManager) context.getSystemService(Context
-            .NOTIFICATION_SERVICE)).cancel(MyNotification.NOTIFICATION_ID);
+            .NOTIFICATION_SERVICE)).cancel(Notification.NOTIFICATION_ID);
   }
 
   private String getOldBuddyId(){
-    SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
     return preferences.getString(NOTIFICATION_OLD_BUDDY, null);
   }
 
   private void setOldBuddyId(String buddyId){
-    SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
     preferences.edit().putString(NOTIFICATION_OLD_BUDDY, buddyId).apply();
   }
 
   private void writeJSONArray(String[] arr, String arr_name){
-    SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
     JSONArray jsonArray = new JSONArray();
     for (String s : arr)
       jsonArray.put(s);
@@ -209,7 +209,7 @@ public class MyNotification{
   }
 
   private String[] readJSONArray(String arr_name){
-    SharedPreferences preferences = context.getSharedPreferences(MainActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
     try{
       JSONArray jsonArray = new JSONArray(preferences.getString(arr_name, ""));
       String[] result = new String[jsonArray.length()];

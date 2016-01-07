@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.raspi.chatapp.activities.fragments.SendImageFragment">
+    tools:context="com.raspi.chatapp.ui.chatting.SendImageFragment">
 
     <ImageView
         android:id="@+id/send_image_image"

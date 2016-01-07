@@ -1,6 +1,6 @@
 package com.raspi.chatapp.util;
 
-import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
 
 import org.jivesoftware.smack.XMPPConnection;
 

@@ -1,4 +1,4 @@
-package com.raspi.chatapp.activities.fragments;
+package com.raspi.chatapp.ui.chatting;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,10 +20,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.activities.MainActivity;
-import com.raspi.chatapp.sqlite.MessageHistory;
-import com.raspi.chatapp.ui_util.ChatArrayAdapter;
-import com.raspi.chatapp.ui_util.ChatEntry;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.ui.util.ChatArrayAdapter;
+import com.raspi.chatapp.ui.util.ChatEntry;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -57,7 +56,7 @@ public class ChatListFragment extends Fragment{
   public void onResume(){
     super.onResume();
     initUI();
-    IntentFilter filter = new IntentFilter(MainActivity.RECEIVE_MESSAGE);
+    IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
     filter.setPriority(1);
     getContext().registerReceiver(MessageReceiver, filter);
   }
@@ -156,9 +155,9 @@ public class ChatListFragment extends Fragment{
   };
 
   /**
-   * This interface must be implemented by activities that contain this
+   * This interface must be implemented by ui that contain this
    * fragment to allow an interaction in this fragment to be communicated
-   * to the activity and potentially other fragments contained in that
+   * to the activity and potentially other chatting contained in that
    * activity.
    * <p/>
    * See the Android Training lesson <a href=

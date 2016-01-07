@@ -1,4 +1,4 @@
-package com.raspi.chatapp.activities;
+package com.raspi.chatapp.ui.chatting;
 
 import android.app.Activity;
 import android.app.NotificationManager;
@@ -16,46 +16,45 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.activities.fragments.ChatFragment;
-import com.raspi.chatapp.activities.fragments.ChatListFragment;
-import com.raspi.chatapp.activities.fragments.SendImageFragment;
-import com.raspi.chatapp.service.MessageService;
-import com.raspi.chatapp.sqlite.AndroidDatabaseManager;
-import com.raspi.chatapp.util.MyNotification;
+import com.raspi.chatapp.ui.AddChatActivity;
+import com.raspi.chatapp.ui.SettingsActivity;
+import com.raspi.chatapp.util.service.MessageService;
+import com.raspi.chatapp.util.sqlite.AndroidDatabaseManager;
+import com.raspi.chatapp.util.Notification;
 
-public class MainActivity extends AppCompatActivity implements
+public class ChatActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener, ChatListFragment
         .OnFragmentInteractionListener, ChatFragment
         .OnFragmentInteractionListener, SendImageFragment.OnFragmentInteractionListener{
 
-  public static final String PREFERENCES = "com.raspi.chatapp.activities" +
-          ".MainActivity.PREFERENCES";
-  public static final String USERNAME = "com.raspi.chatapp.activities" +
-          ".MainActivity.USERNAME";
-  public static final String PASSWORD = "com.raspi.chatapp.activities" +
-          ".MainActivity.PASSWORD";
-  public static final String RECONNECT = "com.raspi.chatapp.activities" +
-          ".MainActivity.RECONNECT";
-  public static final String APP_LAUNCHED = "con.raspi.chatapp.activities" +
-          ".MainActivity.APP_CREATED";
-  public static final String APP_CLOSED = "con.raspi.chatapp.activities" +
-          ".MainActivity.APP_DESTROYED";
-  public static final String BUDDY_ID = "com.raspi.chatapp.activities" +
-          ".MainActivity.BUDDY_ID";
-  public static final String CHAT_NAME = "com.raspi.chatapp.activities" +
-          ".MainActivity.CHAT_NAME";
-  public static final String MESSAGE_BODY = "com.raspi.chatapp.activities" +
-          ".MainActivity.MESSAGE_BODY";
-  public static final String PRESENCE_CHANGED = "com.raspi.chatapp.activities" +
-          ".MainActivity.PRESENCE_CHANGED";
-  public static final String PRESENCE_STATUS = "com.raspi.chatapp.activities" +
-          ".MainActivity.PRESENCE_STATUS";
-  public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.activities" +
-          ".MainActivity.RECEIVE_MESSAGE";
-  public static final String CONN_ESTABLISHED = "com.raspi.chatapp.activities" +
-          ".MainActivity.CONN_ESTABLISHED";
-  public static final String IMAGE_URI = "com.raspi.chatapp.activities" +
-          ".MainActivity.IMAGE_URI";
+  public static final String PREFERENCES = "com.raspi.chatapp.ui" +
+          ".ChatActivity.PREFERENCES";
+  public static final String USERNAME = "com.raspi.chatapp.ui" +
+          ".ChatActivity.USERNAME";
+  public static final String PASSWORD = "com.raspi.chatapp.ui" +
+          ".ChatActivity.PASSWORD";
+  public static final String RECONNECT = "com.raspi.chatapp.ui" +
+          ".ChatActivity.RECONNECT";
+  public static final String APP_LAUNCHED = "con.raspi.chatapp.ui" +
+          ".ChatActivity.APP_CREATED";
+  public static final String APP_CLOSED = "con.raspi.chatapp.ui" +
+          ".ChatActivity.APP_DESTROYED";
+  public static final String BUDDY_ID = "com.raspi.chatapp.ui" +
+          ".ChatActivity.BUDDY_ID";
+  public static final String CHAT_NAME = "com.raspi.chatapp.ui" +
+          ".ChatActivity.CHAT_NAME";
+  public static final String MESSAGE_BODY = "com.raspi.chatapp.ui" +
+          ".ChatActivity.MESSAGE_BODY";
+  public static final String PRESENCE_CHANGED = "com.raspi.chatapp.ui" +
+          ".ChatActivity.PRESENCE_CHANGED";
+  public static final String PRESENCE_STATUS = "com.raspi.chatapp.ui" +
+          ".ChatActivity.PRESENCE_STATUS";
+  public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.ui" +
+          ".ChatActivity.RECEIVE_MESSAGE";
+  public static final String CONN_ESTABLISHED = "com.raspi.chatapp.ui" +
+          ".ChatActivity.CONN_ESTABLISHED";
+  public static final String IMAGE_URI = "com.raspi.chatapp.ui" +
+          ".ChatActivity.IMAGE_URI";
 
   public static final String IMAGE_DIR = "ChatApp Images";
 
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements
 
   public static final int PHOTO_ATTACH_SELECTED = 42;
 
-  public String currentBuddyId = MainActivity.BUDDY_ID;
+  public String currentBuddyId = ChatActivity.BUDDY_ID;
 
   @Override
   protected void onCreate(Bundle savedInstanceState){
@@ -78,22 +77,22 @@ public class MainActivity extends AppCompatActivity implements
     setUserPwd();
 
     ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
-            (MyNotification.NOTIFICATION_ID);
-    new MyNotification(this).reset();
+            (Notification.NOTIFICATION_ID);
+    new Notification(this).reset();
 
     if (savedInstanceState == null)
       getSupportFragmentManager().beginTransaction().add(R.id
               .fragment_container, new ChatListFragment()).commit();
 
     Intent callingIntent = getIntent();
-    if (callingIntent != null && MyNotification.NOTIFICATION_CLICK.equals
+    if (callingIntent != null && Notification.NOTIFICATION_CLICK.equals
             (callingIntent.getAction())){
       Log.d("DEBUG", "received intend not click");
       Bundle extras = callingIntent.getExtras();
-      if (extras != null && extras.containsKey(MainActivity.BUDDY_ID) && extras
-              .containsKey(MainActivity.CHAT_NAME)){
-        onChatOpened(extras.getString(MainActivity.BUDDY_ID), extras
-                .getString(MainActivity.CHAT_NAME));
+      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras
+              .containsKey(ChatActivity.CHAT_NAME)){
+        onChatOpened(extras.getString(ChatActivity.BUDDY_ID), extras
+                .getString(ChatActivity.CHAT_NAME));
       }
     }
   }
@@ -102,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements
   protected void onResume(){
     super.onResume();
     this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
-    new MyNotification(this).reset();
+    new Notification(this).reset();
   }
 
   @Override
@@ -167,8 +166,8 @@ public class MainActivity extends AppCompatActivity implements
   public void onChatOpened(String buddyId, String name){
     ChatFragment fragment = new ChatFragment();
     Bundle extras = new Bundle();
-    extras.putString(MainActivity.BUDDY_ID, buddyId);
-    extras.putString(MainActivity.CHAT_NAME, name);
+    extras.putString(ChatActivity.BUDDY_ID, buddyId);
+    extras.putString(ChatActivity.CHAT_NAME, name);
     fragment.setArguments(extras);
     getSupportFragmentManager().beginTransaction().replace(R.id
             .fragment_container, fragment).addToBackStack(ChatFragment.class.getName())
@@ -179,12 +178,12 @@ public class MainActivity extends AppCompatActivity implements
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data){
     super.onActivityResult(requestCode, resultCode, data);
-    if (requestCode == MainActivity.PHOTO_ATTACH_SELECTED && resultCode ==
+    if (requestCode == ChatActivity.PHOTO_ATTACH_SELECTED && resultCode ==
             Activity.RESULT_OK){
       SendImageFragment fragment = new SendImageFragment();
       Bundle extras = new Bundle();
-      extras.putString(MainActivity.IMAGE_URI, data.getData().toString());
-      extras.putString(MainActivity.BUDDY_ID, currentBuddyId);
+      extras.putString(ChatActivity.IMAGE_URI, data.getData().toString());
+      extras.putString(ChatActivity.BUDDY_ID, currentBuddyId);
       fragment.setArguments(extras);
       getSupportFragmentManager().beginTransaction().replace(R.id
               .fragment_container, fragment).addToBackStack(SendImageFragment
@@ -205,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements
             .getString(R.string.select_image));
     chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new
             Intent[]{pickIntent});
-    startActivityForResult(chooserIntent, MainActivity.PHOTO_ATTACH_SELECTED);
+    startActivityForResult(chooserIntent, ChatActivity.PHOTO_ATTACH_SELECTED);
   }
 
   @Override
@@ -217,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements
     boolean canBack = getSupportFragmentManager().getBackStackEntryCount() > 0;
     getSupportActionBar().setDisplayHomeAsUpEnabled(canBack);
     getSupportActionBar().setHomeButtonEnabled(canBack);
-    if (!canBack) currentBuddyId = MainActivity.BUDDY_ID;
+    if (!canBack) currentBuddyId = ChatActivity.BUDDY_ID;
   }
 
   @Override

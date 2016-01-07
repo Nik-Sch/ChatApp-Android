@@ -1,4 +1,4 @@
-package com.raspi.chatapp.util;/*
+package com.raspi.chatapp.util.file;/*
  * Copyright (C) 2007-2008 OpenIntents.org
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

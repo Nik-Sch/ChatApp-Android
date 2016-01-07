@@ -1,4 +1,4 @@
-package com.raspi.chatapp.activities;
+package com.raspi.chatapp.ui;
 
 
 import android.annotation.TargetApi;
@@ -22,7 +22,7 @@ import android.text.TextUtils;
 import android.view.MenuItem;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.ui_util.AppCompatPreferenceActivity;
+import com.raspi.chatapp.ui.util.AppCompatPreferenceActivity;
 
 import java.util.List;
 

@@ -1,13 +1,12 @@
 package com.raspi.chatapp.util;
 
 import android.content.Context;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.raspi.chatapp.sqlite.MessageHistory;
-import com.raspi.chatapp.ui_util.message_array.ImageMessage;
-import com.raspi.chatapp.ui_util.message_array.MessageArrayAdapter;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.ui.util.message_array.ImageMessage;
+import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackConfiguration;
@@ -21,8 +20,6 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.filetransfer.FileTransfer;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
-
-import java.lang.ref.WeakReference;
 
 public class XmppManager{
 

@@ -1,4 +1,4 @@
-package com.raspi.chatapp.ui_util;
+package com.raspi.chatapp.ui.util;
 
 public class ChatEntry{
 

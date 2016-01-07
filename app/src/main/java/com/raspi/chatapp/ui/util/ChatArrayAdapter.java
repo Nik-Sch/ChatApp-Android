@@ -1,4 +1,4 @@
-package com.raspi.chatapp.ui_util;
+package com.raspi.chatapp.ui.util;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.sqlite.MessageHistory;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
 
 import java.util.ArrayList;
 import java.util.List;

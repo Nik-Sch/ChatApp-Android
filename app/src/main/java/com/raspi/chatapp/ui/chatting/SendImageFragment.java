@@ -1,4 +1,4 @@
-package com.raspi.chatapp.activities.fragments;
+package com.raspi.chatapp.ui.chatting;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
@@ -15,9 +15,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.activities.MainActivity;
-import com.raspi.chatapp.sqlite.MessageHistory;
-import com.raspi.chatapp.util.FileUtils;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.file.FileUtils;
 
 import org.json.JSONArray;
 
@@ -60,8 +59,8 @@ public class SendImageFragment extends Fragment{
   public static SendImageFragment newInstance(String imageUri, String buddyId){
     SendImageFragment fragment = new SendImageFragment();
     Bundle args = new Bundle();
-    args.putString(MainActivity.IMAGE_URI, imageUri);
-    args.putString(MainActivity.BUDDY_ID, buddyId);
+    args.putString(ChatActivity.IMAGE_URI, imageUri);
+    args.putString(ChatActivity.BUDDY_ID, buddyId);
     fragment.setArguments(args);
     return fragment;
   }
@@ -76,8 +75,8 @@ public class SendImageFragment extends Fragment{
   public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
     if (getArguments() != null){
-      imageUri = Uri.parse(getArguments().getString(MainActivity.IMAGE_URI));
-      buddyId = getArguments().getString(MainActivity.BUDDY_ID);
+      imageUri = Uri.parse(getArguments().getString(ChatActivity.IMAGE_URI));
+      buddyId = getArguments().getString(ChatActivity.BUDDY_ID);
     }
   }
 
@@ -155,7 +154,7 @@ public class SendImageFragment extends Fragment{
         //creating the directory
         String root = Environment.getExternalStoragePublicDirectory
                 (Environment.DIRECTORY_PICTURES).getAbsolutePath();
-        File myDir = new File(root + "/" + MainActivity.IMAGE_DIR);
+        File myDir = new File(root + "/" + ChatActivity.IMAGE_DIR);
         myDir.mkdirs();
         File file = new File(myDir, getFileName());
         //creating the file
@@ -171,8 +170,8 @@ public class SendImageFragment extends Fragment{
         MessageHistory messageHistory = new MessageHistory(getContext());
         messageHistory.addMessage(
                 buddyId,
-                getActivity().getSharedPreferences(MainActivity.PREFERENCES, 0)
-                        .getString(MainActivity.USERNAME, ""),
+                getActivity().getSharedPreferences(ChatActivity.PREFERENCES, 0)
+                        .getString(ChatActivity.USERNAME, ""),
                 MessageHistory.TYPE_IMAGE,
                 contentJSON.toString(),
                 MessageHistory.STATUS_WAITING);
@@ -230,9 +229,9 @@ public class SendImageFragment extends Fragment{
   }
 
   /**
-   * This interface must be implemented by activities that contain this
+   * This interface must be implemented by ui that contain this
    * fragment to allow an interaction in this fragment to be communicated
-   * to the activity and potentially other fragments contained in that
+   * to the activity and potentially other chatting contained in that
    * activity.
    * <p/>
    * See the Android Training lesson <a href=
