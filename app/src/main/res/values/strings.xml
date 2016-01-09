@@ -18,12 +18,8 @@
     <string name="sd_card" translatable="false">SD Card</string>
 
     <!-- Strings related to Settings -->
-
-
-    <string name="pref_header_general">General</string>
-
-    <!-- Example settings for Notifications -->
     <string name="pref_header_notifications">Notifications</string>
+    <string name="pref_header_password">Password</string>
 
     <string name="pref_title_new_message_notifications">New message
         notifications</string>
@@ -58,6 +54,10 @@
     <string name="pref_value1_privacy">Show nothing</string>
     <string name="pref_value2_privacy">Show basic information</string>
     <string name="pref_value3_privacy">Show everything</string>
+
+    <string name="pref_key_changepwd" translatable="false">password_change_pwd</string>
+    <string name="pref_title_changepwd">Change the password</string>
+    <string name="pref_summary_changepwd">Enter a new password</string>
 
     <string name="title_activity_add_chat" translatable="false">AddChatActivity</string>
     <string name="large_text" translatable="false">
@@ -149,4 +149,6 @@
         "For example, position the FAB to one side of stream of a cards so the FAB won’t interfere "
         "when a user tries to pick up one of cards.\n\n"
     </string>
+
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>

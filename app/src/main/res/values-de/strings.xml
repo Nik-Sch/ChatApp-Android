@@ -8,7 +8,6 @@
     <string name="last_online_at">um</string>
     <string name="last_online_today">Heute um</string>
     <string name="last_online_yesterday">Gestern um</string>
-    <string name="pref_header_general">Allgemein</string>
     <string name="pref_header_notifications">Benachrichtungen</string>
     <string name="pref_ringtone_silent">Stumm</string>
     <string name="pref_title_ringtone">Benachrichtungston</string>
@@ -30,4 +29,7 @@
     <string name="pref_summary_led">Aktivieren der LED Leuchte bei Benachrichtigungen</string>
     <string name="pref_summary_new_message_notifications">Aktivieren von Benachrichtigungen für neue Nachrichten</string>
     <string name="pref_summary_vibrate">Aktivieren von Vibration bei neuen Nachrichten</string>
+    <string name="pref_summary_changepwd">Gebe ein neues Passwort ein</string>
+    <string name="pref_title_changepwd">Passwort ändern</string>
+    <string name="pref_header_password">Passwort</string>
 </resources>

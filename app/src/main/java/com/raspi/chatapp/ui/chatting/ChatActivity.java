@@ -17,43 +17,43 @@ import android.view.MenuItem;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.AddChatActivity;
-import com.raspi.chatapp.ui.SettingsActivity;
+import com.raspi.chatapp.ui.settings.SettingsActivity;
+import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.sqlite.AndroidDatabaseManager;
-import com.raspi.chatapp.util.Notification;
 
 public class ChatActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener, ChatListFragment
         .OnFragmentInteractionListener, ChatFragment
         .OnFragmentInteractionListener, SendImageFragment.OnFragmentInteractionListener{
 
-  public static final String PREFERENCES = "com.raspi.chatapp.ui" +
+  public static final String PREFERENCES = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.PREFERENCES";
-  public static final String USERNAME = "com.raspi.chatapp.ui" +
+  public static final String USERNAME = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.USERNAME";
-  public static final String PASSWORD = "com.raspi.chatapp.ui" +
+  public static final String PASSWORD = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.PASSWORD";
-  public static final String RECONNECT = "com.raspi.chatapp.ui" +
+  public static final String RECONNECT = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.RECONNECT";
-  public static final String APP_LAUNCHED = "con.raspi.chatapp.ui" +
+  public static final String APP_LAUNCHED = "con.raspi.chatapp.ui.chatting" +
           ".ChatActivity.APP_CREATED";
-  public static final String APP_CLOSED = "con.raspi.chatapp.ui" +
+  public static final String APP_CLOSED = "con.raspi.chatapp.ui.chatting" +
           ".ChatActivity.APP_DESTROYED";
-  public static final String BUDDY_ID = "com.raspi.chatapp.ui" +
+  public static final String BUDDY_ID = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.BUDDY_ID";
-  public static final String CHAT_NAME = "com.raspi.chatapp.ui" +
+  public static final String CHAT_NAME = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.CHAT_NAME";
-  public static final String MESSAGE_BODY = "com.raspi.chatapp.ui" +
+  public static final String MESSAGE_BODY = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.MESSAGE_BODY";
-  public static final String PRESENCE_CHANGED = "com.raspi.chatapp.ui" +
+  public static final String PRESENCE_CHANGED = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.PRESENCE_CHANGED";
-  public static final String PRESENCE_STATUS = "com.raspi.chatapp.ui" +
+  public static final String PRESENCE_STATUS = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.PRESENCE_STATUS";
-  public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.ui" +
+  public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.RECEIVE_MESSAGE";
-  public static final String CONN_ESTABLISHED = "com.raspi.chatapp.ui" +
+  public static final String CONN_ESTABLISHED = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.CONN_ESTABLISHED";
-  public static final String IMAGE_URI = "com.raspi.chatapp.ui" +
+  public static final String IMAGE_URI = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.IMAGE_URI";
 
   public static final String IMAGE_DIR = "ChatApp Images";
@@ -67,7 +67,7 @@ public class ChatActivity extends AppCompatActivity implements
   @Override
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+    setContentView(R.layout.activity_chat);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
@@ -80,9 +80,8 @@ public class ChatActivity extends AppCompatActivity implements
             (Notification.NOTIFICATION_ID);
     new Notification(this).reset();
 
-    if (savedInstanceState == null)
-      getSupportFragmentManager().beginTransaction().add(R.id
-              .fragment_container, new ChatListFragment()).commit();
+    getSupportFragmentManager().beginTransaction().add(R.id
+            .fragment_container, new ChatListFragment()).commit();
 
     Intent callingIntent = getIntent();
     if (callingIntent != null && Notification.NOTIFICATION_CLICK.equals
