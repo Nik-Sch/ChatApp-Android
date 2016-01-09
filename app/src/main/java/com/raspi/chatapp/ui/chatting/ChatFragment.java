@@ -27,15 +27,16 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.sqlite.MessageHistory;
 import com.raspi.chatapp.ui.util.message_array.Date;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
+import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.Upload;
 import com.raspi.chatapp.util.XmppManager;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -270,26 +271,41 @@ public class ChatFragment extends Fragment{
     MessageArrayContent[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
     long oldDate = 0;
     final int c = 24 * 60 * 60 * 1000;
+    NewMessage nm = null;
     for (MessageArrayContent message : messages){
       if (message instanceof TextMessage){
         TextMessage msg = (TextMessage) message;
         if ((msg.time - oldDate) / c > 0)
           maa.add(new Date(msg.time));
         oldDate = msg.time;
-        maa.add(msg);
-        if (msg.left)
+        if (msg.left){
+          if (msg.status.equals(MessageHistory.STATUS_RECEIVED))
+            if (nm == null){
+              nm = new NewMessage(getResources().getString(R.string
+                      .new_message));
+              maa.add(nm);
+            }else
+              nm.status = getResources().getString(R.string.new_messages);
           messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
                   .STATUS_READ);
+        }
+        maa.add(msg);
       }else if (message instanceof ImageMessage){
         ImageMessage msg = (ImageMessage) message;
         if ((msg.time - oldDate) / c > 0)
           maa.add(new Date(msg.time));
         oldDate = msg.time;
-        maa.add(msg);
-        if (msg.left)
+        if (msg.left){
+          if (msg.status.equals(MessageHistory.STATUS_READ))
+            if (nm == null){
+              nm = new NewMessage(getResources().getString(R.string
+                      .new_message));
+              maa.add(nm);
+            }else
+              nm.status = getResources().getString(R.string.new_messages);
           messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
                   .STATUS_READ);
-        else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
+        }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
           //send the image
           XmppManager xmppManager = ((Globals) getActivity().getApplication())
                   .getXmppManager();
@@ -299,6 +315,7 @@ public class ChatFragment extends Fragment{
             xmppManager.new sendImage(msg, maa).execute(task);
           }
         }
+        maa.add(msg);
       }
     }
   }

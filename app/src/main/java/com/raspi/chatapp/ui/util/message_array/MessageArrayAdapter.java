@@ -35,6 +35,28 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     super(context, textViewResourceId);
   }
 
+  private static boolean cancelPotentialWork(File file, ImageView imageView){
+    final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+    if (bitmapWorkerTask != null){
+      final File bitmapFile = bitmapWorkerTask.data;
+      if (bitmapFile == null || bitmapFile != file)
+        bitmapWorkerTask.cancel(true);
+      else return true;
+    }
+    return true;
+  }
+
+  private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView){
+    if (imageView != null){
+      final Drawable drawable = imageView.getDrawable();
+      if (drawable instanceof AsyncDrawable){
+        final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
+        return asyncDrawable.getBitmapWorkerTask();
+      }
+    }
+    return null;
+  }
+
   @Override
   public void add(MessageArrayContent obj){
     MessageList.add(obj);
@@ -46,6 +68,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     MessageList.clear();
     notifyDataSetChanged();
   }
+
 
   public int getCount(){
     return MessageList.size();
@@ -202,11 +225,19 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
         }
       }
     }else if (Obj.getClass() == Date.class){
-      LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      LayoutInflater inflater = (LayoutInflater) this.getContext()
+              .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       v = inflater.inflate(R.layout.message_date, parent, false);
 
       TextView date = (TextView) v.findViewById(R.id.date);
       date.setText(new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format(((Date) Obj).date));
+    }else if (Obj.getClass() == NewMessage.class){
+      LayoutInflater inflater = (LayoutInflater) this.getContext()
+              .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      v = inflater.inflate(R.layout.message_new_messages, parent, false);
+
+      TextView nm = (TextView) v.findViewById(R.id.new_messages);
+      nm.setText(((NewMessage) Obj).status);
     }
     return v;
   }
@@ -222,28 +253,6 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       task.execute(file);
 
     }
-  }
-
-  private static boolean cancelPotentialWork(File file, ImageView imageView){
-    final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-    if (bitmapWorkerTask != null){
-      final File bitmapFile = bitmapWorkerTask.data;
-      if (bitmapFile == null || bitmapFile != file)
-        bitmapWorkerTask.cancel(true);
-      else return true;
-    }
-    return true;
-  }
-
-  private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView){
-    if (imageView != null){
-      final Drawable drawable = imageView.getDrawable();
-      if (drawable instanceof AsyncDrawable){
-        final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-        return asyncDrawable.getBitmapWorkerTask();
-      }
-    }
-    return null;
   }
 
   static class AsyncDrawable extends BitmapDrawable{

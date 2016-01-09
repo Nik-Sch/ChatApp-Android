@@ -13,6 +13,8 @@
     <string name="send">Send</string>
     <string name="cancel">Cancel</string>
     <string name="retry">Retry</string>
+    <string name="new_messages">New Messages</string>
+    <string name="new_message">New Message</string>
 
     <string name="home" translatable="false">Home</string>
     <string name="sd_card" translatable="false">SD Card</string>
