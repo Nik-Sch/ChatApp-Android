@@ -15,6 +15,9 @@
     <string name="retry">Retry</string>
     <string name="new_messages">New Messages</string>
     <string name="new_message">New Message</string>
+    <string name="from">from</string>
+    <string name="new_password">Enter a new password</string>
+    <string name="confirm_password">Confirm your new password</string>
 
     <string name="home" translatable="false">Home</string>
     <string name="sd_card" translatable="false">SD Card</string>

@@ -14,6 +14,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextPaint;
@@ -78,32 +79,48 @@ public class Notification{
 
       NotificationManager nm = ((NotificationManager) context.getSystemService(Context
               .NOTIFICATION_SERVICE));
-      NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+      NotificationCompat.Style style;
 
       String[] previousNotifications = readJSONArray(CURRENT_NOTIFICATIONS);
+      String title;
       String[] currentNotifications = Arrays.copyOf(previousNotifications,
               previousNotifications.length + 1);
-      currentNotifications[currentNotifications.length - 1] = name + ": " + message;
-      for (String s : currentNotifications)
-        if (s != null && !"".equals(s))
-          inboxStyle.addLine(s);
-      inboxStyle.setSummaryText((currentNotifications.length > 2) ? ("+" + (currentNotifications
-              .length - 2) + " more") : null);
-      inboxStyle.setBigContentTitle((currentNotifications.length > 1) ? "New messages" : "New " +
-              "message");
+      currentNotifications[currentNotifications.length - 1] = name + ": " +
+              message;
+      if (previousNotifications.length == 0){
+        style = new NotificationCompat.BigTextStyle();
+        NotificationCompat.BigTextStyle bigTextStyle = ((NotificationCompat
+                .BigTextStyle) style);
+        title = context.getResources().getString(R.string.new_message) + " " +
+                context.getResources().getString(R.string.from) + " " + name;
+        bigTextStyle.bigText
+                (currentNotifications[0]);
+        bigTextStyle.setBigContentTitle(title);
+      }else{
+        style = new NotificationCompat.InboxStyle();
+        NotificationCompat.InboxStyle inboxStyle = (NotificationCompat
+                .InboxStyle) style;
+        title = (previousNotifications.length + 1) + " " + context
+                .getResources().getString(R.string.new_messages);
+        for (String s : currentNotifications)
+          if (s != null && !"".equals(s))
+            inboxStyle.addLine(s);
+        inboxStyle.setSummaryText((currentNotifications.length > 2) ? ("+" +
+                (currentNotifications.length - 2) + " more") : null);
+        inboxStyle.setBigContentTitle(title);
+      }
       writeJSONArray(currentNotifications, CURRENT_NOTIFICATIONS);
 
-      Random random = new Random();
       NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-              .setContentTitle("New Message")
+              .setContentTitle(title)
               .setContentText(currentNotifications[currentNotifications
                       .length - 1])
               .setSmallIcon(R.drawable.ic_forum_white_48dp)
-              .setLargeIcon(createRoundedLetterView(Color.rgb(random.nextInt
-                              (256), random.nextInt(256), random.nextInt(256)),
-                      Character.toUpperCase(buddyId.toCharArray()[0]), 64))
-              .setStyle(inboxStyle)
+              .setLargeIcon(getLargeIcon(Character.toUpperCase(name
+                      .toCharArray()[0])))
+              .setStyle(style)
               .setAutoCancel(true)
+              .setPriority(5)
               .setContentIntent(resultPendingIntent);
 
       String str = context.getResources().getString(R.string.pref_key_privacy);
@@ -141,14 +158,23 @@ public class Notification{
     }
   }
 
-  private Bitmap createRoundedLetterView(int bgColor, char letter, int widthDP){
-    return createRoundedLetterView(bgColor, letter, TypedValue.applyDimension
-            (TypedValue.COMPLEX_UNIT_DIP, widthDP, context.getResources()
-                    .getDisplayMetrics()));
+  private Bitmap getLargeIcon(char letter){
+    Random random = new Random();
+    int widthDP = 64;
+    int bgColor = Color.rgb(random.nextInt(256), random.nextInt(256), random
+            .nextInt(256));
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      return getLargeIcon(bgColor, letter, TypedValue.applyDimension
+              (TypedValue.COMPLEX_UNIT_DIP, widthDP, context.getResources()
+                      .getDisplayMetrics()), true);
+    else
+      return getLargeIcon(bgColor, letter, TypedValue.applyDimension
+              (TypedValue.COMPLEX_UNIT_DIP, widthDP, context.getResources()
+                      .getDisplayMetrics()), false);
   }
 
-  private Bitmap createRoundedLetterView(int bgColor, char letter, float
-          width){
+  private Bitmap getLargeIcon(int bgColor, char letter, float
+          width, boolean round){
     Bitmap b = Bitmap.createBitmap((int) width, (int) width, Bitmap.Config
             .ARGB_8888);
     Canvas c = new Canvas(b);
@@ -177,7 +203,10 @@ public class Notification{
     int yPos = (int) (centerY - (mTitleTextPaint.descent() + mTitleTextPaint
             .ascent()) / 2);
 
-    c.drawOval(mInnerRectF, mBgPaint);
+    if (round)
+      c.drawOval(mInnerRectF, mBgPaint);
+    else
+      c.drawRect(mInnerRectF, mBgPaint);
     c.drawText(String.valueOf(letter), xPos, yPos, mTitleTextPaint);
 
     return b;

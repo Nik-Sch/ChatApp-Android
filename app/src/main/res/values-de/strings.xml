@@ -34,4 +34,7 @@
     <string name="pref_header_password">Passwort</string>
     <string name="new_messages">Neue Nachrichten</string>
     <string name="new_message">Neue Nachricht</string>
+    <string name="confirm_password">Wiederhole dein neues Passwort</string>
+    <string name="new_password">Gebe dein neus Passwort ein</string>
+    <string name="from">von</string>
 </resources>
