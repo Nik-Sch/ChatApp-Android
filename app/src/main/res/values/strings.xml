@@ -18,6 +18,9 @@
     <string name="from">from</string>
     <string name="new_password">Enter a new password</string>
     <string name="confirm_password">Confirm your new password</string>
+    <string name="pwd_dont_match">The passwords do not match</string>
+    <string name="pwd_changed">The password was successfully changed</string>
+    <string name="pwd_not_changed">The password was not changed</string>
 
     <string name="home" translatable="false">Home</string>
     <string name="sd_card" translatable="false">SD Card</string>

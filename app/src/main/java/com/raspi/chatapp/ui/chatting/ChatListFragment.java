@@ -60,6 +60,8 @@ public class ChatListFragment extends Fragment{
     IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
     filter.setPriority(1);
     getContext().registerReceiver(MessageReceiver, filter);
+    getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams
+            .SOFT_INPUT_STATE_ALWAYS_HIDDEN);
   }
 
   @Override
@@ -82,8 +84,6 @@ public class ChatListFragment extends Fragment{
   @Override
   public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
-    getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams
-            .SOFT_INPUT_STATE_ALWAYS_HIDDEN);
   }
 
   @Override

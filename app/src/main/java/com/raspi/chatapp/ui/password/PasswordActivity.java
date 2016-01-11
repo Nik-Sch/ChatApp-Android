@@ -9,6 +9,7 @@ import android.util.Base64;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
+import com.raspi.chatapp.ui.settings.ChangePasswordActivity;
 import com.raspi.chatapp.util.Notification;
 
 import java.security.NoSuchAlgorithmException;
@@ -27,22 +28,30 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
   public static final String SALT = "com.raspi.chatapp.ui.password" +
           ".PasswordActivity.SALT";
 
+  public static final int ITERATIONS = 1024;
+  public static final int SALT_LENGTH = 32;
+
   private String buddyId = null, chatName = null;
-  private boolean not_click = false;
+  private boolean not_click = false, change_pwd = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
 
     Intent callingIntent = getIntent();
-    if (callingIntent != null && Notification.NOTIFICATION_CLICK.equals
-            (callingIntent.getAction())){
-      not_click = true;
-      Bundle extras = callingIntent.getExtras();
-      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras
-              .containsKey(ChatActivity.CHAT_NAME)){
-        buddyId = extras.getString(ChatActivity.BUDDY_ID);
-        chatName = extras.getString(ChatActivity.CHAT_NAME);
+    if (callingIntent != null){
+      String action = callingIntent.getAction();
+      if (Notification.NOTIFICATION_CLICK.equals
+              (action)){
+        not_click = true;
+        Bundle extras = callingIntent.getExtras();
+        if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras
+                .containsKey(ChatActivity.CHAT_NAME)){
+          buddyId = extras.getString(ChatActivity.BUDDY_ID);
+          chatName = extras.getString(ChatActivity.CHAT_NAME);
+        }
+      }else if (ChangePasswordActivity.CHANGE_PWD.equals(action)){
+        change_pwd = true;
       }
     }
 
@@ -53,12 +62,18 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
   }
 
   private void grantAccess(){
-    Intent intent = new Intent(this, ChatActivity.class);
-    if (buddyId != null){
-      intent.putExtra(ChatActivity.BUDDY_ID, buddyId);
-      intent.putExtra(ChatActivity.CHAT_NAME, chatName);
-      if (not_click)
-        intent.setAction(Notification.NOTIFICATION_CLICK);
+    Intent intent;
+    if (change_pwd){
+      intent = new Intent(this, ChangePasswordActivity.class);
+      intent.setAction(ChangePasswordActivity.CHANGE_PWD);
+    }else{
+      intent = new Intent(this, ChatActivity.class);
+      if (buddyId != null){
+        intent.putExtra(ChatActivity.BUDDY_ID, buddyId);
+        intent.putExtra(ChatActivity.CHAT_NAME, chatName);
+        if (not_click)
+          intent.setAction(Notification.NOTIFICATION_CLICK);
+      }
     }
     startActivity(intent);
     finish();
@@ -66,19 +81,19 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
 
   private boolean checkPassword(char[] pwd){
     try{
-      final int iterations = 1024;
       SharedPreferences preferences = getSharedPreferences(PREFERENCES, 0);
       byte[] salt = Base64.decode(preferences.getString(SALT,
               "0123456789ABCDEF0123456789ABCDEF"), Base64.DEFAULT);
 
       //default hash for init
-      KeySpec tmpspec = new PBEKeySpec("0000".toCharArray(), salt, iterations, 32);
+      KeySpec tmpspec = new PBEKeySpec("0000".toCharArray(), salt,
+              ITERATIONS, SALT_LENGTH);
       SecretKeyFactory f = getSecretKeyFactory();
       byte[] init_hash = f.generateSecret(tmpspec).getEncoded();
 
       byte[] real_hash = Base64.decode(preferences.getString(HASH, Base64
               .encodeToString(init_hash, Base64.DEFAULT)), Base64.DEFAULT);
-      KeySpec spec = new PBEKeySpec(pwd, salt, iterations, 32);
+      KeySpec spec = new PBEKeySpec(pwd, salt, ITERATIONS, SALT_LENGTH);
       SecretKeyFactory factory = getSecretKeyFactory();
       byte[] gen_hash = factory.generateSecret(spec).getEncoded();
 
@@ -91,7 +106,7 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
     return false;
   }
 
-  private SecretKeyFactory getSecretKeyFactory() throws
+  public static SecretKeyFactory getSecretKeyFactory() throws
           NoSuchAlgorithmException, NullPointerException{
     SecretKeyFactory f;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)

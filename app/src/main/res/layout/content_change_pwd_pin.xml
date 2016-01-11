@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.raspi.chatapp.ui.settings.ChangePasswordActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay"/>
+        </android.support.design.widget.AppBarLayout>
+
+        <TextView
+            android:id="@+id/pwd_no_match"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/app_bar"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:textColor="@android:color/holo_red_dark"
+            android:text="@string/pwd_dont_match"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/new_pin_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/pwd_no_match"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:text="@string/new_password"
+            android:textSize="20sp"/>
+
+        <EditText
+            android:id="@+id/new_pin"
+            android:layout_width="95sp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/new_pin_desc"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="15dp"
+            android:background="@color/new_message_bg"
+            android:gravity="center"
+            android:inputType="numberPassword"
+            android:maxEms="4"
+            android:textSize="35sp"/>
+
+        <TextView
+            android:id="@+id/confirm_pin_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/new_pin"
+            android:layout_centerHorizontal="true"
+            android:text="@string/confirm_password"
+            android:textSize="20sp"/>
+
+        <EditText
+            android:id="@+id/confirm_pin"
+            android:layout_width="95sp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/confirm_pin_desc"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="15dp"
+            android:background="@color/new_message_bg"
+            android:gravity="center"
+            android:inputType="numberPassword"
+            android:maxEms="4"
+            android:textSize="35sp"/>
+    </RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>

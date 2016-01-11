@@ -37,4 +37,7 @@
     <string name="confirm_password">Wiederhole dein neues Passwort</string>
     <string name="new_password">Gebe dein neus Passwort ein</string>
     <string name="from">von</string>
+    <string name="pwd_dont_match">Die Passwörter stimmen nicht überein</string>
+    <string name="pwd_changed">Das Passwort wurde erfolgreich geändert</string>
+    <string name="pwd_not_changed">Das Passwort wurde nicht geändert</string>
 </resources>
