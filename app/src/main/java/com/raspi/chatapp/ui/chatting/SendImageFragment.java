@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,8 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.sqlite.MessageHistory;
 import com.raspi.chatapp.util.file.FileUtils;
+import com.raspi.chatapp.util.sqlite.MessageHistory;
 
 import org.json.JSONArray;
 
@@ -41,6 +43,8 @@ public class SendImageFragment extends Fragment{
 
   private Uri imageUri;
   private String buddyId;
+  private String name;
+  private ActionBar actionBar;
 
   private OnFragmentInteractionListener mListener;
 
@@ -56,11 +60,13 @@ public class SendImageFragment extends Fragment{
    * @param buddyId  the buddyId to whom the image should be sent
    * @return A new instance of fragment SendImageFragment.
    */
-  public static SendImageFragment newInstance(String imageUri, String buddyId){
+  public static SendImageFragment newInstance(String imageUri, String
+          buddyId, String name){
     SendImageFragment fragment = new SendImageFragment();
     Bundle args = new Bundle();
     args.putString(ChatActivity.IMAGE_URI, imageUri);
     args.putString(ChatActivity.BUDDY_ID, buddyId);
+    args.putString(ChatActivity.CHAT_NAME, name);
     fragment.setArguments(args);
     return fragment;
   }
@@ -68,6 +74,7 @@ public class SendImageFragment extends Fragment{
   @Override
   public void onResume(){
     super.onResume();
+    actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
     initUI();
   }
 
@@ -77,6 +84,7 @@ public class SendImageFragment extends Fragment{
     if (getArguments() != null){
       imageUri = Uri.parse(getArguments().getString(ChatActivity.IMAGE_URI));
       buddyId = getArguments().getString(ChatActivity.BUDDY_ID);
+      name = getArguments().getString(ChatActivity.CHAT_NAME);
     }
   }
 
@@ -105,6 +113,10 @@ public class SendImageFragment extends Fragment{
   }
 
   private void initUI(){
+    if (actionBar != null){
+      actionBar.setTitle(R.string.send_image);
+      actionBar.setSubtitle(name);
+    }
     ImageView imageView = ((ImageView) getView().findViewById(R.id
             .send_image_image));
     String imagePath = FileUtils.getPath(getContext(), imageUri);

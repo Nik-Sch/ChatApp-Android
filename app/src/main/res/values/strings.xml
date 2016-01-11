@@ -21,7 +21,8 @@
     <string name="pwd_dont_match">The passwords do not match</string>
     <string name="pwd_changed">The password was successfully changed</string>
     <string name="pwd_not_changed">The password was not changed</string>
-
+    <string name="send_image">Send Image</string>
+    <string name="change_pwd">Change password</string>
     <string name="home" translatable="false">Home</string>
     <string name="sd_card" translatable="false">SD Card</string>
 

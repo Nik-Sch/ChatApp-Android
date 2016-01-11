@@ -2,7 +2,9 @@ package com.raspi.chatapp.ui.settings;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
@@ -29,7 +31,6 @@ public class ChangePasswordActivity extends AppCompatActivity{
   private boolean changed = false;
   private boolean active = false;
 
-
   @Override
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
@@ -38,6 +39,12 @@ public class ChangePasswordActivity extends AppCompatActivity{
       if (CHANGE_PWD.equals(callingIntent.getAction())){
         //access was granted -> change pwd
         setContentView(R.layout.content_change_pwd_pin);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle(R.string.change_pwd);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
         getWindow().setSoftInputMode(WindowManager.LayoutParams
                 .SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         active = true;
@@ -154,5 +161,11 @@ public class ChangePasswordActivity extends AppCompatActivity{
               .pwd_changed : R.string.pwd_not_changed, Toast.LENGTH_LONG);
       toast.show();
     }
+  }
+  
+  @Override
+  public boolean onSupportNavigateUp(){
+    finish();
+    return true;
   }
 }

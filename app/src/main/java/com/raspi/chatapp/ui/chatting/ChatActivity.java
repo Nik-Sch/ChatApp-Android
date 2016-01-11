@@ -63,6 +63,7 @@ public class ChatActivity extends AppCompatActivity implements
   public static final int PHOTO_ATTACH_SELECTED = 42;
 
   public String currentBuddyId = ChatActivity.BUDDY_ID;
+  public String currentChatName = ChatActivity.CHAT_NAME;
 
   @Override
   protected void onCreate(Bundle savedInstanceState){
@@ -118,8 +119,6 @@ public class ChatActivity extends AppCompatActivity implements
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu){
-    // Inflate the menu; this adds items to the action bar if it is present.
-    getMenuInflater().inflate(R.menu.menu_chat_list, menu);
     return true;
   }
 
@@ -172,6 +171,7 @@ public class ChatActivity extends AppCompatActivity implements
             .fragment_container, fragment).addToBackStack(ChatFragment.class.getName())
             .commit();
     currentBuddyId = buddyId;
+    currentChatName = name;
   }
 
   @Override
@@ -183,6 +183,7 @@ public class ChatActivity extends AppCompatActivity implements
       Bundle extras = new Bundle();
       extras.putString(ChatActivity.IMAGE_URI, data.getData().toString());
       extras.putString(ChatActivity.BUDDY_ID, currentBuddyId);
+      extras.putString(ChatActivity.CHAT_NAME, currentChatName);
       fragment.setArguments(extras);
       getSupportFragmentManager().beginTransaction().replace(R.id
               .fragment_container, fragment).addToBackStack(SendImageFragment
@@ -215,7 +216,10 @@ public class ChatActivity extends AppCompatActivity implements
     boolean canBack = getSupportFragmentManager().getBackStackEntryCount() > 0;
     getSupportActionBar().setDisplayHomeAsUpEnabled(canBack);
     getSupportActionBar().setHomeButtonEnabled(canBack);
-    if (!canBack) currentBuddyId = ChatActivity.BUDDY_ID;
+    if (!canBack){
+      currentBuddyId = ChatActivity.BUDDY_ID;
+      currentChatName = ChatActivity.CHAT_NAME;
+    }
   }
 
   @Override
