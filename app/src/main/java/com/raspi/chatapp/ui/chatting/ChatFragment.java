@@ -34,9 +34,9 @@ import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
-import com.raspi.chatapp.util.Upload;
-import com.raspi.chatapp.util.XmppManager;
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.internet.http.Upload;
+import com.raspi.chatapp.util.internet.XmppManager;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

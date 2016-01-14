@@ -1,6 +1,6 @@
 package com.raspi.chatapp.ui.util.message_array;
 
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 public class TextMessage extends MessageArrayContent{
   public boolean left;

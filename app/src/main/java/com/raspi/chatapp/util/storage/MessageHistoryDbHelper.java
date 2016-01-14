@@ -1,4 +1,4 @@
-package com.raspi.chatapp.util.sqlite;
+package com.raspi.chatapp.util.storage;
 
 import android.content.Context;
 import android.database.Cursor;

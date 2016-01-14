@@ -1,6 +1,6 @@
-package com.raspi.chatapp.util;
+package com.raspi.chatapp.util.internet.http;
 
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import org.jivesoftware.smack.XMPPConnection;
 
@@ -8,12 +8,12 @@ import java.io.File;
 
 public class Upload{
   public static class Task{
-    File file;
-    String description;
-    String chatId;
-    long messageID;
-    XMPPConnection connection;
-    MessageHistory messageHistory;
+    public File file;
+    public String description;
+    public String chatId;
+    public long messageID;
+    public XMPPConnection connection;
+    public MessageHistory messageHistory;
 
     public Task(File file, String description, String chatId, long
             messageID, XMPPConnection connection, MessageHistory messageHistory){
@@ -27,9 +27,9 @@ public class Upload{
   }
 
   public static class Result{
-    double progress;
-    String chatId;
-    long messageID;
+    public double progress;
+    public String chatId;
+    public long messageID;
 
     public Result(double result, String chatId, long messageID){
       this.progress = result;

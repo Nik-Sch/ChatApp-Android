@@ -21,7 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.ui.util.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.ChatEntry;
 

@@ -19,7 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.io.File;
 import java.lang.ref.WeakReference;

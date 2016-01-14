@@ -1,4 +1,4 @@
-package com.raspi.chatapp.util.file;
+package com.raspi.chatapp.util.storage.file;
 
 import android.Manifest;
 import android.content.Context;

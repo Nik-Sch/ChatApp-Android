@@ -1,4 +1,4 @@
-package com.raspi.chatapp.util;
+package com.raspi.chatapp.util.internet;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

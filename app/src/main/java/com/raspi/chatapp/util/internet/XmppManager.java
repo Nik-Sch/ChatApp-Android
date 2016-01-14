@@ -1,10 +1,11 @@
-package com.raspi.chatapp.util;
+package com.raspi.chatapp.util.internet;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.internet.http.Upload;
+import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 

@@ -20,7 +20,7 @@ import com.raspi.chatapp.ui.AddChatActivity;
 import com.raspi.chatapp.ui.settings.SettingsActivity;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.service.MessageService;
-import com.raspi.chatapp.util.sqlite.AndroidDatabaseManager;
+import com.raspi.chatapp.util.storage.AndroidDatabaseManager;
 
 public class ChatActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener, ChatListFragment

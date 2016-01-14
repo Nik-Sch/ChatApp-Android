@@ -19,7 +19,7 @@
                 <action android:name="ANDROID.INTENT.ACTION.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".util.ConnChangeReceiver">
+        <receiver android:name=".util.internet.ConnChangeReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
@@ -73,7 +73,7 @@
                 android:value=".ui.chatting.ChatActivity"/>
         </activity>
         <activity
-            android:name=".util.sqlite.AndroidDatabaseManager"
+            android:name=".util.storage.AndroidDatabaseManager"
             android:theme="@style/Theme.AppCompat.Light">
         </activity>
 

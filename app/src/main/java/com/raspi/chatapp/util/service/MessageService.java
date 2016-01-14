@@ -11,10 +11,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.raspi.chatapp.ui.chatting.ChatActivity;
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.Notification;
-import com.raspi.chatapp.util.XmppManager;
+import com.raspi.chatapp.util.internet.XmppManager;
 
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;

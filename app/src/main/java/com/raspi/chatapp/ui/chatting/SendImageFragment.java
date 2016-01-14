@@ -17,8 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.file.FileUtils;
-import com.raspi.chatapp.util.sqlite.MessageHistory;
+import com.raspi.chatapp.util.storage.file.FileUtils;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import org.json.JSONArray;
 

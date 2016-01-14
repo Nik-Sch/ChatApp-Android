@@ -1,4 +1,4 @@
-package com.raspi.chatapp.util.sqlite;
+package com.raspi.chatapp.util.storage;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -23,15 +23,15 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MessageHistory{
-  public static final String TYPE_TEXT = "com.raspi.sqlite.MessageHistory.TYPE_TEXT";
-  public static final String TYPE_IMAGE = "com.raspi.sqlite.MessageHistory.TYPE_IMAGE";
+  public static final String TYPE_TEXT = "com.raspi.storage.MessageHistory.TYPE_TEXT";
+  public static final String TYPE_IMAGE = "com.raspi.storage.MessageHistory.TYPE_IMAGE";
 
-  public static final String STATUS_WAITING = "com.raspi.sqlite.MessageHistory.STATUS_WAITING";
-  public static final String STATUS_CANCELED = "com.raspi.sqlite.MessageHistory.STATUS_CANCELED";
-  public static final String STATUS_SENDING = "com.raspi.sqlite.MessageHistory.STATUS_SENDING";
-  public static final String STATUS_SENT = "com.raspi.sqlite.MessageHistory.STATUS_SENT";
-  public static final String STATUS_RECEIVED = "com.raspi.sqlite.MessageHistory.STATUS_RECEIVED";
-  public static final String STATUS_READ = "com.raspi.sqlite.MessageHistory.STATUS_READ";
+  public static final String STATUS_WAITING = "com.raspi.storage.MessageHistory.STATUS_WAITING";
+  public static final String STATUS_CANCELED = "com.raspi.storage.MessageHistory.STATUS_CANCELED";
+  public static final String STATUS_SENDING = "com.raspi.storage.MessageHistory.STATUS_SENDING";
+  public static final String STATUS_SENT = "com.raspi.storage.MessageHistory.STATUS_SENT";
+  public static final String STATUS_RECEIVED = "com.raspi.storage.MessageHistory.STATUS_RECEIVED";
+  public static final String STATUS_READ = "com.raspi.storage.MessageHistory.STATUS_READ";
 
   MessageHistoryDbHelper mDbHelper;
   Context context;
