@@ -10,11 +10,16 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
-import com.raspi.chatapp.util.storage.MessageHistory;
+import com.raspi.chatapp.ui.chatting.SendImageFragment;
+import com.raspi.chatapp.ui.util.message_array.ImageMessage;
+import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.util.Globals;
+import com.raspi.chatapp.util.MessageXmlParser;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.internet.XmppManager;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
@@ -36,6 +41,32 @@ public class MessageService extends Service{
   private static final int port = 5222;
 
   XmppManager xmppManager = null;
+
+  private final UploadServiceBroadcastReceiver uploadReceiver =
+          new UploadServiceBroadcastReceiver(){
+
+            @Override
+            public void onError(String uploadId, Exception exception){
+              super.onError(uploadId, exception);
+            }
+
+            @Override
+            public void onCompleted(String uploadId, int serverResponseCode, String serverResponseMessage){
+              int index = uploadId.indexOf('|');
+              String buddyId = uploadId.substring(0, index - 1);
+              String messageId = uploadId.substring(index);
+              MessageArrayContent mac = messageHistory.getMessage(buddyId,
+                      messageId);
+              try{
+                String des = ((ImageMessage) mac).description;
+                xmppManager.sendImageMessage(serverResponseMessage, des, buddyId);
+              }catch (ClassCastException e){
+                Log.e("UPLOAD", "Sending the uploaded image failed");
+                e.printStackTrace();
+              }
+            }
+          };
+
   MessageHistory messageHistory;
   private boolean isAppRunning = false;
 
@@ -44,17 +75,6 @@ public class MessageService extends Service{
     super.onCreate();
     Log.d("DEBUG", "MessageService created.");
     messageHistory = new MessageHistory(this);
-    /*
-    new Thread(new Runnable(){
-      @Override
-      public void run(){
-        reconnect();
-        publicize();
-        LocalBroadcastManager.getInstance(getApplication()).sendBroadcast(new Intent
-                (ChatActivity.CONN_ESTABLISHED));
-      }
-    }).start();
-    */
   }
 
   @Override
@@ -108,7 +128,7 @@ public class MessageService extends Service{
 
   private void reconnect(){
     Log.d("DEBUG", "MessageService reconnecting");
-     ConnectivityManager connManager = (ConnectivityManager) getSystemService
+    ConnectivityManager connManager = (ConnectivityManager) getSystemService
             (Context.CONNECTIVITY_SERVICE);
     if (connManager != null && connManager.getActiveNetworkInfo() != null &&
             connManager.getActiveNetworkInfo().isConnected()){
@@ -127,6 +147,7 @@ public class MessageService extends Service{
 
   private void initialize(){
     try{
+      uploadReceiver.register(this);
       //initialize xmpp:
       Log.d("DEBUG", "MessageService initializing");
       xmppManager = new XmppManager(server,
@@ -233,6 +254,20 @@ public class MessageService extends Service{
     super.onDestroy();
   }
 
+  public static class RaiseMessageNotification extends BroadcastReceiver{
+    public RaiseMessageNotification(){
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent){
+      Bundle extras = intent.getExtras();
+      String buddyId = extras.getString(ChatActivity.BUDDY_ID);
+      String name = extras.getString(ChatActivity.CHAT_NAME);
+      String msg = extras.getString(ChatActivity.MESSAGE_BODY);
+      new Notification(context).createNotification(buddyId, name, msg);
+    }
+  }
+
   private class MyChatMessageListener implements ChatMessageListener{
     @Override
     public void processMessage(Chat chat, Message message){
@@ -245,33 +280,25 @@ public class MessageService extends Service{
           Log.e("ERROR", "An error occurred while reloading the roster");
         }
       String buddyId = message.getFrom();
-      String msg = message.getBody();
+      MessageXmlParser.Message msg = MessageXmlParser.parse(message.getBody());
       String name = roster.contains(buddyId)
               ? roster.getEntry(buddyId).getName()
               : buddyId;
 
       messageHistory.addChat(buddyId, buddyId);
-      messageHistory.addMessage(buddyId, buddyId, MessageHistory.TYPE_TEXT, msg,
-              MessageHistory.STATUS_RECEIVED);
-
       Intent msgIntent = new Intent(ChatActivity.RECEIVE_MESSAGE)
               .putExtra(ChatActivity.BUDDY_ID, buddyId)
-              .putExtra(ChatActivity.CHAT_NAME, name)
-              .putExtra(ChatActivity.MESSAGE_BODY, msg);
+              .putExtra(ChatActivity.CHAT_NAME, name);
+      if (MessageHistory.TYPE_TEXT.equals(msg.type)){
+        messageHistory.addMessage(buddyId, buddyId, MessageHistory.TYPE_TEXT,
+                msg.content, MessageHistory.STATUS_RECEIVED);
+        msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.content);
+      }else if (MessageHistory.TYPE_IMAGE.equals(msg.type)){
+        messageHistory.addMessage(buddyId, buddyId, msg.type,
+                SendImageFragment.createJSON(msg.file, msg.description).toString(),
+                MessageHistory.STATUS_RECEIVING);
+      }
       getApplicationContext().sendOrderedBroadcast(msgIntent, null);
-    }
-  }
-
-  public static class RaiseMessageNotification extends BroadcastReceiver{
-    public RaiseMessageNotification(){}
-
-    @Override
-    public void onReceive(Context context, Intent intent){
-      Bundle extras = intent.getExtras();
-      String buddyId = extras.getString(ChatActivity.BUDDY_ID);
-      String name = extras.getString(ChatActivity.CHAT_NAME);
-      String msg = extras.getString(ChatActivity.MESSAGE_BODY);
-      new Notification(context).createNotification(buddyId, name, msg);
     }
   }
 

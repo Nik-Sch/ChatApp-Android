@@ -1,26 +1,18 @@
 package com.raspi.chatapp.util.internet;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
 
-import com.raspi.chatapp.util.internet.http.Upload;
 import com.raspi.chatapp.util.storage.MessageHistory;
-import com.raspi.chatapp.ui.util.message_array.ImageMessage;
-import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.SmackConfiguration;
-import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
-import org.jivesoftware.smackx.filetransfer.FileTransfer;
-import org.jivesoftware.smackx.filetransfer.FileTransferManager;
-import org.jivesoftware.smackx.filetransfer.OutgoingFileTransfer;
 
 public class XmppManager{
 
@@ -122,13 +114,47 @@ public class XmppManager{
    * @param buddyJID the Buddy to receive the message
    * @return true if sending was successful
    */
-  public boolean sendMessage(String message, String buddyJID){
+  public boolean sendTextMessage(String message, String buddyJID){
     if (buddyJID.indexOf('@') == -1)
       buddyJID += "@" + service;
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
     if (connection != null && connection.isConnected() && chatManager != null){
       Chat chat = chatManager.createChat(buddyJID);
       try{
+        //customize in order to set the type to text
+        message = "<message type='text'> <content>" + message +
+                "</content> </message>";
+        chat.sendMessage(message);
+        Log.d("DEBUG", "Success: Sent message");
+        return true;
+      }catch (Exception e){
+        Log.e("ERROR", "Couldn't send message.");
+        Log.e("ERROR", e.toString());
+        return false;
+      }
+    }
+    Log.e("ERROR", "Sending failed: No connection.");
+    return false;
+  }
+  /**
+   * sends a text message
+   *
+   * @param serverFile  the file on the server
+   * @param description the description of the sent image
+   * @param buddyJID the Buddy to receive the message
+   * @return true if sending was successful
+   */
+  public boolean sendImageMessage(String serverFile, String description, String
+          buddyJID){
+    if (buddyJID.indexOf('@') == -1)
+      buddyJID += "@" + service;
+    ChatManager chatManager = ChatManager.getInstanceFor(connection);
+    if (connection != null && connection.isConnected() && chatManager != null){
+      Chat chat = chatManager.createChat(buddyJID);
+      try{
+        //generate the message in order to set the type to image
+        String message = "<message type='image'> <file path='" + serverFile +
+                "'/> <description content='" + description + "'/> </message>";
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
         return true;
@@ -200,121 +226,5 @@ public class XmppManager{
 
   public XMPPTCPConnection getConnection(){
     return connection;
-  }
-
-  /**
-   * This AsyncTask only accepts one UploadTask at once. Therefore, only the
-   * first one will be executed.
-   */
-  public class sendImage extends AsyncTask<Upload.Task, Upload.Result, Upload
-          .Result>{
-
-    private ImageMessage UImsg;
-    private MessageArrayAdapter maa;
-
-    public sendImage(ImageMessage msg, MessageArrayAdapter maa){
-      UImsg = msg;
-      this.maa = maa;
-    }
-
-    @Override
-    protected Upload.Result doInBackground(Upload.Task... tasks){
-      if (tasks.length >= 1){
-        Upload.Task task = tasks[0];
-
-        FileTransferManager manager = FileTransferManager.getInstanceFor
-                (connection);
-        String chatId = task.chatId;
-        long messageID = task.messageID;
-        messageHistory = task.messageHistory;
-        messageHistory.updateMessageStatus(chatId, messageID, MessageHistory.STATUS_SENDING);
-        try{
-          OutgoingFileTransfer transfer = manager.createOutgoingFileTransfer
-                  (task.chatId + "@" + service + "/Smack");
-          transfer.sendFile(task.file, task.description);
-          int count = 0;
-          while (!transfer.isDone()){
-            if (transfer.getStatus().equals(FileTransfer.Status.error)){
-              //connection lost?
-              Log.d("IMAGE", "INTERRUPTED: transfer error");
-              return new Upload.Result(-1d, task.chatId, task.messageID);
-            }else if (FileTransfer.Status.cancelled.equals(transfer.getStatus())){
-              //user interruption
-              Log.d("IMAGE", "INTERRUPTED: user interruption");
-              return new Upload.Result(-1d, task.chatId, task.messageID);
-            }else if (FileTransfer.Status.refused.equals(transfer.getStatus())){
-              //buddy doesn't want the file
-              Log.d("IMAGE", "INTERRUPTED: buddy declined");
-              return new Upload.Result(-1d, task.chatId, task.messageID);
-            }else{
-              //report progress
-              double prog = transfer.getProgress();
-              if ((int) (prog*100) == 0)
-                count++;
-              if (count >= 100)
-                return new Upload.Result(-1d, task.chatId, task.messageID);
-              Log.d("IMAGE", "PROGRESS: " + prog +  " " + transfer.getError());
-              publishProgress(new Upload.Result(prog, task.chatId, task
-                      .messageID));
-            }
-            try{
-              Thread.sleep(20);
-            }catch (InterruptedException e){
-              e.printStackTrace();
-            }
-          }
-          Log.d("IMAGE", "FINISHED: transfer finished successfully");
-          return new Upload.Result(2d, task.chatId, task.messageID);
-        }catch (SmackException e){
-          e.printStackTrace();
-        }
-      }
-      return null;
-    }
-
-    @Override
-    protected void onProgressUpdate(Upload.Result... values){
-      if (values.length >= 1){
-        Upload.Result result = values[0];
-        //update UI
-        if (UImsg != null && maa != null){
-          UImsg.status = MessageHistory.STATUS_SENDING;
-          UImsg.progress = result.progress;
-          maa.notifyDataSetChanged();
-        }else
-          //update db
-          messageHistory.updateMessageProgress(result.chatId, result.messageID,
-                  result.progress);
-      }
-
-    }
-
-    @Override
-    protected void onPostExecute(Upload.Result result){
-      if (result != null){
-        if (result.progress == 2d){
-          messageHistory.updateMessageProgress(result.chatId, result.messageID, 1);
-          messageHistory.updateMessageStatus(result.chatId, result.messageID,
-                  MessageHistory.STATUS_SENT);
-
-          if (UImsg != null && maa != null){
-            UImsg.status = MessageHistory.STATUS_SENT;
-            UImsg.progress = 1;
-            maa.notifyDataSetChanged();
-          }
-        }else{
-          messageHistory.updateMessageStatus(result.chatId, result.messageID,
-                  MessageHistory.STATUS_CANCELED);
-          messageHistory.updateMessageProgress(result.chatId, result.messageID,
-                  0);
-
-          if (UImsg != null && maa != null){
-            UImsg.status = MessageHistory.STATUS_CANCELED;
-            UImsg.progress = 0;
-            maa.notifyDataSetChanged();
-          }
-        }
-      }
-    }
   }
 }

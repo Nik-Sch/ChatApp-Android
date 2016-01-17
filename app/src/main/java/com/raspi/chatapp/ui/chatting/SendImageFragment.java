@@ -17,8 +17,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.storage.file.FileUtils;
 import com.raspi.chatapp.util.storage.MessageHistory;
+import com.raspi.chatapp.util.storage.file.FileUtils;
 
 import org.json.JSONArray;
 
@@ -175,10 +175,9 @@ public class SendImageFragment extends Fragment{
         //moving the given image into the file
         copyFile(FileUtils.getFile(getContext(), imageUri), file);
         //adding the image message to the messageHistory
-        JSONArray contentJSON = new JSONArray();
-        contentJSON.put(file.getAbsolutePath());
-        contentJSON.put(((TextView) getView().findViewById(R.id
-                .send_image_description)).getText());
+        JSONArray contentJSON = createJSON(file.getAbsolutePath(), (
+                (TextView) getView().findViewById(R.id
+                        .send_image_description)).getText().toString());
         MessageHistory messageHistory = new MessageHistory(getContext());
         messageHistory.addMessage(
                 buddyId,
@@ -191,6 +190,13 @@ public class SendImageFragment extends Fragment{
         e.printStackTrace();
       }
     }
+  }
+
+  public static JSONArray createJSON(String path, String desc){
+    JSONArray contentJSON = new JSONArray();
+    contentJSON.put(path);
+    contentJSON.put(desc);
+    return contentJSON;
   }
 
   private void copyFile(File sourceFile, File destFile) throws IOException{

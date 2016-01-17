@@ -30,6 +30,7 @@ public class MessageHistory{
   public static final String STATUS_CANCELED = "com.raspi.storage.MessageHistory.STATUS_CANCELED";
   public static final String STATUS_SENDING = "com.raspi.storage.MessageHistory.STATUS_SENDING";
   public static final String STATUS_SENT = "com.raspi.storage.MessageHistory.STATUS_SENT";
+  public static final String STATUS_RECEIVING = "com.raspi.storage.MessageHistory.STATUS_RECEIVING";
   public static final String STATUS_RECEIVED = "com.raspi.storage.MessageHistory.STATUS_RECEIVED";
   public static final String STATUS_READ = "com.raspi.storage.MessageHistory.STATUS_READ";
 
@@ -238,6 +239,56 @@ public class MessageHistory{
     db.close();
     messages.close();
     return result;
+  }
+
+  public MessageArrayContent getMessage(String buddyId, String messageId){
+    MessageArrayContent mac = null;
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    String[] columns = new String[]{
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
+            MessageHistoryContract.MessageEntry._ID
+    };
+    String sel = MessageHistoryContract.MessageEntry._ID + "=?";
+    Cursor message = db.query(buddyId, columns, sel, new
+            String[]{messageId}, null, null, null);
+
+    String from = message.getString(0);
+    SharedPreferences preferences = context.getSharedPreferences(ChatActivity
+            .PREFERENCES, 0);
+    String me = preferences.getString(ChatActivity.USERNAME, "");
+    String type = message.getString(1);
+    String content = message.getString(2);
+    double progress = message.getDouble(3);
+    String status = message.getString(4);
+    long time = message.getLong(5);
+    long _ID = message.getLong(6);
+    switch (type){
+      case (MessageHistory.TYPE_TEXT):
+        mac = new TextMessage(!me.equals(from), content, time, status, _ID);
+        break;
+      case (MessageHistory.TYPE_IMAGE):
+        try{
+          JSONArray contentJSON = new JSONArray(content);
+          mac = new ImageMessage(
+                  !me.equals(from),                   //left
+                  new File(contentJSON.getString(0)), //File
+                  contentJSON.getString(1),           //description
+                  progress,                           //progress
+                  time,                               //timeStamp
+                  status,                             //status
+                  _ID,                                //_ID
+                  buddyId);                           //buddyID
+        }catch (Exception e){
+          e.printStackTrace();
+        }
+        break;
+    }
+    return mac;
   }
 
   public void addMessage(String chatId, String buddyId, String type, String

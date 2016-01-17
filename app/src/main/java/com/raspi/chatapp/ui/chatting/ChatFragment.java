@@ -34,8 +34,8 @@ import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
-import com.raspi.chatapp.util.internet.http.Upload;
 import com.raspi.chatapp.util.internet.XmppManager;
+import com.raspi.chatapp.util.internet.http.Upload;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.text.SimpleDateFormat;
@@ -252,7 +252,7 @@ public class ChatFragment extends Fragment{
             .getXmppManager();
 
     String status = MessageHistory.STATUS_WAITING;
-    if (xmppManager != null && xmppManager.isConnected() && xmppManager.sendMessage(message, buddyId))
+    if (xmppManager != null && xmppManager.isConnected() && xmppManager.sendTextMessage(message, buddyId))
       status = MessageHistory.STATUS_SENT;
     else{
       Log.e("ERROR", "There was an error with the connection while sending a message.");
@@ -306,14 +306,8 @@ public class ChatFragment extends Fragment{
           messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
                   .STATUS_READ);
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
-          //send the image
-          XmppManager xmppManager = ((Globals) getActivity().getApplication())
-                  .getXmppManager();
-          if (xmppManager != null){
-            Upload.Task task = new Upload.Task(msg.file, msg.description,
-                    buddyId, msg._ID, xmppManager.getConnection(), messageHistory);
-            xmppManager.new sendImage(msg, maa).execute(task);
-          }
+          Upload.Task task = new Upload.Task(msg.file, msg.chatId, msg._ID);
+          new Upload().uploadFile(getContext(), task);
         }
         maa.add(msg);
       }

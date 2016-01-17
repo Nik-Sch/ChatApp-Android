@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
+import com.alexbbb.uploadservice.UploadService;
+import com.raspi.chatapp.BuildConfig;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.settings.ChangePasswordActivity;
@@ -54,7 +56,7 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
         change_pwd = true;
       }
     }
-
+    UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
     setContentView(R.layout.activity_password);
     if (savedInstanceState == null)
       getSupportFragmentManager().beginTransaction().add(R.id
