@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.message_array.Date;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
@@ -92,6 +93,53 @@ public class ChatFragment extends Fragment{
     }
   };
 
+  private final UploadServiceBroadcastReceiver uploadReceiver =
+          new UploadServiceBroadcastReceiver(){
+            @Override
+            public void onProgress(String uploadId, int progress){
+              Log.d("UPLOAD_DEBUG", "progress: " + progress);
+              int index = uploadId.indexOf('|');
+              String buddyID = uploadId.substring(0, index);
+              String messageId = uploadId.substring(index + 1);
+              if (buddyID.equals(buddyId)){
+                int size = maa.getCount();
+                MessageArrayContent mac;
+                for (int i = 0; i < size; i++){
+                  mac = maa.getItem(i);
+                  if (mac instanceof ImageMessage){
+                    ImageMessage im = (ImageMessage) mac;
+                    if (im._ID == Long.parseLong(messageId)){
+                      Log.d("UPLOAD_DEBUG", "progress: " + progress);
+                      im.progress = progress;
+                      maa.notifyDataSetChanged();
+                    }
+                  }
+                }
+              }
+            }
+
+            @Override
+            public void onCompleted(String uploadId, int serverResponseCode, String serverResponseMessage){
+              int index = uploadId.indexOf('|');
+              String buddyID = uploadId.substring(0, index);
+              String messageId = uploadId.substring(index + 1);
+              if (buddyID.equals(buddyId)){
+                int size = maa.getCount();
+                MessageArrayContent mac;
+                for (int i = 0; i < size; i++){
+                  mac = maa.getItem(i);
+                  if (mac instanceof ImageMessage){
+                    ImageMessage im = (ImageMessage) mac;
+                    if (im._ID == Long.parseLong(messageId)){
+                      im.status = MessageHistory.STATUS_SENT;
+                      maa.notifyDataSetChanged();
+                    }
+                  }
+                }
+              }
+            }
+          };
+
   public ChatFragment(){
     // Required empty public constructor
   }
@@ -140,6 +188,7 @@ public class ChatFragment extends Fragment{
     getContext().registerReceiver(MessageReceiver, filter);
     LocalBroadcastManager.getInstance(getContext()).registerReceiver
             (PresenceChangeReceiver, new IntentFilter(ChatActivity.PRESENCE_CHANGED));
+    uploadReceiver.register(getContext());
     initUI();
   }
 
@@ -148,6 +197,7 @@ public class ChatFragment extends Fragment{
     getContext().unregisterReceiver(MessageReceiver);
     LocalBroadcastManager.getInstance(getContext()).unregisterReceiver
             (PresenceChangeReceiver);
+    uploadReceiver.unregister(getContext());
     super.onPause();
   }
 
@@ -308,6 +358,7 @@ public class ChatFragment extends Fragment{
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
           Upload.Task task = new Upload.Task(msg.file, msg.chatId, msg._ID);
           new Upload().uploadFile(getContext(), task);
+          msg.status = MessageHistory.STATUS_SENDING;
         }
         maa.add(msg);
       }

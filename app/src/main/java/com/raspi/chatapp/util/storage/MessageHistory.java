@@ -209,7 +209,7 @@ public class MessageHistory{
         String me = preferences.getString(ChatActivity.USERNAME, "");
         String type = messages.getString(1);
         String content = messages.getString(2);
-        double progress = messages.getDouble(3);
+        int progress = messages.getInt(3);
         String status = messages.getString(4);
         long time = messages.getLong(5);
         long _ID = messages.getLong(6);
@@ -257,13 +257,14 @@ public class MessageHistory{
     Cursor message = db.query(buddyId, columns, sel, new
             String[]{messageId}, null, null, null);
 
+    message.moveToFirst();
     String from = message.getString(0);
     SharedPreferences preferences = context.getSharedPreferences(ChatActivity
             .PREFERENCES, 0);
     String me = preferences.getString(ChatActivity.USERNAME, "");
     String type = message.getString(1);
     String content = message.getString(2);
-    double progress = message.getDouble(3);
+    int progress = message.getInt(3);
     String status = message.getString(4);
     long time = message.getLong(5);
     long _ID = message.getLong(6);

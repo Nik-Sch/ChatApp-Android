@@ -50,6 +50,7 @@
                 android:layout_alignRight="@+id/message_image_image"
                 android:layout_alignStart="@+id/message_image_image"
                 android:progress="50"
+                android:max="100"
                 android:progressDrawable="@drawable/progress_bar"/>
         </RelativeLayout>
 

@@ -41,33 +41,41 @@ public class MessageService extends Service{
   private static final int port = 5222;
 
   XmppManager xmppManager = null;
-
+  MessageHistory messageHistory;
   private final UploadServiceBroadcastReceiver uploadReceiver =
           new UploadServiceBroadcastReceiver(){
 
             @Override
             public void onError(String uploadId, Exception exception){
               super.onError(uploadId, exception);
+              Log.e("UPLOAD_DEBUG", "An error occured while uploading:" +
+                      exception.toString());
             }
 
             @Override
             public void onCompleted(String uploadId, int serverResponseCode, String serverResponseMessage){
               int index = uploadId.indexOf('|');
-              String buddyId = uploadId.substring(0, index - 1);
-              String messageId = uploadId.substring(index);
-              MessageArrayContent mac = messageHistory.getMessage(buddyId,
-                      messageId);
-              try{
-                String des = ((ImageMessage) mac).description;
-                xmppManager.sendImageMessage(serverResponseMessage, des, buddyId);
-              }catch (ClassCastException e){
-                Log.e("UPLOAD", "Sending the uploaded image failed");
-                e.printStackTrace();
+              String buddyId = uploadId.substring(0, index);
+              String messageId = uploadId.substring(index + 1);
+              if (!"invalid".equals(serverResponseMessage)){
+                MessageArrayContent mac = messageHistory.getMessage(buddyId,
+                        messageId);
+                try{
+                  String des = ((ImageMessage) mac).description;
+                  xmppManager.sendImageMessage(serverResponseMessage, des, buddyId);
+                  messageHistory.updateMessageStatus(buddyId, Long
+                          .parseLong(messageId), MessageHistory
+                          .STATUS_SENT);
+                }catch (ClassCastException e){
+                  Log.e("UPLOAD", "Sending the uploaded image failed");
+                  e.printStackTrace();
+                }
+              }else{
+                messageHistory.updateMessageStatus(buddyId, Long.parseLong
+                        (messageId), MessageHistory.STATUS_CANCELED);
               }
             }
           };
-
-  MessageHistory messageHistory;
   private boolean isAppRunning = false;
 
   @Override

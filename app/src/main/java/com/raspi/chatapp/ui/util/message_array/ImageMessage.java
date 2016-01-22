@@ -7,14 +7,14 @@ public class ImageMessage extends MessageArrayContent{
   public boolean left;
   public File file;
   public String description;
-  public double progress;
+  public int progress;
   public long time;
   public String status;
   public long _ID;
   public String chatId;
 
   public ImageMessage(boolean left, File file, String description,
-                      double progress, long time, String status, long _ID,
+                      int progress, long time, String status, long _ID,
                       String chatId){
     this.left = left;
     this.file = file;

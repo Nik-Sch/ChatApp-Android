@@ -195,7 +195,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
-            progressBar.setProgress((int) (msgObj.progress * 100));
+            progressBar.setProgress(msgObj.progress);
             v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             break;
           case MessageHistory.STATUS_SENT:
