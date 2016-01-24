@@ -38,16 +38,4 @@ public class Upload{
       this.messageID = messageID;
     }
   }
-
-  public static class Result{
-    public double progress;
-    public String chatId;
-    public long messageID;
-
-    public Result(double result, String chatId, long messageID){
-      this.progress = result;
-      this.chatId = chatId;
-      this.messageID = messageID;
-    }
-  }
 }

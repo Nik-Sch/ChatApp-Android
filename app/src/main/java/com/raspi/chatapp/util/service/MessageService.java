@@ -20,6 +20,7 @@ import com.raspi.chatapp.util.MessageXmlParser;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
+import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
@@ -302,9 +303,19 @@ public class MessageService extends Service{
                 msg.content, MessageHistory.STATUS_RECEIVED);
         msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.content);
       }else if (MessageHistory.TYPE_IMAGE.equals(msg.type)){
-        messageHistory.addMessage(buddyId, buddyId, msg.type,
-                SendImageFragment.createJSON(msg.file, msg.description).toString(),
-                MessageHistory.STATUS_RECEIVING);
+        try{
+          MyFileUtils mfu = new MyFileUtils();
+          messageHistory.addMessage(
+                  buddyId,
+                  buddyId,
+                  msg.type,
+                  SendImageFragment.createJSON(mfu.getFileName()
+                          .getAbsolutePath(),
+                          msg.description).toString(),
+                  "http://" + server + "/ChatApp/" + msg.url,
+                  "0",
+                  MessageHistory.STATUS_WAITING);
+        }catch (Exception e){}
       }
       getApplicationContext().sendOrderedBroadcast(msgIntent, null);
     }

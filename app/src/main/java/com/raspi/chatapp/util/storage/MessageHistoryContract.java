@@ -21,5 +21,6 @@ public class MessageHistoryContract{
     public static final String COLUMN_NAME_MESSAGE_STATUS = "status";
     public static final String COLUMN_NAME_MESSAGE_TIMESTAMP = "timestamp";
     public static final String COLUMN_NAME_MESSAGE_PROGRESS = "progress";
+    public static final String COLUMN_NAME_MESSAGE_URL = "url";
   }
 }

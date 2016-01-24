@@ -122,7 +122,9 @@ public class XmppManager{
       Chat chat = chatManager.createChat(buddyJID);
       try{
         //customize in order to set the type to text
-        message = "<message type='text'> <content>" + message +
+        message = "<message type=\"" + MessageHistory.TYPE_TEXT + "\"> " +
+                "<content>" +
+                message +
                 "</content> </message>";
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
@@ -153,8 +155,9 @@ public class XmppManager{
       Chat chat = chatManager.createChat(buddyJID);
       try{
         //generate the message in order to set the type to image
-        String message = "<message type='image'> <file path='" + serverFile +
-                "'/> <description content='" + description + "'/> </message>";
+        String message = "<message type=\"" + MessageHistory.TYPE_IMAGE +
+                "\"> <file>" + serverFile + "</file> <description>" +
+                description + "</description> </message>";
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
         return true;

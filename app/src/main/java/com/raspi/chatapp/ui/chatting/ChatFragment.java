@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
@@ -36,9 +38,12 @@ import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
 import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.internet.XmppManager;
+import com.raspi.chatapp.util.internet.http.DownloadService;
 import com.raspi.chatapp.util.internet.http.Upload;
 import com.raspi.chatapp.util.storage.MessageHistory;
+import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -58,41 +63,6 @@ public class ChatFragment extends Fragment{
   private String chatName;
 
   private MessageArrayAdapter maa;
-  private MessageHistory messageHistory;
-
-  private ListView listView;
-  private EditText textIn;
-  private ActionBar actionBar;
-
-  private OnFragmentInteractionListener mListener;
-
-  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
-    @Override
-    public void onReceive(Context context, Intent intent){
-      Bundle extras = intent.getExtras();
-      String intentBuddyId = extras.getString(ChatActivity.BUDDY_ID);
-      int index = intentBuddyId.indexOf('@');
-      if (index >= 0)
-        intentBuddyId = intentBuddyId.substring(0, index);
-      if (buddyId.equals(intentBuddyId)){
-        reloadMessages();
-        abortBroadcast();
-      }
-    }
-  };
-
-  private BroadcastReceiver PresenceChangeReceiver = new BroadcastReceiver(){
-    @Override
-    public void onReceive(Context context, Intent intent){
-      Bundle extras = intent.getExtras();
-      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras.containsKey(ChatActivity.PRESENCE_STATUS)){
-        if (buddyId.equals(extras.getString(ChatActivity.BUDDY_ID))){
-          updateStatus(extras.getString(ChatActivity.PRESENCE_STATUS));
-        }
-      }
-    }
-  };
-
   private final UploadServiceBroadcastReceiver uploadReceiver =
           new UploadServiceBroadcastReceiver(){
             @Override
@@ -139,6 +109,36 @@ public class ChatFragment extends Fragment{
               }
             }
           };
+  private MessageHistory messageHistory;
+  private ListView listView;
+  private EditText textIn;
+  private ActionBar actionBar;
+  private OnFragmentInteractionListener mListener;
+  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      Bundle extras = intent.getExtras();
+      String intentBuddyId = extras.getString(ChatActivity.BUDDY_ID);
+      int index = intentBuddyId.indexOf('@');
+      if (index >= 0)
+        intentBuddyId = intentBuddyId.substring(0, index);
+      if (buddyId.equals(intentBuddyId)){
+        reloadMessages();
+        abortBroadcast();
+      }
+    }
+  };
+  private BroadcastReceiver PresenceChangeReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      Bundle extras = intent.getExtras();
+      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras.containsKey(ChatActivity.PRESENCE_STATUS)){
+        if (buddyId.equals(extras.getString(ChatActivity.BUDDY_ID))){
+          updateStatus(extras.getString(ChatActivity.PRESENCE_STATUS));
+        }
+      }
+    }
+  };
 
   public ChatFragment(){
     // Required empty public constructor
@@ -271,7 +271,7 @@ public class ChatFragment extends Fragment{
         if (mac instanceof ImageMessage){
           ImageMessage im = (ImageMessage) mac;
           Intent pickIntent = new Intent(Intent.ACTION_VIEW);
-          pickIntent.setDataAndType(Uri.fromFile(im.file),
+          pickIntent.setDataAndType(Uri.fromFile(new File(im.file)),
                   "image/*");
           startActivity(pickIntent);
         }
@@ -346,17 +346,36 @@ public class ChatFragment extends Fragment{
           maa.add(new Date(msg.time));
         oldDate = msg.time;
         if (msg.left){
-          if (msg.status.equals(MessageHistory.STATUS_READ))
+          if (msg.status.equals(MessageHistory.STATUS_RECEIVED))
             if (nm == null){
               nm = new NewMessage(getResources().getString(R.string
                       .new_message));
               maa.add(nm);
             }else
               nm.status = getResources().getString(R.string.new_messages);
-          messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
-                  .STATUS_READ);
+          else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
+            try{
+              MyFileUtils mfu = new MyFileUtils();
+              if (!mfu.isExternalStorageWritable())
+                throw new Exception("ext storage not writable. Cannot save " +
+                        "image");
+              Intent intent = new Intent(getContext(), DownloadService.class);
+              intent.setAction(DownloadService.DOWNLOAD_ACTION);
+              intent.putExtra(DownloadService.PARAM_URL, msg.url);
+              intent.putExtra(DownloadService.PARAM_RECEIVER, new
+                      DownloadReceiver(new Handler()));
+              intent.putExtra(DownloadService.PARAM_FILE, msg.file);
+              intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
+              getContext().startService(intent);
+            }catch (Exception e){
+              e.printStackTrace();
+            }
+          }else if (!MessageHistory.STATUS_RECEIVING.equals(msg.status))
+            messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
+                    .STATUS_READ);
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
-          Upload.Task task = new Upload.Task(msg.file, msg.chatId, msg._ID);
+          Upload.Task task = new Upload.Task(new File(msg.file), msg.chatId, msg
+                  ._ID);
           new Upload().uploadFile(getContext(), task);
           msg.status = MessageHistory.STATUS_SENDING;
         }
@@ -407,5 +426,40 @@ public class ChatFragment extends Fragment{
    */
   public interface OnFragmentInteractionListener{
     void onAttachClicked();
+  }
+
+  private class DownloadReceiver extends ResultReceiver{
+
+    public DownloadReceiver(Handler handler){
+      super(handler);
+    }
+
+    @Override
+    protected void onReceiveResult(int resultCode, Bundle resultData){
+      super.onReceiveResult(resultCode, resultData);
+      if (resultCode == DownloadService.UPDATE_PROGRESS){
+        Long messageId = resultData.getLong(DownloadService.PARAM_MESSAGE_ID);
+        int progress = resultData.getInt(DownloadService.PARAM_PROGRESS);
+        int size = maa.getCount();
+        MessageArrayContent mac;
+        for (int i = 0; i < size; i++){
+          mac = maa.getItem(i);
+          if (mac instanceof ImageMessage){
+            ImageMessage im = (ImageMessage) mac;
+            if (im._ID == messageId){
+              Log.d("DEBUG DOWNLOAD", "progress: " + progress);
+              if (progress < 100)
+                im.progress = progress;
+              else{
+                im.status = MessageHistory.STATUS_READ;
+                messageHistory.updateMessageStatus(chatName, messageId,
+                        MessageHistory.STATUS_READ);
+              }
+              maa.notifyDataSetChanged();
+            }
+          }
+        }
+      }
+    }
   }
 }

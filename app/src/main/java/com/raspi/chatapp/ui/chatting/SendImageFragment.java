@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +18,7 @@ import android.widget.TextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
+import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import org.json.JSONArray;
 
@@ -28,8 +28,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -161,16 +159,12 @@ public class SendImageFragment extends Fragment{
    */
 
   private void sendImage(){
-    if (isExternalStorageWritable()){
+    MyFileUtils mfu = new MyFileUtils();
+    if (mfu.isExternalStorageWritable()){
       try{
         //creating the directory
-        String root = Environment.getExternalStoragePublicDirectory
-                (Environment.DIRECTORY_PICTURES).getAbsolutePath();
-        File myDir = new File(root + "/" + ChatActivity.IMAGE_DIR);
-        myDir.mkdirs();
-        File file = new File(myDir, getFileName());
+       File file = mfu.getFileName();
         //creating the file
-        if (file.exists()) file.delete();
         file.createNewFile();
         //moving the given image into the file
         copyFile(FileUtils.getFile(getContext(), imageUri), file);
@@ -209,19 +203,6 @@ public class SendImageFragment extends Fragment{
       out.write(buf, 0, len);
     in.close();
     out.close();
-  }
-
-  private String getFileName(){
-    return "IMG_" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date
-            ()) + ".jpg";
-  }
-
-  public boolean isExternalStorageWritable(){
-    String state = Environment.getExternalStorageState();
-    if (Environment.MEDIA_MOUNTED.equals(state)){
-      return true;
-    }
-    return false;
   }
 
   private int calculateInSampleSize(

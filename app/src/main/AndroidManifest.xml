@@ -78,8 +78,8 @@
         </activity>
 
 
-        <service android:name=".util.service.MessageService">
-        </service>
+        <service android:name=".util.service.MessageService"/>
+        <service android:name=".util.internet.http.DownloadService"/>
     </application>
 
 </manifest>

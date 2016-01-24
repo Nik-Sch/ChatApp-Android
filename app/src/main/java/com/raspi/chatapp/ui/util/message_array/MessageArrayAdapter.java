@@ -143,7 +143,9 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
 
       ImageView imageView = (ImageView) v.findViewById(R.id
               .message_image_image);
-      loadBitmap(msgObj.file, imageView);
+      try{
+        loadBitmap(new File(msgObj.file), imageView);
+      }catch (Exception e){}
 
       TextView chatTime = (TextView) v.findViewById(R.id.message_image_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
@@ -176,9 +178,9 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             v.findViewById(R.id.message_image_retry).setVisibility(View.VISIBLE);
             final MessageArrayAdapter maa = this;
             v.findViewById(R.id.message_image_retry).setOnClickListener(new View.OnClickListener(){
+              //TODO
               @Override
               public void onClick(View v){
-                //cannot cast to globals...
                 /*
                 XmppManager xmppManager = ((Globals) getContext())
                         .getXmppManager();
@@ -191,6 +193,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             });
             break;
           case MessageHistory.STATUS_SENDING:
+          case MessageHistory.STATUS_RECEIVING:
             v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
             progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
@@ -242,7 +245,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     return v;
   }
 
-  private void loadBitmap(File file, ImageView imageView){
+  private void loadBitmap(File file, ImageView imageView) throws Exception{
     if (cancelPotentialWork(file, imageView)){
       final BitmapWorkerTask task = new BitmapWorkerTask(imageView, imageView
               .getLayoutParams().width, imageView.getLayoutParams()

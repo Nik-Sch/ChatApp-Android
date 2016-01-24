@@ -40,7 +40,7 @@ public class MessageXmlParser{
             continue;
           if ("file".equals(parser.getName())){
             parser.require(XmlPullParser.START_TAG, null, "file");
-            msg.file = parser.nextText();
+            msg.url = parser.nextText();
             parser.require(XmlPullParser.END_TAG, null, "file");
           }else if("description".equals(parser.getName())){
             parser.require(XmlPullParser.START_TAG, null, "description");
@@ -59,7 +59,7 @@ public class MessageXmlParser{
   public static class Message{
     public String type;
     public String content = null;
-    public String file = null;
+    public String url = null;
     public String description = null;
 
     public Message(String type){

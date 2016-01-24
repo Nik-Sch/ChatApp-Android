@@ -16,7 +16,6 @@ import com.raspi.chatapp.ui.util.message_array.TextMessage;
 
 import org.json.JSONArray;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -56,51 +55,53 @@ public class MessageHistory{
     chats.moveToFirst();
     if (chats.getCount() > 0)
       do{
-        String buddyId = chats.getString(0);
-        String name = chats.getString(1);
-        //Log.d("DATABASE", "retrieving entry: " + buddyId + " - " + name);
+        try{
+          String buddyId = chats.getString(0);
+          String name = chats.getString(1);
+          //Log.d("DATABASE", "retrieving entry: " + buddyId + " - " + name);
 
-        String[] columns = new String[]{
-                MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
-                MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
-                MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
-                MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
-                MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
-        };
-        Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
-                MessageHistoryContract.MessageEntry
-                        .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", "1");
-        lastMessage.moveToFirst();
+          String[] columns = new String[]{
+                  MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
+                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
+                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
+                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
+                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
+          };
+          Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
+                  MessageHistoryContract.MessageEntry
+                          .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", "1");
+          lastMessage.moveToFirst();
 
-        String lastMessageStatus = "";
-        String lastMessageDate = "";
-        String lastMessageMessage = "";
-        boolean sent = false;
-        boolean read = false;
-        if (lastMessage.getCount() !=  0 && lastMessage.moveToFirst()){
-          lastMessageStatus = lastMessage.getString(3);
-          Date msgTime = new Date(lastMessage.getLong(4));
-          Calendar startOfDay = Calendar.getInstance();
-          startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-          startOfDay.set(Calendar.MINUTE, 0);
-          startOfDay.set(Calendar.SECOND, 0);
-          startOfDay.set(Calendar.MILLISECOND, 0);
-          long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
-          if (diff <= 0)
-            lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
-          else if (diff > 1000 * 60 * 60 * 24)
-            lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                    (msgTime);
-          else
-            lastMessageDate = "Yesterday";
-          lastMessageMessage = lastMessage.getString(2);
-        SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
-        String me = preferences.getString(ChatActivity.USERNAME, "");
-        sent = me.equals(lastMessage.getString(0));
-        read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
-        }
-        resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
-                lastMessageMessage, read, sent);
+          String lastMessageStatus = "";
+          String lastMessageDate = "";
+          String lastMessageMessage = "";
+          boolean sent = false;
+          boolean read = false;
+          if (lastMessage.getCount() != 0 && lastMessage.moveToFirst()){
+            lastMessageStatus = lastMessage.getString(3);
+            Date msgTime = new Date(lastMessage.getLong(4));
+            Calendar startOfDay = Calendar.getInstance();
+            startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+            startOfDay.set(Calendar.MINUTE, 0);
+            startOfDay.set(Calendar.SECOND, 0);
+            startOfDay.set(Calendar.MILLISECOND, 0);
+            long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
+            if (diff <= 0)
+              lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+            else if (diff > 1000 * 60 * 60 * 24)
+              lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                      (msgTime);
+            else
+              lastMessageDate = "Yesterday";
+            lastMessageMessage = lastMessage.getString(2);
+            SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+            String me = preferences.getString(ChatActivity.USERNAME, "");
+            sent = me.equals(lastMessage.getString(0));
+            read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
+          }
+          resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
+                  lastMessageMessage, read, sent);
+        }catch (Exception e){}
         i++;
       }while (chats.move(1));
     chats.close();
@@ -188,6 +189,7 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
@@ -209,10 +211,11 @@ public class MessageHistory{
         String me = preferences.getString(ChatActivity.USERNAME, "");
         String type = messages.getString(1);
         String content = messages.getString(2);
-        int progress = messages.getInt(3);
-        String status = messages.getString(4);
-        long time = messages.getLong(5);
-        long _ID = messages.getLong(6);
+        String url = messages.getString(3);
+        int progress = messages.getInt(4);
+        String status = messages.getString(5);
+        long time = messages.getLong(6);
+        long _ID = messages.getLong(7);
         switch (type){
           case (MessageHistory.TYPE_TEXT):
             result[i] = new TextMessage(!me.equals(from), content, time, status, _ID);
@@ -222,8 +225,9 @@ public class MessageHistory{
               JSONArray contentJSON = new JSONArray(content);
               result[i] = new ImageMessage(
                       !me.equals(from),                   //left
-                      new File(contentJSON.getString(0)), //File
+                      contentJSON.getString(0),           //File
                       contentJSON.getString(1),           //description
+                      url,                                //url
                       progress,                           //progress
                       time,                               //timeStamp
                       status,                             //status
@@ -248,6 +252,7 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
@@ -264,10 +269,11 @@ public class MessageHistory{
     String me = preferences.getString(ChatActivity.USERNAME, "");
     String type = message.getString(1);
     String content = message.getString(2);
-    int progress = message.getInt(3);
-    String status = message.getString(4);
-    long time = message.getLong(5);
-    long _ID = message.getLong(6);
+    String url = message.getString(3);
+    int progress = message.getInt(4);
+    String status = message.getString(5);
+    long time = message.getLong(6);
+    long _ID = message.getLong(7);
     switch (type){
       case (MessageHistory.TYPE_TEXT):
         mac = new TextMessage(!me.equals(from), content, time, status, _ID);
@@ -277,8 +283,9 @@ public class MessageHistory{
           JSONArray contentJSON = new JSONArray(content);
           mac = new ImageMessage(
                   !me.equals(from),                   //left
-                  new File(contentJSON.getString(0)), //File
+                  contentJSON.getString(0),           //File
                   contentJSON.getString(1),           //description
+                  url,                                //url
                   progress,                           //progress
                   time,                               //timeStamp
                   status,                             //status
@@ -293,7 +300,7 @@ public class MessageHistory{
   }
 
   public void addMessage(String chatId, String buddyId, String type, String
-          content, String progress, String status){
+          content, String url, String progress, String status){
     //Log.d("DATABASE", "Adding a message");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     //remove everything after @ if it exists
@@ -310,6 +317,7 @@ public class MessageHistory{
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID, buddyId);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE, type);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT, content);
+    values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL, url);
     values.put(MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_PROGRESS, progress);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, status);
@@ -320,7 +328,7 @@ public class MessageHistory{
 
   public void addMessage(String chatId, String buddyId, String type, String content, String
           status){
-    addMessage(chatId, buddyId, type, content, "0", status);
+    addMessage(chatId, buddyId, type, content, "",  "0", status);
   }
 
   public void updateMessageStatus(String chatId, long _ID, String newStatus){
