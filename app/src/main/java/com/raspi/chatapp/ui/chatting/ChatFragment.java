@@ -408,9 +408,10 @@ public class ChatFragment extends Fragment{
         actionBar.setSubtitle(lastOnline);
     }catch (NumberFormatException e){
       if (actionBar != null)
-        actionBar.setSubtitle(Html
-                .fromHtml("<font " +
-                        "color='#55AAFF'>" + lastOnline + "</font>"));
+        if (lastOnline != null)
+          actionBar.setSubtitle(Html
+                  .fromHtml("<font " +
+                          "color='#55AAFF'>" + lastOnline + "</font>"));
     }
   }
 
