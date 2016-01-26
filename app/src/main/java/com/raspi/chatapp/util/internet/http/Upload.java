@@ -19,7 +19,7 @@ public class Upload{
       new MultipartUploadRequest(context, uploadID, SERVER_URL)
               .addFileToUpload(task.file.getAbsolutePath(), PARAM_FILE)
               .addParameter(PARAM_TYPE, PARAM_FILE)
-              .setMaxRetries(1)
+              .setMaxRetries(2)
               .startUpload();
     }catch (Exception e){
       Log.e("AndroidUploadService", e.getMessage(), e);

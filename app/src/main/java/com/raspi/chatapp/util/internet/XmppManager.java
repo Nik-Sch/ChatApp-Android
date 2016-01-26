@@ -13,6 +13,16 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import java.io.StringWriter;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class XmppManager{
 
@@ -121,11 +131,21 @@ public class XmppManager{
     if (connection != null && connection.isConnected() && chatManager != null){
       Chat chat = chatManager.createChat(buddyJID);
       try{
-        //customize in order to set the type to text
-        message = "<message type=\"" + MessageHistory.TYPE_TEXT + "\"> " +
-                "<content>" +
-                message +
-                "</content> </message>";
+        Document doc = DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder().newDocument();
+        Element msg = doc.createElement("message");
+        doc.appendChild(msg);
+        msg.setAttribute("type", MessageHistory.TYPE_TEXT);
+        Element file = doc.createElement("content");
+        msg.appendChild(file);
+        file.setTextContent(message);
+
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        StringWriter writer = new StringWriter();
+        StreamResult r = new StreamResult(writer);
+        t.transform(new DOMSource(doc), r);
+
+        message = writer.toString();
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
         return true;
@@ -155,9 +175,26 @@ public class XmppManager{
       Chat chat = chatManager.createChat(buddyJID);
       try{
         //generate the message in order to set the type to image
-        String message = "<message type=\"" + MessageHistory.TYPE_IMAGE +
-                "\"> <file>" + serverFile + "</file> <description>" +
-                description + "</description> </message>";
+
+        Document doc = DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder().newDocument();
+        Element msg = doc.createElement("message");
+        doc.appendChild(msg);
+        msg.setAttribute("type", MessageHistory.TYPE_IMAGE);
+        Element file = doc.createElement("file");
+        msg.appendChild(file);
+        file.setTextContent(serverFile);
+        Element desc = doc.createElement("description");
+        msg.appendChild(desc);
+        desc.setTextContent(description);
+
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        StringWriter writer = new StringWriter();
+        StreamResult r = new StreamResult(writer);
+        t.transform(new DOMSource(doc), r);
+
+        String message = writer.toString();
+
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
         return true;
