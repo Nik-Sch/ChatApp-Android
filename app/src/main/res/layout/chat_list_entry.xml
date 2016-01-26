@@ -47,5 +47,6 @@
         android:layout_below="@+id/chat_list_entry_name"
         android:singleLine="true"
         android:text="This is an example for a very very very long message that will never end"
+        android:drawablePadding="5dp"
         android:textSize="15sp" />
 </RelativeLayout>

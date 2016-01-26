@@ -22,8 +22,8 @@ import android.widget.ListView;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.storage.MessageHistory;
-import com.raspi.chatapp.ui.util.ChatArrayAdapter;
-import com.raspi.chatapp.ui.util.ChatEntry;
+import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
+import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
 
 /**
  * A simple {@link Fragment} subclass.

@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.raspi.chatapp.ui.chatting.ChatActivity;
-import com.raspi.chatapp.ui.util.ChatEntry;
+import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
@@ -58,14 +58,14 @@ public class MessageHistory{
         try{
           String buddyId = chats.getString(0);
           String name = chats.getString(1);
-          //Log.d("DATABASE", "retrieving entry: " + buddyId + " - " + name);
 
           String[] columns = new String[]{
                   MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
                   MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
                   MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
                   MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
-                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
+                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
+                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE
           };
           Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
                   MessageHistoryContract.MessageEntry
@@ -75,6 +75,7 @@ public class MessageHistory{
           String lastMessageStatus = "";
           String lastMessageDate = "";
           String lastMessageMessage = "";
+          String lastMessageType = "";
           boolean sent = false;
           boolean read = false;
           if (lastMessage.getCount() != 0 && lastMessage.moveToFirst()){
@@ -93,14 +94,26 @@ public class MessageHistory{
                       (msgTime);
             else
               lastMessageDate = "Yesterday";
+            lastMessageType = lastMessage.getString(5);
             lastMessageMessage = lastMessage.getString(2);
+            if (MessageHistory.TYPE_IMAGE.equals(lastMessageType)){
+              JSONArray contentJSON = new JSONArray(lastMessageMessage);
+              lastMessageMessage = contentJSON.getString(1);
+            }
             SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
             String me = preferences.getString(ChatActivity.USERNAME, "");
             sent = me.equals(lastMessage.getString(0));
             read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
           }
-          resultChats[i] = new ChatEntry(buddyId, name, lastMessageStatus, lastMessageDate,
-                  lastMessageMessage, read, sent);
+          resultChats[i] = new ChatEntry(
+                  buddyId,
+                  name,
+                  lastMessageType,
+                  lastMessageStatus,
+                  lastMessageDate,
+                  lastMessageMessage,
+                  read,
+                  sent);
         }catch (Exception e){}
         i++;
       }while (chats.move(1));

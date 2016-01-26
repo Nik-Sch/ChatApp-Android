@@ -1,4 +1,4 @@
-package com.raspi.chatapp.ui.util;
+package com.raspi.chatapp.ui.util.chat_array;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -44,10 +44,15 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
 
     ChatEntry chatObj = getItem(position);
 
+
     ((TextView) v.findViewById(R.id.chat_list_entry_name)).setText(chatObj.name);
     if (!chatObj.lastMessageStatus.equals("")){
       ((TextView) v.findViewById(R.id.chat_list_entry_time)).setText(chatObj.lastMessageDate);
-      ((TextView) v.findViewById(R.id.chat_list_entry_mess)).setText(chatObj.lastMessageMessage);
+      TextView msg = ((TextView) v.findViewById(R.id.chat_list_entry_mess));
+      msg.setText(chatObj.lastMessageMessage);
+      if (MessageHistory.TYPE_IMAGE.equals(chatObj.lastMessageType))
+        msg.setCompoundDrawablesWithIntrinsicBounds(R.drawable
+                .ic_photo_camera_black_18dp, 0, 0, 0);
       if (chatObj.sent)
         switch (chatObj.lastMessageStatus){
           case MessageHistory.STATUS_WAITING:
