@@ -40,4 +40,6 @@
     <string name="pwd_dont_match">Die Passwörter stimmen nicht überein</string>
     <string name="pwd_changed">Das Passwort wurde erfolgreich geändert</string>
     <string name="pwd_not_changed">Das Passwort wurde nicht geändert</string>
+    <string name="change_pwd">Passwort ändern</string>
+    <string name="delete">Löschen</string>
 </resources>

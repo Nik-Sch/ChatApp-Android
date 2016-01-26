@@ -64,15 +64,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.AddChatActivity"
-            android:label="@string/title_activity_add_chat"
-            android:parentActivityName=".ui.chatting.ChatActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.chatting.ChatActivity"/>
-        </activity>
-        <activity
             android:name=".util.storage.AndroidDatabaseManager"
             android:theme="@style/Theme.AppCompat.Light">
         </activity>

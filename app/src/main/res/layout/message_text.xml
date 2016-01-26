@@ -4,7 +4,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="6dp">
+    android:background="?android:attr/activatedBackgroundIndicator"
+    android:padding="4dp">
 
     <LinearLayout
         android:id="@+id/message_text_inner"
@@ -20,11 +21,11 @@
             android:layout_gravity="center"
             android:layout_margin="5dp"
             android:layout_weight="1"
+            android:autoLink="web"
             android:text="Hello World"
             android:textColor="@android:color/black"
-            android:textSize="@dimen/font_size"
-            android:autoLink="web"
-            android:textColorLink="@color/colorLink"/>
+            android:textColorLink="@color/colorLink"
+            android:textSize="@dimen/font_size"/>
 
         <RelativeLayout
             android:id="@+id/message_text_info"

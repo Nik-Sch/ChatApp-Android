@@ -4,7 +4,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="6dp">
+    android:padding="4dp"
+    android:background="?android:attr/activatedBackgroundIndicator"
+    >
 
     <RelativeLayout
         android:id="@+id/message_image_inner"

@@ -16,7 +16,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.ui.AddChatActivity;
 import com.raspi.chatapp.ui.settings.SettingsActivity;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.service.MessageService;
@@ -142,8 +141,6 @@ public class ChatActivity extends AppCompatActivity implements
   }
 
   public void onAddChatClick(MenuItem menuItem){
-    Intent intent = new Intent(this, AddChatActivity.class);
-    startActivity(intent);
   }
 
   public void onDatabaseDebug(MenuItem menuItem){

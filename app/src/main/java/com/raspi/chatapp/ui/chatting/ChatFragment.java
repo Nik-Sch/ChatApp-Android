@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
@@ -15,6 +16,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -277,11 +279,49 @@ public class ChatFragment extends Fragment{
         }
       }
     });
-    listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+
+    listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+    listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener(){
+
+      int count = 0;
+      Menu menu;
+
       @Override
-      public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id){
-        //TODO
+      public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked){
+        //TODO update number in CAB
+        if (checked)
+          count++;
+        else
+          count--;
+        MenuItem itemCopy = menu.findItem(R.id.action_copy);
+        itemCopy.setVisible(count == 1);
+      }
+
+      @Override
+      public boolean onCreateActionMode(ActionMode mode, Menu menu){
+        MenuInflater inflater = mode.getMenuInflater();
+        inflater.inflate(R.menu.menu_message_select, menu);
+        this.menu = menu;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+          getActivity().getWindow().setStatusBarColor(getResources().getColor
+                  (R.color.colorPrimaryDark));
+        }
+        return true;
+      }
+
+      @Override
+      public boolean onPrepareActionMode(ActionMode mode, Menu menu){
         return false;
+      }
+
+      @Override
+      public boolean onActionItemClicked(ActionMode mode, MenuItem item){
+        return false;
+      }
+
+      @Override
+      public void onDestroyActionMode(ActionMode mode){
+        count = 0;
       }
     });
 

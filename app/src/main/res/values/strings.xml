@@ -25,6 +25,9 @@
     <string name="change_pwd">Change password</string>
     <string name="home" translatable="false">Home</string>
     <string name="sd_card" translatable="false">SD Card</string>
+    <string name="delete">Delete</string>
+    <string name="copy">Copy</string>
+
 
     <!-- Strings related to Settings -->
     <string name="pref_header_notifications">Notifications</string>
