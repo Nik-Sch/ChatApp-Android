@@ -51,6 +51,11 @@ public class MessageService extends Service{
               super.onError(uploadId, exception);
               Log.e("UPLOAD_DEBUG", "An error occured while uploading:" +
                       exception.toString());
+              int index = uploadId.indexOf('|');
+              String buddyId = uploadId.substring(0, index);
+              String messageId = uploadId.substring(index + 1);
+              messageHistory.updateMessageStatus(buddyId, Long.parseLong
+                      (messageId), MessageHistory.STATUS_WAITING);
             }
 
             @Override
@@ -73,7 +78,7 @@ public class MessageService extends Service{
                 }
               }else{
                 messageHistory.updateMessageStatus(buddyId, Long.parseLong
-                        (messageId), MessageHistory.STATUS_CANCELED);
+                        (messageId), MessageHistory.STATUS_WAITING);
               }
             }
           };
@@ -84,6 +89,7 @@ public class MessageService extends Service{
     super.onCreate();
     Log.d("DEBUG", "MessageService created.");
     messageHistory = new MessageHistory(this);
+    uploadReceiver.register(this);
   }
 
   @Override
@@ -156,7 +162,6 @@ public class MessageService extends Service{
 
   private void initialize(){
     try{
-      uploadReceiver.register(this);
       //initialize xmpp:
       Log.d("DEBUG", "MessageService initializing");
       xmppManager = new XmppManager(server,

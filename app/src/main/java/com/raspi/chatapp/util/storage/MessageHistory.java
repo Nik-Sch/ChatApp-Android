@@ -26,7 +26,8 @@ public class MessageHistory{
   public static final String TYPE_IMAGE = "com.raspi.storage.MessageHistory.TYPE_IMAGE";
 
   public static final String STATUS_WAITING = "com.raspi.storage.MessageHistory.STATUS_WAITING";
-  public static final String STATUS_CANCELED = "com.raspi.storage.MessageHistory.STATUS_CANCELED";
+  public static final String STATUS_CANCELED = "com.raspi.storage" +
+          ".MessageHistory.STATUS_CANCELED";
   public static final String STATUS_SENDING = "com.raspi.storage.MessageHistory.STATUS_SENDING";
   public static final String STATUS_SENT = "com.raspi.storage.MessageHistory.STATUS_SENT";
   public static final String STATUS_RECEIVING = "com.raspi.storage.MessageHistory.STATUS_RECEIVING";

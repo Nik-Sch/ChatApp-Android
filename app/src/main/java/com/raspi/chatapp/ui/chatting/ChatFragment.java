@@ -469,7 +469,7 @@ public class ChatFragment extends Fragment{
     void onAttachClicked();
   }
 
-  private class DownloadReceiver extends ResultReceiver{
+  public class DownloadReceiver extends ResultReceiver{
 
     public DownloadReceiver(Handler handler){
       super(handler);
