@@ -48,6 +48,7 @@ import com.raspi.chatapp.util.storage.file.MyFileUtils;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 
 /**
@@ -125,7 +126,7 @@ public class ChatFragment extends Fragment{
       if (index >= 0)
         intentBuddyId = intentBuddyId.substring(0, index);
       if (buddyId.equals(intentBuddyId)){
-        reloadMessages();
+        maa.add(messageHistory.getLastMessage(buddyId, true));
         abortBroadcast();
       }
     }
@@ -260,7 +261,17 @@ public class ChatFragment extends Fragment{
     sendBtn.setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){
-        sendMessage(textIn.getText().toString());
+        String message = textIn.getText().toString();
+        String status = sendMessage(message)
+                ? MessageHistory.STATUS_SENT
+                : MessageHistory.STATUS_WAITING;
+        messageHistory.addMessage(buddyId, getContext().getSharedPreferences
+                (ChatActivity.PREFERENCES, 0).getString(ChatActivity
+                .USERNAME, ""), MessageHistory.TYPE_TEXT, message, status);
+        textIn.setText("");
+        maa.add(new TextMessage(false, message, new GregorianCalendar()
+                .getTimeInMillis(), status));
+
       }
     });
 
@@ -337,23 +348,11 @@ public class ChatFragment extends Fragment{
     updateStatus(lastOnline);
   }
 
-  private void sendMessage(String message){
+  private boolean sendMessage(String message){
     XmppManager xmppManager = ((Globals) getActivity().getApplication())
             .getXmppManager();
-
-    String status = MessageHistory.STATUS_WAITING;
-    if (xmppManager != null && xmppManager.isConnected() && xmppManager.sendTextMessage(message, buddyId))
-      status = MessageHistory.STATUS_SENT;
-    else{
-      Log.e("ERROR", "There was an error with the connection while sending a message.");
-      //TODO messageHistory.addSendRequest(buddyId, message);
-    }
-    messageHistory.addMessage(buddyId, getContext().getSharedPreferences
-            (ChatActivity.PREFERENCES, 0).getString(ChatActivity
-            .USERNAME, ""), MessageHistory.TYPE_TEXT, message, status);
-    textIn.setText("");
-    maa.clear();
-    reloadMessages();
+    return (xmppManager != null && xmppManager.isConnected() && xmppManager
+            .sendTextMessage(message, buddyId));
   }
 
   private void reloadMessages(){
@@ -376,8 +375,9 @@ public class ChatFragment extends Fragment{
               maa.add(nm);
             }else
               nm.status = getResources().getString(R.string.new_messages);
-          messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
+          messageHistory.updateMessageStatus(buddyId, 2, MessageHistory
                   .STATUS_READ);
+        }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
         }
         maa.add(msg);
       }else if (message instanceof ImageMessage){
@@ -386,19 +386,21 @@ public class ChatFragment extends Fragment{
           maa.add(new Date(msg.time));
         oldDate = msg.time;
         if (msg.left){
-          if (msg.status.equals(MessageHistory.STATUS_RECEIVED))
+          if (msg.status.equals(MessageHistory.STATUS_RECEIVED)){
             if (nm == null){
               nm = new NewMessage(getResources().getString(R.string
                       .new_message));
               maa.add(nm);
             }else
               nm.status = getResources().getString(R.string.new_messages);
-          else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
+          }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
             try{
               MyFileUtils mfu = new MyFileUtils();
               if (!mfu.isExternalStorageWritable())
                 throw new Exception("ext storage not writable. Cannot save " +
                         "image");
+              messageHistory.updateMessageStatus(chatName, msg._ID,
+                      MessageHistory.STATUS_SENDING);
               Intent intent = new Intent(getContext(), DownloadService.class);
               intent.setAction(DownloadService.DOWNLOAD_ACTION);
               intent.putExtra(DownloadService.PARAM_URL, msg.url);

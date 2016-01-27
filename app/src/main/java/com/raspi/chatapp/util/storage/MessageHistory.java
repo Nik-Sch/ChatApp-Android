@@ -26,8 +26,6 @@ public class MessageHistory{
   public static final String TYPE_IMAGE = "com.raspi.storage.MessageHistory.TYPE_IMAGE";
 
   public static final String STATUS_WAITING = "com.raspi.storage.MessageHistory.STATUS_WAITING";
-  public static final String STATUS_CANCELED = "com.raspi.storage" +
-          ".MessageHistory.STATUS_CANCELED";
   public static final String STATUS_SENDING = "com.raspi.storage.MessageHistory.STATUS_SENDING";
   public static final String STATUS_SENT = "com.raspi.storage.MessageHistory.STATUS_SENT";
   public static final String STATUS_RECEIVING = "com.raspi.storage.MessageHistory.STATUS_RECEIVING";
@@ -43,12 +41,12 @@ public class MessageHistory{
   }
 
   public ChatEntry[] getChats(){
-    //Log.d("DATABASE", "Getting chats");
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
-    Cursor chats = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS, new
-                    String[]{MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID,
-                    MessageHistoryContract.ChatEntry
-                            .COLUMN_NAME_NAME},
+    Cursor chats = db.query(
+            MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS,
+            new String[]{
+                    MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID,
+                    MessageHistoryContract.ChatEntry.COLUMN_NAME_NAME},
             null, null, null, null, null);
     int chatCount = chats.getCount();
     ChatEntry[] resultChats = new ChatEntry[chatCount];
@@ -56,32 +54,15 @@ public class MessageHistory{
     chats.moveToFirst();
     if (chats.getCount() > 0)
       do{
-        try{
           String buddyId = chats.getString(0);
           String name = chats.getString(1);
+          MessageArrayContent mac = getLastMessage(buddyId);
 
-          String[] columns = new String[]{
-                  MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
-                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
-                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
-                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
-                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
-                  MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE
-          };
-          Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
-                  MessageHistoryContract.MessageEntry
-                          .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", "1");
-          lastMessage.moveToFirst();
+          if (mac instanceof TextMessage){
+            TextMessage msg = (TextMessage) mac;
 
-          String lastMessageStatus = "";
-          String lastMessageDate = "";
-          String lastMessageMessage = "";
-          String lastMessageType = "";
-          boolean sent = false;
-          boolean read = false;
-          if (lastMessage.getCount() != 0 && lastMessage.moveToFirst()){
-            lastMessageStatus = lastMessage.getString(3);
-            Date msgTime = new Date(lastMessage.getLong(4));
+            String lastMessageDate;
+            Date msgTime = new Date(msg.time);
             Calendar startOfDay = Calendar.getInstance();
             startOfDay.set(Calendar.HOUR_OF_DAY, 0);
             startOfDay.set(Calendar.MINUTE, 0);
@@ -95,32 +76,112 @@ public class MessageHistory{
                       (msgTime);
             else
               lastMessageDate = "Yesterday";
-            lastMessageType = lastMessage.getString(5);
-            lastMessageMessage = lastMessage.getString(2);
-            if (MessageHistory.TYPE_IMAGE.equals(lastMessageType)){
-              JSONArray contentJSON = new JSONArray(lastMessageMessage);
-              lastMessageMessage = contentJSON.getString(1);
-            }
-            SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
-            String me = preferences.getString(ChatActivity.USERNAME, "");
-            sent = me.equals(lastMessage.getString(0));
-            read = MessageHistory.STATUS_READ.equals(lastMessage.getString(3));
+
+            resultChats[i] = new ChatEntry(
+                    buddyId,
+                    name,
+                    MessageHistory.TYPE_TEXT,
+                    msg.status,
+                    lastMessageDate,
+                    ((msg.left)? name + ": " : "") + msg.message,
+                    !msg.left);
+          }else if (mac instanceof ImageMessage){
+            ImageMessage msg = (ImageMessage) mac;
+
+            String lastMessageDate;
+            Date msgTime = new Date(msg.time);
+            Calendar startOfDay = Calendar.getInstance();
+            startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+            startOfDay.set(Calendar.MINUTE, 0);
+            startOfDay.set(Calendar.SECOND, 0);
+            startOfDay.set(Calendar.MILLISECOND, 0);
+            long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
+            if (diff <= 0)
+              lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+            else if (diff > 1000 * 60 * 60 * 24)
+              lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                      (msgTime);
+            else
+              lastMessageDate = "Yesterday";
+
+            resultChats[i] = new ChatEntry(
+                    buddyId,
+                    name,
+                    MessageHistory.TYPE_IMAGE,
+                    msg.status,
+                    lastMessageDate,
+                    msg.description,
+                    !msg.left);
           }
-          resultChats[i] = new ChatEntry(
-                  buddyId,
-                  name,
-                  lastMessageType,
-                  lastMessageStatus,
-                  lastMessageDate,
-                  lastMessageMessage,
-                  read,
-                  sent);
-        }catch (Exception e){}
         i++;
       }while (chats.move(1));
     chats.close();
     db.close();
     return resultChats;
+  }
+
+  public MessageArrayContent getLastMessage(String buddyId, boolean markAsRead){
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    Cursor c = db.query(
+            buddyId,
+            new String[]{MessageHistoryContract.MessageEntry._ID},
+            null, null, null, null,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
+                    + " DESC", "1");
+    c.moveToFirst();
+    updateMessageStatus(buddyId, c.getLong(0), MessageHistory.STATUS_READ);
+    return getLastMessage(buddyId);
+  }
+
+  public MessageArrayContent getLastMessage(String buddyId){
+    MessageArrayContent mac = null;
+    try{
+      SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+      String[] columns = new String[]{
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
+              MessageHistoryContract.MessageEntry._ID
+      };
+      Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
+                      + " DESC", "1");
+      lastMessage.moveToFirst();
+      if (lastMessage.getCount() != 0 && lastMessage.moveToFirst()){
+        String type = lastMessage.getString(1);
+        SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+        String me = preferences.getString(ChatActivity.USERNAME, "");
+        boolean sent = me.equals(lastMessage.getString(0));
+
+        if (TYPE_TEXT.equals(type)){
+          mac = new TextMessage(
+                  !sent,
+                  lastMessage.getString(2),
+                  lastMessage.getLong(4),
+                  lastMessage.getString(3));
+        }else if (TYPE_IMAGE.equals(type)){
+          JSONArray contentJSON = new JSONArray(lastMessage.getString(2));
+          mac = new ImageMessage(
+                  !sent,
+                  contentJSON.getString(0),
+                  contentJSON.getString(1),
+                  lastMessage.getString(5),
+                  lastMessage.getInt(6),
+                  lastMessage.getLong(4),
+                  lastMessage.getString(3),
+                  lastMessage.getLong(7),
+                  lastMessage.getString(1));
+        }
+      }
+    }catch (Exception e){
+
+    }
+    return mac;
   }
 
   public void addChat(String buddyId, String name){
@@ -232,7 +293,9 @@ public class MessageHistory{
         long _ID = messages.getLong(7);
         switch (type){
           case (MessageHistory.TYPE_TEXT):
-            result[i] = new TextMessage(!me.equals(from), content, time, status, _ID);
+            result[i] = new TextMessage(!me.equals(from), content, time, status);
+            if (((TextMessage) result[i]).left)
+              updateMessageStatus(from, _ID, STATUS_READ);
             break;
           case (MessageHistory.TYPE_IMAGE):
             try{
@@ -290,7 +353,7 @@ public class MessageHistory{
     long _ID = message.getLong(7);
     switch (type){
       case (MessageHistory.TYPE_TEXT):
-        mac = new TextMessage(!me.equals(from), content, time, status, _ID);
+        mac = new TextMessage(!me.equals(from), content, time, status);
         break;
       case (MessageHistory.TYPE_IMAGE):
         try{

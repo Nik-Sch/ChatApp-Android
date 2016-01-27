@@ -63,15 +63,24 @@ public class MessageService extends Service{
               int index = uploadId.indexOf('|');
               String buddyId = uploadId.substring(0, index);
               String messageId = uploadId.substring(index + 1);
+              //apparently the message was already sent by another thread,
+              // e.g. if we switched connection while the image was sending
+              // and this service restarted
+              MessageArrayContent m = messageHistory.getMessage(buddyId,
+                      messageId);
+              if (MessageHistory.STATUS_SENT.equals(((ImageMessage) m)
+                      .status))
+                return;
               if (!"invalid".equals(serverResponseMessage)){
                 MessageArrayContent mac = messageHistory.getMessage(buddyId,
                         messageId);
                 try{
                   String des = ((ImageMessage) mac).description;
-                  xmppManager.sendImageMessage(serverResponseMessage, des, buddyId);
-                  messageHistory.updateMessageStatus(buddyId, Long
-                          .parseLong(messageId), MessageHistory
-                          .STATUS_SENT);
+                  if (xmppManager.sendImageMessage(serverResponseMessage, des,
+                          buddyId))
+                    messageHistory.updateMessageStatus(buddyId, Long
+                            .parseLong(messageId), MessageHistory
+                            .STATUS_SENT);
                 }catch (ClassCastException e){
                   Log.e("UPLOAD", "Sending the uploaded image failed");
                   e.printStackTrace();
@@ -315,12 +324,13 @@ public class MessageService extends Service{
                   buddyId,
                   msg.type,
                   SendImageFragment.createJSON(mfu.getFileName()
-                          .getAbsolutePath(),
+                                  .getAbsolutePath(),
                           msg.description).toString(),
                   "http://" + server + "/ChatApp/" + msg.url,
                   "0",
                   MessageHistory.STATUS_WAITING);
-        }catch (Exception e){}
+        }catch (Exception e){
+        }
       }
       getApplicationContext().sendOrderedBroadcast(msgIntent, null);
     }

@@ -1,17 +1,12 @@
 package com.raspi.chatapp.ui.util.message_array;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.ResultReceiver;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,9 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.internet.http.DownloadService;
 import com.raspi.chatapp.util.storage.MessageHistory;
-import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -176,68 +169,6 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress(1);
             v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
-            break;
-          case MessageHistory.STATUS_CANCELED:
-            v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
-            progressBar = (ProgressBar) v.findViewById(R.id
-                    .message_image_progress);
-            progressBar.setVisibility(View.GONE);
-            progressBar.setProgress(0);
-            v.findViewById(R.id.message_image_retry).setVisibility(View.VISIBLE);
-            final MessageArrayAdapter maa = this;
-            v.findViewById(R.id.message_image_retry).setOnClickListener(new View.OnClickListener(){
-              //TODO
-              @Override
-              public void onClick(View v){
-                try{
-                  MyFileUtils mfu = new MyFileUtils();
-                  if (!mfu.isExternalStorageWritable())
-                    throw new Exception("ext storage not writable. Cannot save " +
-                            "image");
-                  final ImageMessage msg = (ImageMessage) maa.getItem(position);
-                  Intent intent = new Intent(getContext(), DownloadService.class);
-                  intent.setAction(DownloadService.DOWNLOAD_ACTION);
-                  intent.putExtra(DownloadService.PARAM_URL, msg.url);
-                  final MessageHistory messageHistory = new MessageHistory
-                          (getContext());
-                  intent.putExtra(DownloadService.PARAM_RECEIVER, new
-                          ResultReceiver(new Handler()){
-                            @Override
-                            protected void onReceiveResult(int resultCode, Bundle resultData){
-                              super.onReceiveResult(resultCode, resultData);
-                              if (resultCode == DownloadService.UPDATE_PROGRESS){
-                                Long messageId = resultData.getLong(DownloadService.PARAM_MESSAGE_ID);
-                                int progress = resultData.getInt(DownloadService.PARAM_PROGRESS);
-                                int size = maa.getCount();
-                                MessageArrayContent mac;
-                                for (int i = 0; i < size; i++){
-                                  mac = maa.getItem(i);
-                                  if (mac instanceof ImageMessage){
-                                    if (msg._ID == messageId){
-                                      Log.d("DEBUG DOWNLOAD", "progress: " + progress);
-                                      if (progress < 100)
-                                        msg.progress = progress;
-                                      else{
-                                        msg.status = MessageHistory.STATUS_READ;
-                                        messageHistory.updateMessageStatus
-                                                (msg.chatId, messageId,
-                                                        MessageHistory.STATUS_READ);
-                                      }
-                                      maa.notifyDataSetChanged();
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          });
-                  intent.putExtra(DownloadService.PARAM_FILE, msg.file);
-                  intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
-                  getContext().startService(intent);
-                }catch (Exception e){
-
-                }
-              }
-            });
             break;
           case MessageHistory.STATUS_SENDING:
           case MessageHistory.STATUS_RECEIVING:

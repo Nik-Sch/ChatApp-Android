@@ -1,5 +1,7 @@
 package com.raspi.chatapp.ui.util.chat_array;
 
+import com.raspi.chatapp.util.storage.MessageHistory;
+
 public class ChatEntry{
 
   public String buddyId;
@@ -12,15 +14,15 @@ public class ChatEntry{
   public boolean sent;
 
   public ChatEntry(String buddyId, String name, String lastMessageType, String
-                   lastMessageStatus, String
-          lastMessageDate, String lastMessageMessage, boolean read, boolean sent){
+                   lastMessageStatus, String lastMessageDate, String
+          lastMessageMessage, boolean sent){
     this.buddyId = buddyId;
     this.name = name;
     this.lastMessageType = lastMessageType;
     this.lastMessageStatus = lastMessageStatus;
     this.lastMessageDate = lastMessageDate;
     this.lastMessageMessage = lastMessageMessage;
-    this.read = read;
+    this.read = MessageHistory.STATUS_READ.equals(lastMessageStatus);
     this.sent = sent;
   }
 }
