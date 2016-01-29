@@ -43,54 +43,7 @@ public class MessageService extends Service{
 
   XmppManager xmppManager = null;
   MessageHistory messageHistory;
-  private final UploadServiceBroadcastReceiver uploadReceiver =
-          new UploadServiceBroadcastReceiver(){
 
-            @Override
-            public void onError(String uploadId, Exception exception){
-              super.onError(uploadId, exception);
-              Log.e("UPLOAD_DEBUG", "An error occured while uploading:" +
-                      exception.toString());
-              int index = uploadId.indexOf('|');
-              String buddyId = uploadId.substring(0, index);
-              String messageId = uploadId.substring(index + 1);
-              messageHistory.updateMessageStatus(buddyId, Long.parseLong
-                      (messageId), MessageHistory.STATUS_WAITING);
-            }
-
-            @Override
-            public void onCompleted(String uploadId, int serverResponseCode, String serverResponseMessage){
-              int index = uploadId.indexOf('|');
-              String buddyId = uploadId.substring(0, index);
-              String messageId = uploadId.substring(index + 1);
-              //apparently the message was already sent by another thread,
-              // e.g. if we switched connection while the image was sending
-              // and this service restarted
-              MessageArrayContent m = messageHistory.getMessage(buddyId,
-                      messageId);
-              if (MessageHistory.STATUS_SENT.equals(((ImageMessage) m)
-                      .status))
-                return;
-              if (!"invalid".equals(serverResponseMessage)){
-                MessageArrayContent mac = messageHistory.getMessage(buddyId,
-                        messageId);
-                try{
-                  String des = ((ImageMessage) mac).description;
-                  if (xmppManager.sendImageMessage(serverResponseMessage, des,
-                          buddyId))
-                    messageHistory.updateMessageStatus(buddyId, Long
-                            .parseLong(messageId), MessageHistory
-                            .STATUS_SENT);
-                }catch (ClassCastException e){
-                  Log.e("UPLOAD", "Sending the uploaded image failed");
-                  e.printStackTrace();
-                }
-              }else{
-                messageHistory.updateMessageStatus(buddyId, Long.parseLong
-                        (messageId), MessageHistory.STATUS_WAITING);
-              }
-            }
-          };
   private boolean isAppRunning = false;
 
   @Override
@@ -98,7 +51,6 @@ public class MessageService extends Service{
     super.onCreate();
     Log.d("DEBUG", "MessageService created.");
     messageHistory = new MessageHistory(this);
-    uploadReceiver.register(this);
   }
 
   @Override

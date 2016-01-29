@@ -4,6 +4,12 @@ import android.content.Context;
 import android.util.Log;
 
 import com.alexbbb.uploadservice.MultipartUploadRequest;
+import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
+import com.raspi.chatapp.ui.util.message_array.ImageMessage;
+import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
+import com.raspi.chatapp.util.Globals;
+import com.raspi.chatapp.util.internet.XmppManager;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.io.File;
 
@@ -13,7 +19,14 @@ public class Upload{
   private static final String PARAM_FILE = "img_file";
   private static final String PARAM_TYPE = "type";
 
+  private MessageHistory messageHistory;
+  private XmppManager xmppManager;
+  private Context context;
+
   public void uploadFile(final Context context, Task task){
+    messageHistory = new MessageHistory(context);
+    xmppManager = ((Globals) context.getApplicationContext()).getXmppManager();
+    this.context = context;
     final String uploadID = task.chatId + "|" + task.messageID;
     try{
       new MultipartUploadRequest(context, uploadID, SERVER_URL)
@@ -21,6 +34,7 @@ public class Upload{
               .addParameter(PARAM_TYPE, PARAM_FILE)
               .setMaxRetries(2)
               .startUpload();
+      uploadReceiver.register(context);
     }catch (Exception e){
       Log.e("AndroidUploadService", e.getMessage(), e);
     }
@@ -38,4 +52,55 @@ public class Upload{
       this.messageID = messageID;
     }
   }
+
+  private final UploadServiceBroadcastReceiver uploadReceiver =
+          new UploadServiceBroadcastReceiver(){
+
+            @Override
+            public void onError(String uploadId, Exception exception){
+              super.onError(uploadId, exception);
+              Log.e("UPLOAD_DEBUG", "An error occured while uploading:" +
+                      exception.toString());
+              int index = uploadId.indexOf('|');
+              String buddyId = uploadId.substring(0, index);
+              String messageId = uploadId.substring(index + 1);
+              messageHistory.updateMessageStatus(buddyId, Long.parseLong
+                      (messageId), MessageHistory.STATUS_WAITING);
+              this.unregister(context);
+            }
+
+            @Override
+            public void onCompleted(String uploadId, int serverResponseCode, String serverResponseMessage){
+              int index = uploadId.indexOf('|');
+              String buddyId = uploadId.substring(0, index);
+              String messageId = uploadId.substring(index + 1);
+              //apparently the message was already sent by another thread,
+              // e.g. if we switched connection while the image was sending
+              // and this service restarted
+              MessageArrayContent m = messageHistory.getMessage(buddyId,
+                      messageId);
+              if (MessageHistory.STATUS_SENT.equals(((ImageMessage) m)
+                      .status))
+                return;
+              if (!"invalid".equals(serverResponseMessage)){
+                MessageArrayContent mac = messageHistory.getMessage(buddyId,
+                        messageId);
+                try{
+                  String des = ((ImageMessage) mac).description;
+                  if (xmppManager.sendImageMessage(serverResponseMessage, des,
+                          buddyId))
+                    messageHistory.updateMessageStatus(buddyId, Long
+                            .parseLong(messageId), MessageHistory
+                            .STATUS_SENT);
+                }catch (ClassCastException e){
+                  Log.e("UPLOAD", "Sending the uploaded image failed");
+                  e.printStackTrace();
+                }
+              }else{
+                messageHistory.updateMessageStatus(buddyId, Long.parseLong
+                        (messageId), MessageHistory.STATUS_WAITING);
+              }
+              this.unregister(context);
+            }
+          };
 }
