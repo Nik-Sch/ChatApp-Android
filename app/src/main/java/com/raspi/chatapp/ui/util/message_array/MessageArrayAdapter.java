@@ -83,9 +83,11 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     MessageArrayContent Obj = getItem(position);
 
     if (Obj.getClass() == TextMessage.class){
-      LayoutInflater inflater = (LayoutInflater) this.getContext()
-              .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      v = inflater.inflate(R.layout.message_text, parent, false);
+      if (v == null || v.findViewById(R.id.message_text) == null){
+        LayoutInflater inflater = (LayoutInflater) this.getContext()
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        v = inflater.inflate(R.layout.message_text, parent, false);
+      }
 
       TextMessage msgObj = (TextMessage) Obj;
       RelativeLayout layoutOuter = (RelativeLayout) v.findViewById(R.id.message_text);
@@ -127,9 +129,11 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
         }
       }
     }else if (Obj.getClass() == ImageMessage.class){
-      LayoutInflater inflater = (LayoutInflater) getContext()
-              .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      v = inflater.inflate(R.layout.message_image, parent, false);
+      if (v == null || v.findViewById(R.id.message_image) == null){
+        LayoutInflater inflater = (LayoutInflater) getContext()
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        v = inflater.inflate(R.layout.message_image, parent, false);
+      }
 
       final ImageMessage msgObj = (ImageMessage) Obj;
       RelativeLayout layoutOuter = (RelativeLayout) v.findViewById(R.id
@@ -143,21 +147,31 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
 
       ImageView imageView = (ImageView) v.findViewById(R.id
               .message_image_image);
-      try{
-        loadBitmap(new File(msgObj.file), imageView);
-      }catch (Exception e){
-      }
 
       TextView chatTime = (TextView) v.findViewById(R.id.message_image_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
               (msgObj.time));
 
+
       if (msgObj.left){
         layoutOuter.setGravity(Gravity.START);
         v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
-        v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
         v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
+        if (MessageHistory.STATUS_RECEIVING.equals(msgObj.status)){
+          imageView.setVisibility(View.INVISIBLE);
+          v.findViewById(R.id.message_image_progress).setVisibility(View.VISIBLE);
+        }else{
+          v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
+          try{
+            loadBitmap(new File(msgObj.file), imageView);
+          }catch (Exception e){
+          }
+        }
       }else{
+        try{
+          loadBitmap(new File(msgObj.file), imageView);
+        }catch (Exception e){
+        }
         layoutOuter.setGravity(Gravity.END);
         ProgressBar progressBar;
 

@@ -29,6 +29,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.R;
@@ -75,16 +76,17 @@ public class ChatFragment extends Fragment{
               String buddyID = uploadId.substring(0, index);
               String messageId = uploadId.substring(index + 1);
               if (buddyID.equals(buddyId)){
-                int size = maa.getCount();
+                int size = listView.getLastVisiblePosition();
                 MessageArrayContent mac;
-                for (int i = 0; i < size; i++){
+                for (int i = listView.getFirstVisiblePosition(); i <= size;
+                     i++){
                   mac = maa.getItem(i);
                   if (mac instanceof ImageMessage){
                     ImageMessage im = (ImageMessage) mac;
                     if (im._ID == Long.parseLong(messageId)){
                       Log.d("UPLOAD_DEBUG", "progress: " + progress);
                       im.progress = progress;
-                      maa.notifyDataSetChanged();
+                      updateProgressBar(i, progress);
                     }
                   }
                 }
@@ -97,15 +99,16 @@ public class ChatFragment extends Fragment{
               String buddyID = uploadId.substring(0, index);
               String messageId = uploadId.substring(index + 1);
               if (buddyID.equals(buddyId)){
-                int size = maa.getCount();
+                int size = listView.getLastVisiblePosition();
                 MessageArrayContent mac;
-                for (int i = 0; i < size; i++){
+                for (int i = listView.getFirstVisiblePosition(); i <= size;
+                     i++){
                   mac = maa.getItem(i);
                   if (mac instanceof ImageMessage){
                     ImageMessage im = (ImageMessage) mac;
                     if (im._ID == Long.parseLong(messageId)){
                       im.status = MessageHistory.STATUS_SENT;
-                      maa.notifyDataSetChanged();
+                      updateMessageStatus(i);
                     }
                   }
                 }
@@ -126,7 +129,11 @@ public class ChatFragment extends Fragment{
       if (index >= 0)
         intentBuddyId = intentBuddyId.substring(0, index);
       if (buddyId.equals(intentBuddyId)){
-        maa.add(messageHistory.getLastMessage(buddyId, true));
+        MessageArrayContent mac = messageHistory.getLastMessage(buddyId, true);
+        if (mac instanceof ImageMessage)
+          downloadImage((ImageMessage) mac);
+        maa.add(mac);
+
         abortBroadcast();
       }
     }
@@ -377,7 +384,6 @@ public class ChatFragment extends Fragment{
               nm.status = getResources().getString(R.string.new_messages);
           messageHistory.updateMessageStatus(buddyId, 2, MessageHistory
                   .STATUS_READ);
-        }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
         }
         maa.add(msg);
       }else if (message instanceof ImageMessage){
@@ -394,24 +400,7 @@ public class ChatFragment extends Fragment{
             }else
               nm.status = getResources().getString(R.string.new_messages);
           }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
-            try{
-              MyFileUtils mfu = new MyFileUtils();
-              if (!mfu.isExternalStorageWritable())
-                throw new Exception("ext storage not writable. Cannot save " +
-                        "image");
-              messageHistory.updateMessageStatus(chatName, msg._ID,
-                      MessageHistory.STATUS_SENDING);
-              Intent intent = new Intent(getContext(), DownloadService.class);
-              intent.setAction(DownloadService.DOWNLOAD_ACTION);
-              intent.putExtra(DownloadService.PARAM_URL, msg.url);
-              intent.putExtra(DownloadService.PARAM_RECEIVER, new
-                      DownloadReceiver(new Handler()));
-              intent.putExtra(DownloadService.PARAM_FILE, msg.file);
-              intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
-              getContext().startService(intent);
-            }catch (Exception e){
-              e.printStackTrace();
-            }
+            downloadImage(msg);
           }else if (!MessageHistory.STATUS_RECEIVING.equals(msg.status))
             messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
                     .STATUS_READ);
@@ -458,6 +447,55 @@ public class ChatFragment extends Fragment{
   }
 
   /**
+   * updates the progress bar of the given item of the listview
+   * if the message is not visible or the index is invalid nothing happens
+   * @param index the index of the message that should be updated in the maa
+   */
+  private void updateProgressBar(int index, int progress){
+    try{
+      View v = listView.getChildAt(index - listView.getFirstVisiblePosition());
+      if (v != null){
+        ProgressBar progressBar = (ProgressBar) v.findViewById(R.id
+                .message_image_progress);
+        if (progressBar != null)
+          progressBar.setProgress(progress);
+      }
+    }catch (Exception e){
+    }
+  }
+
+  private void updateMessageStatus(int index){
+    try{
+      View v = listView.getChildAt(index - listView.getFirstVisiblePosition());
+      if (v != null){
+        maa.getView(index, v, listView);
+      }
+    }catch (Exception e){
+    }
+  }
+
+  private void downloadImage(ImageMessage msg){
+    try{
+      MyFileUtils mfu = new MyFileUtils();
+      if (!mfu.isExternalStorageWritable())
+        throw new Exception("ext storage not writable. Cannot save " +
+                "image");
+      messageHistory.updateMessageStatus(chatName, msg._ID,
+              MessageHistory.STATUS_SENDING);
+      Intent intent = new Intent(getContext(), DownloadService.class);
+      intent.setAction(DownloadService.DOWNLOAD_ACTION);
+      intent.putExtra(DownloadService.PARAM_URL, msg.url);
+      intent.putExtra(DownloadService.PARAM_RECEIVER, new
+              DownloadReceiver(new Handler()));
+      intent.putExtra(DownloadService.PARAM_FILE, msg.file);
+      intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
+      getContext().startService(intent);
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+  }
+
+  /**
    * This interface must be implemented by ui that contain this
    * fragment to allow an interaction in this fragment to be communicated
    * to the activity and potentially other chatting contained in that
@@ -483,22 +521,24 @@ public class ChatFragment extends Fragment{
       if (resultCode == DownloadService.UPDATE_PROGRESS){
         Long messageId = resultData.getLong(DownloadService.PARAM_MESSAGE_ID);
         int progress = resultData.getInt(DownloadService.PARAM_PROGRESS);
-        int size = maa.getCount();
+        int size = listView.getLastVisiblePosition();
         MessageArrayContent mac;
-        for (int i = 0; i < size; i++){
+        for (int i = listView.getFirstVisiblePosition(); i <= size; i++){
           mac = maa.getItem(i);
           if (mac instanceof ImageMessage){
             ImageMessage im = (ImageMessage) mac;
             if (im._ID == messageId){
               Log.d("DEBUG DOWNLOAD", "progress: " + progress);
-              if (progress < 100)
+              if (progress < 100){
                 im.progress = progress;
-              else{
+                updateProgressBar(i, progress);
+              }else{
                 im.status = MessageHistory.STATUS_READ;
+                updateMessageStatus(i);
                 messageHistory.updateMessageStatus(chatName, messageId,
                         MessageHistory.STATUS_READ);
+                updateMessageStatus(i);
               }
-              maa.notifyDataSetChanged();
             }
           }
         }

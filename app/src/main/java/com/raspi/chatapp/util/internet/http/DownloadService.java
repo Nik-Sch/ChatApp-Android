@@ -18,6 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,12 +64,15 @@ public class DownloadService extends IntentService{
         byte data[] = new byte[4096];
         long total = 0;
         int count;
+        long start = new Date().getTime();
         while ((count = input.read(data)) != -1){
           total += count;
-          Bundle resultData = new Bundle();
-          resultData.putInt(PARAM_PROGRESS, (int) (total * 100 / fileLength));
-          resultData.putLong(PARAM_MESSAGE_ID, messageId);
-          receiver.send(UPDATE_PROGRESS, resultData);
+          if ((new Date().getTime() - start) % 20 == 0){
+            Bundle resultData = new Bundle();
+            resultData.putInt(PARAM_PROGRESS, (int) (total * 100 / fileLength));
+            resultData.putLong(PARAM_MESSAGE_ID, messageId);
+            receiver.send(UPDATE_PROGRESS, resultData);
+          }
           output.write(data, 0, count);
         }
         output.flush();
@@ -92,6 +96,7 @@ public class DownloadService extends IntentService{
 
       Bundle resultData = new Bundle();
       resultData.putInt(PARAM_PROGRESS, 100);
+      resultData.putLong(PARAM_MESSAGE_ID, messageId);
       receiver.send(UPDATE_PROGRESS, resultData);
     }
   }
