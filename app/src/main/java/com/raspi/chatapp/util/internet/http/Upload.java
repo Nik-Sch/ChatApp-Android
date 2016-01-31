@@ -7,7 +7,6 @@ import com.alexbbb.uploadservice.MultipartUploadRequest;
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
-import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
@@ -25,7 +24,7 @@ public class Upload{
 
   public void uploadFile(final Context context, Task task){
     messageHistory = new MessageHistory(context);
-    xmppManager = ((Globals) context.getApplicationContext()).getXmppManager();
+    xmppManager = XmppManager.getInstance();
     this.context = context;
     final String uploadID = task.chatId + "|" + task.messageID;
     try{

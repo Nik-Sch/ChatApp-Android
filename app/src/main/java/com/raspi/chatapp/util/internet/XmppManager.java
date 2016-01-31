@@ -1,12 +1,14 @@
 package com.raspi.chatapp.util.internet;
 
-import android.content.Context;
 import android.util.Log;
 
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
+import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackConfiguration;
+import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.packet.Presence;
@@ -24,11 +26,20 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+/**
+ * XmppManager is the wrapper Singleton for the xmppConnection which provides
+ * all important functions. It is a Singleton to prohibit that one
+ * message is received twice
+ */
 public class XmppManager{
 
-  public static final int STATUS_ERROR = 0;
-  public static final int STATUS_SENT = 1;
-  public static final int STATUS_SENDING = 2;
+  public static final String SERVER = "raspi-server.ddns.net";
+  private static final String SERVICE = "chatapp.com";
+  private static final int PORT = 5222;
+
+  private static class Holder {
+    static final XmppManager INSTANCE = new XmppManager(SERVER, SERVICE, PORT);
+  }
 
   private static final int packetReplyTime = 5000;
 
@@ -37,20 +48,21 @@ public class XmppManager{
   private int port;
 
   private XMPPTCPConnection connection;
-  private MessageHistory messageHistory;
+
+  public static XmppManager getInstance(){
+    return Holder.INSTANCE;
+  }
 
   /**
    * creates a IM Manager with the given server ID
-   *
    * @param server  host address
    * @param service service name
-   * @param context the IntentService which sends and receives the messages
+   * @param port port
    */
-  public XmppManager(String server, String service, int port, Context context){
+  protected XmppManager(String server, String service, int port){
     this.server = server;
     this.service = service;
     this.port = port;
-    messageHistory = new MessageHistory(context);
     Log.d("DEBUG", "Success: created xmppManager");
   }
 
@@ -61,6 +73,7 @@ public class XmppManager{
    */
   public boolean init(){
     SmackConfiguration.setDefaultPacketReplyTimeout(packetReplyTime);
+    ReconnectionManager.setEnabledPerDefault(true);
 
     XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
             .setServiceName(service)
@@ -69,6 +82,7 @@ public class XmppManager{
             .setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible).build();
     connection = new XMPPTCPConnection(config);
     connection.setUseStreamManagement(true);
+    connection.addConnectionListener(connectionListener);
     try{
       connection.connect();
     }catch (Exception e){
@@ -125,10 +139,10 @@ public class XmppManager{
    * @return true if sending was successful
    */
   public boolean sendTextMessage(String message, String buddyJID){
-    if (buddyJID.indexOf('@') == -1)
-      buddyJID += "@" + service;
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
     if (connection != null && connection.isConnected() && chatManager != null){
+      if (buddyJID.indexOf('@') == -1)
+        buddyJID += "@" + service;
       Chat chat = chatManager.createChat(buddyJID);
       try{
         Document doc = DocumentBuilderFactory.newInstance()
@@ -246,20 +260,6 @@ public class XmppManager{
       Log.e("ERROR", "Disconnecting failed: No connection.");
   }
 
-  public boolean reconnect(){
-    if (connection == null)
-      init();
-    else if (!connection.isConnected())
-      try{
-        connection.connect();
-      }catch (Exception e){
-        Log.e("ERROR", "Couldn't connect.");
-        Log.e("ERROR", e.toString());
-        return false;
-      }
-    return true;
-  }
-
   public boolean isConnected(){
     return connection != null && connection.isConnected();
   }
@@ -267,4 +267,48 @@ public class XmppManager{
   public XMPPTCPConnection getConnection(){
     return connection;
   }
+
+  private ConnectionListener connectionListener = new ConnectionListener(){
+    @Override
+    public void connected(XMPPConnection connection){
+      Log.d("XMPP_MANAGER", "connected successfully");
+    }
+
+    @Override
+    public void authenticated(XMPPConnection connection, boolean resumed){
+      if (resumed)
+        Log.d("XMPP_MANAGER", "authenticated successfully a resumed " +
+                "connection");
+      else
+        Log.d("XMPP_MANAGER", "authenticated successfully a not resumed " +
+                "connection");
+
+    }
+
+    @Override
+    public void connectionClosed(){
+      Log.d("XMPP_MANAGER", "closed the connection successfully");
+    }
+
+    @Override
+    public void connectionClosedOnError(Exception e){
+      Log.d("XMPP_MANAGER", "Connection closed on error");
+    }
+
+    @Override
+    public void reconnectionSuccessful(){
+      Log.d("XMPP_MANAGER", "reconnected successfully");
+
+    }
+
+    @Override
+    public void reconnectingIn(int seconds){
+
+    }
+
+    @Override
+    public void reconnectionFailed(Exception e){
+      Log.d("XMPP_MANAGER", "reconnecting failed");
+    }
+  };
 }

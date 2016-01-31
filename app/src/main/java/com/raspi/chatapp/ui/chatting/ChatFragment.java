@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -38,7 +39,6 @@ import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
-import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.internet.http.DownloadService;
 import com.raspi.chatapp.util.internet.http.Upload;
@@ -66,6 +66,8 @@ public class ChatFragment extends Fragment{
   private String chatName;
 
   private MessageArrayAdapter maa;
+  private MessageHistory messageHistory;
+  private ListView listView;
   private final UploadServiceBroadcastReceiver uploadReceiver =
           new UploadServiceBroadcastReceiver(){
             @Override
@@ -85,7 +87,6 @@ public class ChatFragment extends Fragment{
                     if (im._ID == Long.parseLong(messageId)){
                       Log.d("UPLOAD_DEBUG", "progress: " + progress);
                       im.progress = progress;
-//                      updateProgressBar(i, progress);
                       updateMessage(i);
                     }
                   }
@@ -115,8 +116,6 @@ public class ChatFragment extends Fragment{
               }
             }
           };
-  private MessageHistory messageHistory;
-  private ListView listView;
   private EditText textIn;
   private ActionBar actionBar;
   private OnFragmentInteractionListener mListener;
@@ -147,6 +146,28 @@ public class ChatFragment extends Fragment{
           updateStatus(extras.getString(ChatActivity.PRESENCE_STATUS));
         }
       }
+    }
+  };
+  private BroadcastReceiver connectedReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      updateStatus(messageHistory.getOnline(buddyId));
+
+      int size = listView.getCount();
+      for (int i = 0; i < size; i++){
+        MessageArrayContent mac = maa.getItem(i);
+        if (mac instanceof TextMessage){
+          TextMessage msg = (TextMessage) mac;
+          if (MessageHistory.STATUS_WAITING.equals(msg.status))
+            resendTextMessage(msg);
+        }
+      }
+    }
+  };
+  private BroadcastReceiver disconnectedReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      updateStatus(null);
     }
   };
 
@@ -186,8 +207,6 @@ public class ChatFragment extends Fragment{
     }else
       return;
     messageHistory = new MessageHistory(getContext());
-    getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams
-            .SOFT_INPUT_ADJUST_RESIZE);
   }
 
   @Override
@@ -196,17 +215,29 @@ public class ChatFragment extends Fragment{
     IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
     filter.setPriority(1);
     getContext().registerReceiver(MessageReceiver, filter);
-    LocalBroadcastManager.getInstance(getContext()).registerReceiver
-            (PresenceChangeReceiver, new IntentFilter(ChatActivity.PRESENCE_CHANGED));
+    LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance
+            (getContext());
+    LBmgr.registerReceiver(connectedReceiver, new IntentFilter
+            (ChatActivity.CONN_ESTABLISHED));
+    LBmgr.registerReceiver(disconnectedReceiver, new IntentFilter
+            (ChatActivity.CONN_LOST));
+    LBmgr.registerReceiver(PresenceChangeReceiver, new IntentFilter
+            (ChatActivity.PRESENCE_CHANGED));
     uploadReceiver.register(getContext());
     initUI();
   }
 
   @Override
   public void onPause(){
+    InputMethodManager mgr = (InputMethodManager) getContext()
+            .getSystemService(Context.INPUT_METHOD_SERVICE);
+    mgr.hideSoftInputFromWindow(getView().findViewById(R.id.chat_in)
+            .getWindowToken(), 0);
     getContext().unregisterReceiver(MessageReceiver);
-    LocalBroadcastManager.getInstance(getContext()).unregisterReceiver
-            (PresenceChangeReceiver);
+    LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance(getContext());
+    LBmgr.unregisterReceiver(PresenceChangeReceiver);
+    LBmgr.unregisterReceiver(connectedReceiver);
+    LBmgr.unregisterReceiver(disconnectedReceiver);
     uploadReceiver.unregister(getContext());
     super.onPause();
   }
@@ -269,7 +300,7 @@ public class ChatFragment extends Fragment{
       @Override
       public void onClick(View v){
         String message = textIn.getText().toString();
-        String status = sendMessage(message)
+        String status = sendTextMessage(message)
                 ? MessageHistory.STATUS_SENT
                 : MessageHistory.STATUS_WAITING;
         messageHistory.addMessage(buddyId, getContext().getSharedPreferences
@@ -278,7 +309,6 @@ public class ChatFragment extends Fragment{
         textIn.setText("");
         maa.add(new TextMessage(false, message, new GregorianCalendar()
                 .getTimeInMillis(), status));
-
       }
     });
 
@@ -355,11 +385,23 @@ public class ChatFragment extends Fragment{
     updateStatus(lastOnline);
   }
 
-  private boolean sendMessage(String message){
-    XmppManager xmppManager = ((Globals) getActivity().getApplication())
-            .getXmppManager();
-    return (xmppManager != null && xmppManager.isConnected() && xmppManager
-            .sendTextMessage(message, buddyId));
+  private boolean sendTextMessage(String message){
+    XmppManager xmppManager = XmppManager.getInstance();
+    return (xmppManager.sendTextMessage(message, buddyId));
+  }
+
+  private void resendTextMessage(TextMessage msg){
+    boolean status = sendTextMessage(msg.message);
+    if (status){
+      messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory.STATUS_SENT);
+      msg.status = MessageHistory.STATUS_SENT;
+      int size = maa.getCount();
+      for (int i = 0; i < size; i++){
+        MessageArrayContent mac = maa.getItem(i);
+        if (mac instanceof TextMessage && ((TextMessage) mac)._ID == msg._ID)
+          updateMessage(i);
+      }
+    }
   }
 
   private void reloadMessages(){
@@ -375,7 +417,7 @@ public class ChatFragment extends Fragment{
           maa.add(new Date(msg.time));
         oldDate = msg.time;
         if (msg.left){
-          if (msg.status.equals(MessageHistory.STATUS_RECEIVED))
+          if (MessageHistory.STATUS_RECEIVED.equals(msg.status))
             if (nm == null){
               nm = new NewMessage(getResources().getString(R.string
                       .new_message));
@@ -384,7 +426,8 @@ public class ChatFragment extends Fragment{
               nm.status = getResources().getString(R.string.new_messages);
           messageHistory.updateMessageStatus(buddyId, 2, MessageHistory
                   .STATUS_READ);
-        }
+        }else if (MessageHistory.STATUS_WAITING.equals(msg.status))
+          resendTextMessage(msg);
         maa.add(msg);
       }else if (message instanceof ImageMessage){
         ImageMessage msg = (ImageMessage) message;
@@ -416,34 +459,34 @@ public class ChatFragment extends Fragment{
   }
 
   private void updateStatus(String lastOnline){
-    try{
-      long time = Long.valueOf(lastOnline);
-      Calendar startOfDay = Calendar.getInstance();
-      startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-      startOfDay.set(Calendar.MINUTE, 0);
-      startOfDay.set(Calendar.SECOND, 0);
-      startOfDay.set(Calendar.MILLISECOND, 0);
-      long diff = startOfDay.getTimeInMillis() - time;
-      if (diff <= 0)
-        lastOnline = getResources().getString(R.string.last_online_today) + " ";
-      else if (diff > 1000 * 60 * 60 * 24)
-        lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                (time) + " " + getResources().getString(R.string
-                .last_online_at) + " ";
-      else
-        lastOnline = getResources().getString(R.string.last_online_yesterday)
-                + " ";
-      lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
-              .format(time);
-      if (actionBar != null)
-        actionBar.setSubtitle(lastOnline);
-    }catch (NumberFormatException e){
-      if (actionBar != null)
-        if (lastOnline != null)
-          actionBar.setSubtitle(Html
-                  .fromHtml("<font " +
-                          "color='#55AAFF'>" + lastOnline + "</font>"));
-    }
+      try{
+        long time = Long.valueOf(lastOnline);
+        Calendar startOfDay = Calendar.getInstance();
+        startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+        startOfDay.set(Calendar.MINUTE, 0);
+        startOfDay.set(Calendar.SECOND, 0);
+        startOfDay.set(Calendar.MILLISECOND, 0);
+        long diff = startOfDay.getTimeInMillis() - time;
+        if (diff <= 0)
+          lastOnline = getResources().getString(R.string.last_online_today) + " ";
+        else if (diff > 1000 * 60 * 60 * 24)
+          lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                  (time) + " " + getResources().getString(R.string
+                  .last_online_at) + " ";
+        else
+          lastOnline = getResources().getString(R.string.last_online_yesterday)
+                  + " ";
+        lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
+                .format(time);
+        if (actionBar != null)
+          actionBar.setSubtitle(lastOnline);
+      }catch (NumberFormatException e){
+        if (actionBar != null)
+          if (lastOnline != null)
+            actionBar.setSubtitle(Html
+                    .fromHtml("<font " +
+                            "color='#55AAFF'>" + lastOnline + "</font>"));
+      }
   }
 
   private void updateMessage(int index){

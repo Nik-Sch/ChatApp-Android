@@ -4,18 +4,14 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.chatting.SendImageFragment;
-import com.raspi.chatapp.ui.util.message_array.ImageMessage;
-import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
-import com.raspi.chatapp.util.Globals;
 import com.raspi.chatapp.util.MessageXmlParser;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.internet.XmppManager;
@@ -37,149 +33,99 @@ import java.util.Date;
 
 public class MessageService extends Service{
 
-  private static final String server = "raspi-server.ddns.net";
-  private static final String service = "chatapp.com";
-  private static final int port = 5222;
-
   XmppManager xmppManager = null;
   MessageHistory messageHistory;
 
   private boolean isAppRunning = false;
+  private RosterListener rosterListener = new RosterListener(){
+    @Override
+    public void entriesAdded(Collection<String> collection){
+
+      Roster roster = xmppManager.getRoster();
+      Collection<RosterEntry> entries = roster.getEntries();
+      for (RosterEntry entry : entries)
+        presenceReceived(roster.getPresence(entry.getUser()));
+    }
+
+    @Override
+    public void entriesUpdated(Collection<String> collection){
+
+      Roster roster = xmppManager.getRoster();
+      Collection<RosterEntry> entries = roster.getEntries();
+      for (RosterEntry entry : entries)
+        presenceReceived(roster.getPresence(entry.getUser()));
+    }
+
+    @Override
+    public void entriesDeleted(Collection<String> collection){
+    }
+
+    @Override
+    public void presenceChanged(Presence presence){
+      presenceReceived(presence);
+    }
+  };
+
+  private Runnable reloadRoster = new Runnable(){
+    @Override
+    public void run(){
+      Roster roster = xmppManager.getRoster();
+      if (roster != null && !roster.isLoaded())
+        try{
+          roster.reloadAndWait();
+          Log.d("SERVICE_DEBUG", "reloaded roster");
+        }catch (Exception e){
+          Log.e("SERVICE_ERROR", "Couldn't load the roster");
+          e.printStackTrace();
+        }
+
+      if (roster != null){
+        Collection<RosterEntry> entries = roster.getEntries();
+        for (RosterEntry entry : entries)
+          presenceReceived(roster.getPresence(entry.getUser()));
+        roster.addRosterListener(rosterListener);
+      }
+    }
+  };
 
   @Override
   public void onCreate(){
     super.onCreate();
-    Log.d("DEBUG", "MessageService created.");
+    Log.d("SERVICE_DEBUG", "MessageService created.");
     messageHistory = new MessageHistory(this);
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId){
-    if (xmppManager == null || !xmppManager.isConnected())
-      new Thread(new Runnable(){
-        @Override
-        public void run(){
-          reconnect();
-          publicize();
-        }
-      }).start();
-    Log.d("DEBUG", "MessageService launched.");
-    if (intent == null){
-      Log.d("DEBUG", "MessageService received a null intent.");
-    }else if (ChatActivity.RECONNECT.equals(intent.getAction())){
-      Log.d("DEBUG", "MessageService reconnect.");
-      new Thread(new Runnable(){
-        @Override
-        public void run(){
-          reconnect();
-          publicize();
-          LocalBroadcastManager.getInstance(getApplication()).sendBroadcast(new Intent
-                  (ChatActivity.CONN_ESTABLISHED));
-        }
-      }).start();
-    }else if (ChatActivity.APP_LAUNCHED.equals(intent.getAction())){
-      Log.d("DEBUG", "MessageService app created.");
-      isAppRunning = true;
-      while (xmppManager == null)
-        try{
-          Thread.sleep(10);
-        }catch (Exception e){
-        }
-      xmppManager.setStatus(true, "online");
-      publicize();
-    }else if (ChatActivity.APP_CLOSED.equals(intent.getAction())){
-      Log.d("DEBUG", "MessageService app destroyed.");
-      isAppRunning = false;
-      while (xmppManager == null)
-        try{
-          Thread.sleep(10);
-        }catch (Exception e){
-        }
-      xmppManager.setStatus(true, Long.toString(new Date().getTime()));
-    }else{
-      Log.d("DEBUG", "MessageService received unknown intend.");
-    }
-    return START_STICKY;
-  }
+    if (intent != null)
+      if (ChatActivity.APP_LAUNCHED.equals(intent.getAction()))
+        isAppRunning = true;
+      else if (ChatActivity.APP_CLOSED.equals(intent.getAction()))
+        isAppRunning = false;
 
-  private void reconnect(){
-    Log.d("DEBUG", "MessageService reconnecting");
-    ConnectivityManager connManager = (ConnectivityManager) getSystemService
-            (Context.CONNECTIVITY_SERVICE);
-    if (connManager != null && connManager.getActiveNetworkInfo() != null &&
-            connManager.getActiveNetworkInfo().isConnected()){
-      //I am connected
-      if (xmppManager == null)
-        initialize();
-      else{
-        xmppManager.reconnect();
-        xmppManager.performLogin(getUserName(), getPassword());
-      }
-    }else{
-      //I am disconnected
-      //xmppManager.disconnect();
-    }
+    new InitAsyncTask().execute();
+    return START_STICKY;
   }
 
   private void initialize(){
     try{
       //initialize xmpp:
-      Log.d("DEBUG", "MessageService initializing");
-      xmppManager = new XmppManager(server,
-              service, port,
-              getApplication());
-      if (xmppManager.init() && xmppManager.performLogin(getUserName(),
-              getPassword())){
-        Log.d("DEBUG", "Success: Connected.");
-        Roster roster = xmppManager.getRoster();
-        if (roster != null && !roster.isLoaded())
-          try{
-            roster.reloadAndWait();
-            Log.d("ConnectionChangeReceive", "reloaded roster");
-          }catch (Exception e){
-            Log.e("ERROR", "Couldn't load the roster");
-            e.printStackTrace();
-          }
-
-        Collection<RosterEntry> entries = roster.getEntries();
-        for (RosterEntry entry : entries)
-          presenceReceived(roster.getPresence(entry.getUser()));
-        roster.addRosterListener(new RosterListener(){
-          @Override
-          public void entriesAdded(Collection<String> collection){
-
-            Roster roster = xmppManager.getRoster();
-            Collection<RosterEntry> entries = roster.getEntries();
-            for (RosterEntry entry : entries)
-              presenceReceived(roster.getPresence(entry.getUser()));
-          }
-
-          @Override
-          public void entriesUpdated(Collection<String> collection){
-
-            Roster roster = xmppManager.getRoster();
-            Collection<RosterEntry> entries = roster.getEntries();
-            for (RosterEntry entry : entries)
-              presenceReceived(roster.getPresence(entry.getUser()));
-          }
-
-          @Override
-          public void entriesDeleted(Collection<String> collection){
-          }
-
-          @Override
-          public void presenceChanged(Presence presence){
-            presenceReceived(presence);
-          }
-        });
-      }else{
-        Log.e("ERROR", "There was an error with the connection");
+      Log.d("SERVICE_DEBUG", "MessageService initializing");
+      if (xmppManager == null)
+        xmppManager = XmppManager.getInstance();
+      if (!xmppManager.isConnected()){
+        xmppManager.init();
+        xmppManager.performLogin(getUserName(), getPassword());
+        new Thread(reloadRoster).run();
       }
-      ChatManagerListener managerListener = new MyChatManagerListener();
+      xmppManager.setStatus(true, isAppRunning ? "online" : Long.toString(new
+              Date().getTime()));
+
       ChatManager.getInstanceFor(xmppManager.getConnection())
-              .addChatListener(managerListener);
+              .addChatListener(new MyChatManagerListener());
     }catch (Exception e){
-      Log.e("ERROR", "An error while running the MessageService occurred.");
+      Log.e("SERVICE_ERROR", "An error while initializing the MessageService " +
+              "occurred.");
       e.printStackTrace();
     }
   }
@@ -202,12 +148,6 @@ public class MessageService extends Service{
     }
   }
 
-  private void publicize(){
-    Log.d("DEBUG", "MessageService publicizing");
-    if (isAppRunning)
-      ((Globals) getApplication()).setXmppManager(xmppManager);
-  }
-
   private String getUserName(){
     return getSharedPreferences(ChatActivity.PREFERENCES, 0).getString(ChatActivity.USERNAME, "");
   }
@@ -223,9 +163,8 @@ public class MessageService extends Service{
 
   @Override
   public void onDestroy(){
-    Log.d("DEBUG", "disconnecting xmpp");
-    Log.d("ConnectionChangeReceive", "Stopped service");
-    ((Globals) getApplication()).getXmppManager().disconnect();
+    Log.d("SERVICE_DEBUG", "disconnecting xmpp");
+    XmppManager.getInstance().disconnect();
     super.onDestroy();
   }
 
@@ -243,16 +182,18 @@ public class MessageService extends Service{
     }
   }
 
+
   private class MyChatMessageListener implements ChatMessageListener{
+
     @Override
     public void processMessage(Chat chat, Message message){
-      Log.d("DEBUG", "Received message and processing it.");
+      Log.d("SERVICE_DEBUG", "Received message and processing it.");
       Roster roster = xmppManager.getRoster();
       if (!roster.isLoaded())
         try{
           roster.reloadAndWait();
         }catch (Exception e){
-          Log.e("ERROR", "An error occurred while reloading the roster");
+          Log.e("SERVICE_ERROR", "An error occurred while reloading the roster");
         }
       String buddyId = message.getFrom();
       MessageXmlParser.Message msg = MessageXmlParser.parse(message.getBody());
@@ -275,10 +216,10 @@ public class MessageService extends Service{
                   buddyId,
                   buddyId,
                   msg.type,
-                  SendImageFragment.createJSON(mfu.getFileName()
-                                  .getAbsolutePath(),
+                  SendImageFragment.createJSON(
+                          mfu.getFileName().getAbsolutePath(),
                           msg.description).toString(),
-                  "http://" + server + "/ChatApp/" + msg.url,
+                  "http://" + XmppManager.SERVER + "/ChatApp/" + msg.url,
                   "0",
                   MessageHistory.STATUS_WAITING);
         }catch (Exception e){
@@ -290,9 +231,17 @@ public class MessageService extends Service{
 
   private class MyChatManagerListener implements ChatManagerListener{
     @Override
-    public void chatCreated(Chat chat, boolean b){
-      chat.addMessageListener(new MyChatMessageListener());
+    public void chatCreated(Chat chat, boolean createdLocally){
+      if (chat.getListeners().isEmpty())
+        chat.addMessageListener(new MyChatMessageListener());
+    }
+  }
 
+  private class InitAsyncTask extends AsyncTask<Void, Void, Void>{
+    @Override
+    protected Void doInBackground(Void... params){
+      initialize();
+      return null;
     }
   }
 }

@@ -296,7 +296,8 @@ public class MessageHistory{
         long _ID = messages.getLong(7);
         switch (type){
           case (MessageHistory.TYPE_TEXT):
-            result[i] = new TextMessage(!me.equals(from), content, time, status);
+            result[i] = new TextMessage(!me.equals(from), content, time,
+                    status, _ID);
             if (((TextMessage) result[i]).left)
               updateMessageStatus(from, _ID, STATUS_READ);
             break;

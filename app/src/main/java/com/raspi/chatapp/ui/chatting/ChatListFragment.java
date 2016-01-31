@@ -15,15 +15,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,8 +59,6 @@ public class ChatListFragment extends Fragment{
     IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
     filter.setPriority(1);
     getContext().registerReceiver(MessageReceiver, filter);
-    getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams
-            .SOFT_INPUT_STATE_ALWAYS_HIDDEN);
   }
 
   @Override

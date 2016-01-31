@@ -4,6 +4,8 @@
       <root url="jar://$PROJECT_DIR$/libs/smack-im-4.1.4.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ideaLibSources/smack-im-4.1.4-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>

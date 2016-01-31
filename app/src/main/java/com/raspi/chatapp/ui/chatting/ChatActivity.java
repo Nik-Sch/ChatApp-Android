@@ -52,6 +52,8 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.RECEIVE_MESSAGE";
   public static final String CONN_ESTABLISHED = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.CONN_ESTABLISHED";
+  public static final String CONN_LOST = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.CONN_LOST";
   public static final String IMAGE_URI = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.IMAGE_URI";
 
