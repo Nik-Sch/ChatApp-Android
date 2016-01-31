@@ -56,8 +56,8 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
       if (chatObj.sent)
         switch (chatObj.lastMessageStatus){
           case MessageHistory.STATUS_WAITING:
-            ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageDrawable(null);
-            //TODO new image like waiting circle
+            ((ImageView) v.findViewById(R.id.chat_list_entry_status))
+                    .setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
             break;
           case MessageHistory.STATUS_SENT:
             ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageResource(R.drawable.single_grey_hook);

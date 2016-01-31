@@ -42,4 +42,6 @@
     <string name="pwd_not_changed">Das Passwort wurde nicht geändert</string>
     <string name="change_pwd">Passwort ändern</string>
     <string name="delete">Löschen</string>
+    <string name="copy">Kopieren</string>
+    <string name="image">Bild</string>
 </resources>

@@ -79,17 +79,22 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
   }
 
   public View getView(final int position, View ConvertView, ViewGroup parent){
+    return getView(position, ConvertView, parent, true);
+  }
+
+  public View getView(final int position, View ConvertView, ViewGroup parent,
+                      boolean reloadImage){
     View v = ConvertView;
     MessageArrayContent Obj = getItem(position);
 
     if (Obj.getClass() == TextMessage.class){
+      final TextMessage msgObj = (TextMessage) Obj;
       if (v == null || v.findViewById(R.id.message_text) == null){
         LayoutInflater inflater = (LayoutInflater) this.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         v = inflater.inflate(R.layout.message_text, parent, false);
       }
 
-      TextMessage msgObj = (TextMessage) Obj;
       RelativeLayout layoutOuter = (RelativeLayout) v.findViewById(R.id.message_text);
       LinearLayout layoutInner = (LinearLayout) v.findViewById(R.id
               .message_text_inner);
@@ -103,13 +108,16 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       if (msgObj.left){
         layoutOuter.setGravity(Gravity.START);
         v.findViewById(R.id.message_text_status).setVisibility(View.GONE);
+        layoutInner.setAlpha(1f);
         //I don't really care about the status, obviously read is right...
       }else{
         layoutOuter.setGravity(Gravity.END);
+        v.findViewById(R.id.message_text_status).setVisibility(View.VISIBLE);
         switch (msgObj.status){
           case MessageHistory.STATUS_WAITING:
-            v.findViewById(R.id.message_text_status).setVisibility(View.GONE);
-            layoutInner.setAlpha(0.2f);
+            ((ImageView) v.findViewById(R.id.message_text_status))
+                    .setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
+            layoutInner.setAlpha(0.5f);
             break;
           case MessageHistory.STATUS_SENT:
             ((ImageView) v.findViewById(R.id.message_text_status))
@@ -129,13 +137,13 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
         }
       }
     }else if (Obj.getClass() == ImageMessage.class){
+      final ImageMessage msgObj = (ImageMessage) Obj;
       if (v == null || v.findViewById(R.id.message_image) == null){
         LayoutInflater inflater = (LayoutInflater) getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         v = inflater.inflate(R.layout.message_image, parent, false);
       }
 
-      final ImageMessage msgObj = (ImageMessage) Obj;
       RelativeLayout layoutOuter = (RelativeLayout) v.findViewById(R.id
               .message_image);
       RelativeLayout layoutInner = (RelativeLayout) v.findViewById(R.id
@@ -148,6 +156,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       ImageView imageView = (ImageView) v.findViewById(R.id
               .message_image_image);
 
+
       TextView chatTime = (TextView) v.findViewById(R.id.message_image_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
               (msgObj.time));
@@ -156,66 +165,68 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       if (msgObj.left){
         layoutOuter.setGravity(Gravity.START);
         v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
-        v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
         if (MessageHistory.STATUS_RECEIVING.equals(msgObj.status)){
-          imageView.setVisibility(View.INVISIBLE);
           v.findViewById(R.id.message_image_progress).setVisibility(View.VISIBLE);
+          layoutInner.setAlpha(0.5f);
         }else{
           v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
+          layoutInner.setAlpha(1f);
           try{
-            loadBitmap(new File(msgObj.file), imageView);
+            if (reloadImage)
+              loadBitmap(new File(msgObj.file), imageView);
           }catch (Exception e){
           }
         }
       }else{
         try{
-          loadBitmap(new File(msgObj.file), imageView);
+          if (reloadImage)
+            loadBitmap(new File(msgObj.file), imageView);
         }catch (Exception e){
         }
         layoutOuter.setGravity(Gravity.END);
+        v.findViewById(R.id.message_image_status).setVisibility(View.VISIBLE);
         ProgressBar progressBar;
 
         switch (msgObj.status){
           case MessageHistory.STATUS_WAITING:
-            v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
+            ((ImageView) v.findViewById(R.id.message_image_status))
+                    .setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
             progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress(1);
-            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
+            layoutInner.setAlpha(0.5f);
             break;
           case MessageHistory.STATUS_SENDING:
-          case MessageHistory.STATUS_RECEIVING:
-            v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
+            imageView = (ImageView) v.findViewById(R.id
+                    .message_image_status);
+            imageView.setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
             progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress(msgObj.progress);
-            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
+            layoutInner.setAlpha(0.5f);
             break;
           case MessageHistory.STATUS_SENT:
             imageView = (ImageView) v.findViewById(R.id
                     .message_image_status);
             imageView.setImageResource(R.drawable.single_grey_hook);
-            imageView.setVisibility(View.VISIBLE);
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
-            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
+            layoutInner.setAlpha(1f);
             break;
           case MessageHistory.STATUS_RECEIVED:
             imageView = (ImageView) v.findViewById(R.id
                     .message_image_status);
             imageView.setImageResource(R.drawable.two_grey_hook);
-            imageView.setVisibility(View.VISIBLE);
-            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
+            layoutInner.setAlpha(1f);
             break;
           case MessageHistory.STATUS_READ:
             imageView = (ImageView) v.findViewById(R.id
                     .message_image_status);
             imageView.setImageResource(R.drawable.two_blue_hook);
-            imageView.setVisibility(View.VISIBLE);
-            v.findViewById(R.id.message_image_retry).setVisibility(View.GONE);
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
+            layoutInner.setAlpha(1f);
             break;
         }
       }

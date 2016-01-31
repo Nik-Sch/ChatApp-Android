@@ -27,6 +27,7 @@
     <string name="sd_card" translatable="false">SD Card</string>
     <string name="delete">Delete</string>
     <string name="copy">Copy</string>
+    <string name="image">Image</string>
 
 
     <!-- Strings related to Settings -->

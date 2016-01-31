@@ -8,6 +8,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
@@ -103,6 +104,8 @@ public class MessageHistory{
                       (msgTime);
             else
               lastMessageDate = "Yesterday";
+            msg.description += "".equals(msg.description)?context
+                    .getResources().getString(R.string.image):"";
 
             resultChats[i] = new ChatEntry(
                     buddyId,

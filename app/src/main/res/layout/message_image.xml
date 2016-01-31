@@ -31,16 +31,6 @@
                 android:layout_height="220dp"
                 android:scaleType="centerCrop"/>
 
-            <ImageButton
-                android:id="@+id/message_image_retry"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_centerHorizontal="true"
-                android:layout_centerVertical="true"
-                android:alpha="0.3"
-                android:src="@drawable/refresh"
-                android:scaleType="fitCenter"/>
-
             <ProgressBar
                 android:id="@+id/message_image_progress"
                 style="@android:style/Widget.ProgressBar.Horizontal"

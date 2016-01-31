@@ -29,7 +29,6 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.R;
@@ -86,7 +85,8 @@ public class ChatFragment extends Fragment{
                     if (im._ID == Long.parseLong(messageId)){
                       Log.d("UPLOAD_DEBUG", "progress: " + progress);
                       im.progress = progress;
-                      updateProgressBar(i, progress);
+//                      updateProgressBar(i, progress);
+                      updateMessage(i);
                     }
                   }
                 }
@@ -108,7 +108,7 @@ public class ChatFragment extends Fragment{
                     ImageMessage im = (ImageMessage) mac;
                     if (im._ID == Long.parseLong(messageId)){
                       im.status = MessageHistory.STATUS_SENT;
-                      updateMessageStatus(i);
+                      updateMessage(i);
                     }
                   }
                 }
@@ -446,29 +446,15 @@ public class ChatFragment extends Fragment{
     }
   }
 
-  /**
-   * updates the progress bar of the given item of the listview
-   * if the message is not visible or the index is invalid nothing happens
-   * @param index the index of the message that should be updated in the maa
-   */
-  private void updateProgressBar(int index, int progress){
-    try{
-      View v = listView.getChildAt(index - listView.getFirstVisiblePosition());
-      if (v != null){
-        ProgressBar progressBar = (ProgressBar) v.findViewById(R.id
-                .message_image_progress);
-        if (progressBar != null)
-          progressBar.setProgress(progress);
-      }
-    }catch (Exception e){
-    }
+  private void updateMessage(int index){
+    updateMessage(index, false);
   }
 
-  private void updateMessageStatus(int index){
+  private void updateMessage(int index, boolean reloadImage){
     try{
       View v = listView.getChildAt(index - listView.getFirstVisiblePosition());
       if (v != null){
-        maa.getView(index, v, listView);
+        maa.getView(index, v, listView, reloadImage);
       }
     }catch (Exception e){
     }
@@ -481,7 +467,8 @@ public class ChatFragment extends Fragment{
         throw new Exception("ext storage not writable. Cannot save " +
                 "image");
       messageHistory.updateMessageStatus(chatName, msg._ID,
-              MessageHistory.STATUS_SENDING);
+              MessageHistory.STATUS_RECEIVING);
+      msg.status = MessageHistory.STATUS_RECEIVING;
       Intent intent = new Intent(getContext(), DownloadService.class);
       intent.setAction(DownloadService.DOWNLOAD_ACTION);
       intent.putExtra(DownloadService.PARAM_URL, msg.url);
@@ -530,14 +517,15 @@ public class ChatFragment extends Fragment{
             if (im._ID == messageId){
               Log.d("DEBUG DOWNLOAD", "progress: " + progress);
               if (progress < 100){
-                im.progress = progress;
-                updateProgressBar(i, progress);
+                ((ImageMessage) mac).progress = progress;
+//                updateProgressBar(i, progress);
+                updateMessage(i);
               }else{
                 im.status = MessageHistory.STATUS_READ;
-                updateMessageStatus(i);
+                updateMessage(i);
                 messageHistory.updateMessageStatus(chatName, messageId,
                         MessageHistory.STATUS_READ);
-                updateMessageStatus(i);
+                updateMessage(i, true);
               }
             }
           }
