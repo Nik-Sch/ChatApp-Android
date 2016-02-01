@@ -147,7 +147,7 @@ public class ChatFragment extends Fragment{
       }
     }
   };
-  private BroadcastReceiver connectedReceiver = new BroadcastReceiver(){
+  private BroadcastReceiver reconnectedReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
       updateStatus(messageHistory.getOnline(buddyId));
@@ -216,10 +216,10 @@ public class ChatFragment extends Fragment{
     getContext().registerReceiver(MessageReceiver, filter);
     LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance
             (getContext());
-    LBmgr.registerReceiver(connectedReceiver, new IntentFilter
-            (ChatActivity.CONN_ESTABLISHED));
+    LBmgr.registerReceiver(reconnectedReceiver, new IntentFilter
+            (ChatActivity.RECONNECTED));
     LBmgr.registerReceiver(disconnectedReceiver, new IntentFilter
-            (ChatActivity.CONN_LOST));
+            (ChatActivity.DISCONNECTED));
     LBmgr.registerReceiver(PresenceChangeReceiver, new IntentFilter
             (ChatActivity.PRESENCE_CHANGED));
     uploadReceiver.register(getContext());
@@ -235,7 +235,7 @@ public class ChatFragment extends Fragment{
     getContext().unregisterReceiver(MessageReceiver);
     LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance(getContext());
     LBmgr.unregisterReceiver(PresenceChangeReceiver);
-    LBmgr.unregisterReceiver(connectedReceiver);
+    LBmgr.unregisterReceiver(reconnectedReceiver);
     LBmgr.unregisterReceiver(disconnectedReceiver);
     uploadReceiver.unregister(getContext());
     super.onPause();
@@ -386,7 +386,7 @@ public class ChatFragment extends Fragment{
   }
 
   private boolean sendTextMessage(String message){
-    XmppManager xmppManager = XmppManager.getInstance();
+    XmppManager xmppManager = XmppManager.getInstance(getContext());
     return (xmppManager.sendTextMessage(message, buddyId));
   }
 

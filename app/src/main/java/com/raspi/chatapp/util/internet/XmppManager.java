@@ -1,7 +1,12 @@
 package com.raspi.chatapp.util.internet;
 
+import android.content.Context;
+import android.content.Intent;
+import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -49,7 +54,22 @@ public class XmppManager{
 
   private XMPPTCPConnection connection;
 
-  public static XmppManager getInstance(){
+  private static LocalBroadcastManager LBMgr;
+
+  /**
+   * returns an instance of the xmppManager
+   * @param context - the context with which to initialize a
+   *                LocalBroadCastManager, if this is not the first call of
+   *                this function it might also be null
+   * @return
+   */
+  @Nullable
+  public static XmppManager getInstance(Context context){
+    //yes this is the lazy implementation for the LBMgr but I think for the
+    // LBMgr it is not that important that there might be a second
+    // initialization
+    if (LBMgr == null && context != null)
+      LBMgr = LocalBroadcastManager.getInstance(context);
     return Holder.INSTANCE;
   }
 
@@ -288,16 +308,19 @@ public class XmppManager{
     @Override
     public void connectionClosed(){
       Log.d("XMPP_MANAGER", "closed the connection successfully");
+      LBMgr.sendBroadcast(new Intent(ChatActivity.DISCONNECTED));
     }
 
     @Override
     public void connectionClosedOnError(Exception e){
       Log.d("XMPP_MANAGER", "Connection closed on error");
+      LBMgr.sendBroadcast(new Intent(ChatActivity.DISCONNECTED));
     }
 
     @Override
     public void reconnectionSuccessful(){
       Log.d("XMPP_MANAGER", "reconnected successfully");
+      LBMgr.sendBroadcast(new Intent(ChatActivity.RECONNECTED));
 
     }
 

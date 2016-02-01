@@ -24,7 +24,7 @@ public class Upload{
 
   public void uploadFile(final Context context, Task task){
     messageHistory = new MessageHistory(context);
-    xmppManager = XmppManager.getInstance();
+    xmppManager = XmppManager.getInstance(null);
     this.context = context;
     final String uploadID = task.chatId + "|" + task.messageID;
     try{

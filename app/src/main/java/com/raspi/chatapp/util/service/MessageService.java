@@ -97,13 +97,18 @@ public class MessageService extends Service{
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId){
-    if (intent != null)
-      if (ChatActivity.APP_LAUNCHED.equals(intent.getAction()))
-        isAppRunning = true;
-      else if (ChatActivity.APP_CLOSED.equals(intent.getAction()))
-        isAppRunning = false;
-
     new InitAsyncTask().execute();
+    if (intent != null)
+      if (ChatActivity.APP_LAUNCHED.equals(intent.getAction())){
+        try{
+          xmppManager.getConnection().connect();
+        }catch (Exception e){
+        }
+        isAppRunning = true;
+      }else if (ChatActivity.APP_CLOSED.equals(intent.getAction())){
+        isAppRunning = false;
+      }
+
     return START_STICKY;
   }
 
@@ -112,7 +117,7 @@ public class MessageService extends Service{
       //initialize xmpp:
       Log.d("SERVICE_DEBUG", "MessageService initializing");
       if (xmppManager == null)
-        xmppManager = XmppManager.getInstance();
+        xmppManager = XmppManager.getInstance(getApplicationContext());
       if (!xmppManager.isConnected()){
         xmppManager.init();
         xmppManager.performLogin(getUserName(), getPassword());
@@ -164,7 +169,7 @@ public class MessageService extends Service{
   @Override
   public void onDestroy(){
     Log.d("SERVICE_DEBUG", "disconnecting xmpp");
-    XmppManager.getInstance().disconnect();
+    XmppManager.getInstance(null).disconnect();
     super.onDestroy();
   }
 

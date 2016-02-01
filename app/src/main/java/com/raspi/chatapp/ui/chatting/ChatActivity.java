@@ -52,10 +52,10 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.PRESENCE_STATUS";
   public static final String RECEIVE_MESSAGE = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.RECEIVE_MESSAGE";
-  public static final String CONN_ESTABLISHED = "com.raspi.chatapp.ui.chatting" +
-          ".ChatActivity.CONN_ESTABLISHED";
-  public static final String CONN_LOST = "com.raspi.chatapp.ui.chatting" +
-          ".ChatActivity.CONN_LOST";
+  public static final String RECONNECTED = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.RECONNECTED";
+  public static final String DISCONNECTED = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.DISCONNECTED";
   public static final String IMAGE_URI = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.IMAGE_URI";
   public static final String PWD_REQUEST = "com.raspi.chatapp.ui.chatting" +
