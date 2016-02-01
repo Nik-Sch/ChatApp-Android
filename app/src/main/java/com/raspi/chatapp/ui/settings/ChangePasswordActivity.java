@@ -1,5 +1,6 @@
 package com.raspi.chatapp.ui.settings;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -34,33 +35,10 @@ public class ChangePasswordActivity extends AppCompatActivity{
   @Override
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
-    Intent callingIntent = getIntent();
-    if (callingIntent != null){
-      if (CHANGE_PWD.equals(callingIntent.getAction())){
-        //access was granted -> change pwd
-        setContentView(R.layout.content_change_pwd_pin);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle(R.string.change_pwd);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeButtonEnabled(true);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams
-                .SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        active = true;
-      }else{
-        Intent intent = new Intent(this, PasswordActivity.class);
-        intent.setAction(CHANGE_PWD);
-        intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS | Intent.FLAG_ACTIVITY_NO_HISTORY);
-        startActivity(intent);
-        finish();
-      }
-    }else{
-      Intent intent = new Intent(this, PasswordActivity.class);
-      intent.setAction(CHANGE_PWD);
-      intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS | Intent.FLAG_ACTIVITY_NO_HISTORY);
-      startActivity(intent);
-    }
+
+    Intent intent = new Intent(this, PasswordActivity.class);
+    intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS | Intent.FLAG_ACTIVITY_NO_HISTORY);
+    startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
   }
 
   @Override
@@ -154,6 +132,25 @@ public class ChangePasswordActivity extends AppCompatActivity{
   }
 
   @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data){
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode == PasswordActivity.ASK_PWD_REQUEST && resultCode ==
+            Activity.RESULT_OK){
+      //access was granted -> change pwd
+      setContentView(R.layout.content_change_pwd_pin);
+      Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+      setSupportActionBar(toolbar);
+      ActionBar actionBar = getSupportActionBar();
+      actionBar.setTitle(R.string.change_pwd);
+      actionBar.setDisplayHomeAsUpEnabled(true);
+      actionBar.setHomeButtonEnabled(true);
+      getWindow().setSoftInputMode(WindowManager.LayoutParams
+              .SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+      active = true;
+    }
+  }
+
+  @Override
   protected void onDestroy(){
     super.onDestroy();
     if (active){
@@ -162,7 +159,7 @@ public class ChangePasswordActivity extends AppCompatActivity{
       toast.show();
     }
   }
-  
+
   @Override
   public boolean onSupportNavigateUp(){
     finish();

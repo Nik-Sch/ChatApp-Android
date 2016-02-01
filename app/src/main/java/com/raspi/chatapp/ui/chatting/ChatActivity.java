@@ -11,11 +11,13 @@ import android.provider.MediaStore;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.alexbbb.uploadservice.UploadService;
+import com.raspi.chatapp.BuildConfig;
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.password.PasswordActivity;
 import com.raspi.chatapp.ui.settings.SettingsActivity;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.service.MessageService;
@@ -32,8 +34,8 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.USERNAME";
   public static final String PASSWORD = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.PASSWORD";
-  public static final String RECONNECT = "com.raspi.chatapp.ui.chatting" +
-          ".ChatActivity.RECONNECT";
+  public static final String CLASS = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.CLASS";
   public static final String APP_LAUNCHED = "con.raspi.chatapp.ui.chatting" +
           ".ChatActivity.APP_CREATED";
   public static final String APP_CLOSED = "con.raspi.chatapp.ui.chatting" +
@@ -69,40 +71,21 @@ public class ChatActivity extends AppCompatActivity implements
   @Override
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_chat);
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
-
-    getSupportFragmentManager().addOnBackStackChangedListener(this);
-    shouldDisplayHomeUp();
+    UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
 
     setUserPwd();
 
-    ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
-            (Notification.NOTIFICATION_ID);
-    new Notification(this).reset();
-
-    getSupportFragmentManager().beginTransaction().add(R.id
-            .fragment_container, new ChatListFragment()).commit();
-
     Intent callingIntent = getIntent();
-    if (callingIntent != null && Notification.NOTIFICATION_CLICK.equals
-            (callingIntent.getAction())){
-      Log.d("DEBUG", "received intend not click");
+    if (callingIntent != null){
       Bundle extras = callingIntent.getExtras();
       if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras
               .containsKey(ChatActivity.CHAT_NAME)){
-        onChatOpened(extras.getString(ChatActivity.BUDDY_ID), extras
-                .getString(ChatActivity.CHAT_NAME));
+        currentBuddyId = extras.getString(ChatActivity.BUDDY_ID);
+        currentChatName = extras.getString(ChatActivity.CHAT_NAME);
       }
     }
-  }
-
-  @Override
-  protected void onResume(){
-    super.onResume();
-    this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
-    new Notification(this).reset();
+    Intent intent = new Intent(this, PasswordActivity.class);
+    startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
   }
 
   @Override
@@ -187,6 +170,29 @@ public class ChatActivity extends AppCompatActivity implements
       getSupportFragmentManager().beginTransaction().replace(R.id
               .fragment_container, fragment).addToBackStack(SendImageFragment
               .class.getName()).commit();
+    }else if (requestCode == PasswordActivity.ASK_PWD_REQUEST){
+      if (resultCode == Activity.RESULT_OK){
+        setContentView(R.layout.activity_chat);
+        if (!ChatActivity.BUDDY_ID.equals(currentBuddyId)){
+          onChatOpened(currentBuddyId, currentChatName);
+        }else
+          getSupportFragmentManager().beginTransaction().add(R.id
+                  .fragment_container, new ChatListFragment()).commit();
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportFragmentManager().addOnBackStackChangedListener(this);
+        shouldDisplayHomeUp();
+
+        this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
+                (Notification.NOTIFICATION_ID);
+        new Notification(this).reset();
+      }else{
+        startActivityForResult(new Intent(this, PasswordActivity.class),
+                PasswordActivity.ASK_PWD_REQUEST);
+      }
     }
   }
 

@@ -1,18 +1,13 @@
 package com.raspi.chatapp.ui.password;
 
-import android.content.Intent;
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Base64;
 
-import com.alexbbb.uploadservice.UploadService;
-import com.raspi.chatapp.BuildConfig;
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.ui.chatting.ChatActivity;
-import com.raspi.chatapp.ui.settings.ChangePasswordActivity;
-import com.raspi.chatapp.util.Notification;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.KeySpec;
@@ -30,33 +25,27 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
   public static final String SALT = "com.raspi.chatapp.ui.password" +
           ".PasswordActivity.SALT";
 
+  public static final int ASK_PWD_REQUEST = 1;
+
   public static final int ITERATIONS = 1024;
   public static final int SALT_LENGTH = 32;
 
-  private String buddyId = null, chatName = null;
-  private boolean not_click = false, change_pwd = false;
+  private boolean access = false;
+
+  public static SecretKeyFactory getSecretKeyFactory() throws
+          NoSuchAlgorithmException, NullPointerException{
+    SecretKeyFactory f;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+      f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1And8bit");
+    else
+      f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+    return f;
+  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
 
-    Intent callingIntent = getIntent();
-    if (callingIntent != null){
-      String action = callingIntent.getAction();
-      if (Notification.NOTIFICATION_CLICK.equals
-              (action)){
-        not_click = true;
-        Bundle extras = callingIntent.getExtras();
-        if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras
-                .containsKey(ChatActivity.CHAT_NAME)){
-          buddyId = extras.getString(ChatActivity.BUDDY_ID);
-          chatName = extras.getString(ChatActivity.CHAT_NAME);
-        }
-      }else if (ChangePasswordActivity.CHANGE_PWD.equals(action)){
-        change_pwd = true;
-      }
-    }
-    UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
     setContentView(R.layout.activity_password);
     if (savedInstanceState == null)
       getSupportFragmentManager().beginTransaction().add(R.id
@@ -64,21 +53,15 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
   }
 
   private void grantAccess(){
-    Intent intent;
-    if (change_pwd){
-      intent = new Intent(this, ChangePasswordActivity.class);
-      intent.setAction(ChangePasswordActivity.CHANGE_PWD);
-    }else{
-      intent = new Intent(this, ChatActivity.class);
-      if (buddyId != null){
-        intent.putExtra(ChatActivity.BUDDY_ID, buddyId);
-        intent.putExtra(ChatActivity.CHAT_NAME, chatName);
-        if (not_click)
-          intent.setAction(Notification.NOTIFICATION_CLICK);
-      }
-    }
-    startActivity(intent);
+    access = true;
+    setResult(Activity.RESULT_OK);
     finish();
+  }
+
+  @Override
+  protected void onPause(){
+    setResult(access ? Activity.RESULT_OK : Activity.RESULT_CANCELED);
+    super.onPause();
   }
 
   private boolean checkPassword(char[] pwd){
@@ -106,16 +89,6 @@ public class PasswordActivity extends AppCompatActivity implements PinFragment.O
     }catch (Exception e){
     }
     return false;
-  }
-
-  public static SecretKeyFactory getSecretKeyFactory() throws
-          NoSuchAlgorithmException, NullPointerException{
-    SecretKeyFactory f;
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-      f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1And8bit");
-    else
-      f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-    return f;
   }
 
   @Override
