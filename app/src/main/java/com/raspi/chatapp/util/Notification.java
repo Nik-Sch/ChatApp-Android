@@ -23,7 +23,6 @@ import android.util.TypedValue;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
-import com.raspi.chatapp.ui.password.PasswordActivity;
 
 import org.json.JSONArray;
 
@@ -57,7 +56,7 @@ public class Notification{
       if (name == null)
         name = buddyId;
       Log.d("DEBUG", "creating notification: " + buddyId + "|" + name + "|" + message);
-      Intent resultIntent = new Intent(context, PasswordActivity.class);
+      Intent resultIntent = new Intent(context, ChatActivity.class);
       resultIntent.setAction(NOTIFICATION_CLICK);
       String oldBuddyId = getOldBuddyId();
       Log.d("DEBUG", (oldBuddyId == null) ? ("oldBuddy is null (later " + buddyId) : ("oldBuddy: " +

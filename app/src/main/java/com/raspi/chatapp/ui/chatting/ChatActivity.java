@@ -200,6 +200,12 @@ public class ChatActivity extends AppCompatActivity implements
         if (ChatActivity.BUDDY_ID.equals(currentBuddyId))
           getSupportFragmentManager().beginTransaction().replace(R.id
                   .fragment_container, new ChatListFragment()).commit();
+        else if (getSupportFragmentManager().getFragments() == null){
+          //for propagating the backstack...
+          getSupportFragmentManager().beginTransaction().replace(R.id
+                  .fragment_container, new ChatListFragment()).commit();
+          onChatOpened(currentBuddyId, currentChatName);
+        }
 
         this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel

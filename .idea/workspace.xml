@@ -44,14 +44,7 @@
   <component name="ChangeListManager">
     <list default="true" id="de39a921-c527-459a-b6d8-fbc4e1f34479" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatActivity.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatActivity.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatFragment.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatFragment.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatListFragment.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatListFragment.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/password/PasswordActivity.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/password/PasswordActivity.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/password/PinFragment.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/password/PinFragment.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" afterPath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/res/layout/fragment_pin.xml" afterPath="$PROJECT_DIR$/app/src/main/res/layout/fragment_pin.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/res/values-de/strings.xml" afterPath="$PROJECT_DIR$/app/src/main/res/values-de/strings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/Notification.java" afterPath="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/Notification.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="ChatApp.iws" />
@@ -105,15 +98,25 @@
       <file leaf-file-name="ChatActivity.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.05882353">
-              <caret line="166" column="2" selection-start-line="166" selection-start-column="2" selection-end-line="166" selection-end-column="2" />
+            <state vertical-scroll-proportion="0.3607908">
+              <caret line="203" column="44" selection-start-line="203" selection-start-column="44" selection-end-line="203" selection-end-column="44" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#5053#5054#0" expanded="true" />
                 <element signature="e#5074#5075#0" expanded="true" />
-                <element signature="e#9394#9395#0" expanded="true" />
-                <element signature="e#9425#9426#0" expanded="true" />
+                <element signature="e#9719#9720#0" expanded="true" />
+                <element signature="e#9750#9751#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Notification.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/Notification.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="59" column="49" selection-start-line="59" selection-start-column="49" selection-end-line="59" selection-end-column="49" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -142,29 +145,22 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SettingsActivity.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/settings/SettingsActivity.java">
+      <file leaf-file-name="MessageService.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/service/MessageService.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="172" column="18" selection-start-line="172" selection-start-column="18" selection-end-line="172" selection-end-column="18" />
-              <folding>
-                <element signature="e#5590#5591#0" expanded="true" />
-                <element signature="e#5627#5628#0" expanded="true" />
-              </folding>
+              <caret line="189" column="0" selection-start-line="189" selection-start-column="0" selection-end-line="189" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ChangePasswordActivity.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/settings/ChangePasswordActivity.java">
+      <file leaf-file-name="XmppManager.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/internet/XmppManager.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="164" column="13" selection-start-line="164" selection-start-column="13" selection-end-line="164" selection-end-column="13" />
-              <folding>
-                <element signature="e#4385#4404#0" expanded="true" />
-                <element signature="e#4795#4830#0" expanded="true" />
-                <element signature="e#4833#4857#0" expanded="true" />
-              </folding>
+              <caret line="162" column="34" selection-start-line="162" selection-start-column="34" selection-end-line="162" selection-end-column="34" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -1667,7 +1663,6 @@
         <option value="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/util/message_array/NewMessage.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/activity_change_password.xml" />
         <option value="$PROJECT_DIR$/app/src/main/res/values-v21/styles.xml" />
-        <option value="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/Notification.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/menu/menu_chat.xml" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/content_change_pwd_pin.xml" />
         <option value="$PROJECT_DIR$/app/build.gradle" />
@@ -1711,6 +1706,7 @@
         <option value="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/password/PasswordActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatFragment.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatListFragment.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/Notification.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatActivity.java" />
       </list>
     </option>
@@ -1953,6 +1949,36 @@
             <PATH_ELEMENT>
               <option name="myItemId" value="chatapp" />
               <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="util" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ChatApp" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="java" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidSourceTypeNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="chatapp" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="util" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="internet" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
@@ -2343,61 +2369,23 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/service/MessageService.java</url>
-          <line>189</line>
-          <properties />
-          <option name="timeStamp" value="181" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatActivity.java</url>
-          <line>124</line>
-          <properties />
-          <option name="timeStamp" value="206" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatFragment.java</url>
           <line>253</line>
           <properties />
           <option name="timeStamp" value="208" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatActivity.java</url>
+          <line>198</line>
+          <properties />
+          <option name="timeStamp" value="209" />
+        </line-breakpoint>
       </breakpoints>
-      <option name="time" value="209" />
+      <option name="time" value="210" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/fragment_chat.xml">
-      <provider editor-type-id="android-designer">
-        <state />
-      </provider>
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-8.793103">
-          <caret line="21" column="36" selection-start-line="21" selection-start-column="36" selection-end-line="21" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Android/Sdk/sources/android-23/android/content/Context.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33278418">
-          <caret line="2056" column="27" selection-start-line="2056" selection-start-column="27" selection-end-line="2056" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.alexbbb/uploadservice/1.6/b0f95ab1ad32379a7d36bbb4fb3508207ba9d0e5/uploadservice-1.6-sources.jar!/com/alexbbb/uploadservice/UploadServiceBroadcastReceiver.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.41680396">
-          <caret line="69" column="24" selection-start-line="66" selection-start-column="16" selection-end-line="69" selection-end-column="24" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/util/message_array/ImageMessage.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="10" column="2" selection-start-line="10" selection-start-column="2" selection-end-line="10" selection-end-column="2" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/util/chat_array/ChatEntry.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.6721582">
@@ -2533,6 +2521,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="165" column="26" selection-start-line="165" selection-start-column="26" selection-end-line="165" selection-end-column="26" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -2547,6 +2536,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33278418">
           <caret line="139" column="13" selection-start-line="139" selection-start-column="13" selection-end-line="139" selection-end-column="13" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -2561,14 +2551,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33278418">
           <caret line="78" column="13" selection-start-line="78" selection-start-column="13" selection-end-line="78" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/.ideaLibSources/smack-im-4.1.4-sources.jar!/org/jivesoftware/smack/chat/ChatManager.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30807248">
-          <caret line="50" column="28" selection-start-line="50" selection-start-column="28" selection-end-line="50" selection-end-column="28" />
           <folding />
         </state>
       </provider>
@@ -2597,16 +2579,6 @@
         <state vertical-scroll-proportion="-7.62069">
           <caret line="13" column="47" selection-start-line="13" selection-start-column="47" selection-end-line="13" selection-end-column="47" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/internet/XmppManager.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="82" column="0" selection-start-line="82" selection-start-column="0" selection-end-line="82" selection-end-column="0" />
-          <folding>
-            <element signature="imports" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -2642,14 +2614,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.35172415">
           <caret line="12" column="55" selection-start-line="12" selection-start-column="55" selection-end-line="12" selection-end-column="55" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/service/MessageService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="4.0477757">
-          <caret line="210" column="67" selection-start-line="210" selection-start-column="67" selection-end-line="210" selection-end-column="67" />
           <folding />
         </state>
       </provider>
@@ -2798,16 +2762,72 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar://$USER_HOME$/.ideaLibSources/smack-im-4.1.4-sources.jar!/org/jivesoftware/smack/chat/Chat.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="94" column="16" selection-start-line="94" selection-start-column="16" selection-end-line="94" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.ideaLibSources/smack-core-4.1.4-sources.jar!/org/jivesoftware/smack/XMPPConnection.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="171" column="16" selection-start-line="171" selection-start-column="16" selection-end-line="171" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.ideaLibSources/smack-im-4.1.4-sources.jar!/org/jivesoftware/smack/chat/ChatManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="353" column="36" selection-start-line="353" selection-start-column="36" selection-end-line="353" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.ideaLibSources/smack-core-4.1.4-sources.jar!/org/jivesoftware/smack/packet/Message.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-11.3459635">
+          <caret line="53" column="19" selection-start-line="53" selection-start-column="19" selection-end-line="53" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/internet/XmppManager.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="162" column="34" selection-start-line="162" selection-start-column="34" selection-end-line="162" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/Notification.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="59" column="49" selection-start-line="59" selection-start-column="49" selection-end-line="59" selection-end-column="49" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/util/service/MessageService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="189" column="0" selection-start-line="189" selection-start-column="0" selection-end-line="189" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/raspi/chatapp/ui/chatting/ChatActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.05882353">
-          <caret line="166" column="2" selection-start-line="166" selection-start-column="2" selection-end-line="166" selection-end-column="2" />
+        <state vertical-scroll-proportion="0.3607908">
+          <caret line="203" column="44" selection-start-line="203" selection-start-column="44" selection-end-line="203" selection-end-column="44" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#5053#5054#0" expanded="true" />
             <element signature="e#5074#5075#0" expanded="true" />
-            <element signature="e#9394#9395#0" expanded="true" />
-            <element signature="e#9425#9426#0" expanded="true" />
+            <element signature="e#9719#9720#0" expanded="true" />
+            <element signature="e#9750#9751#0" expanded="true" />
           </folding>
         </state>
       </provider>
