@@ -23,6 +23,10 @@ import com.raspi.chatapp.R;
 public class PinFragment extends Fragment{
   private OnFragmentInteractionListener mListener;
 
+  public PinFragment(){
+    // Required empty public constructor
+  }
+
   /**
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
@@ -36,8 +40,6 @@ public class PinFragment extends Fragment{
     Bundle args = new Bundle();
     fragment.setArguments(args);
     return fragment;
-  }  public PinFragment(){
-    // Required empty public constructor
   }
 
   @Override
@@ -66,11 +68,10 @@ public class PinFragment extends Fragment{
         if (s.length() == 4){
           char[] pwd = new char[4];
           s.getChars(0, 4, pwd, 0);
-          //TODO progressbar --> cycle
-          if (!mListener.onPasswordEntered(pwd)){
-            s.clear();
-          }
-        }
+          mListener.onPasswordEntered(pwd);
+          s.clear();
+        }else
+          getView().findViewById(R.id.password_invalid).setVisibility(View.GONE);
       }
     });
   }
@@ -110,6 +111,6 @@ public class PinFragment extends Fragment{
    * >Communicating with Other Fragments</a> for more information.
    */
   public interface OnFragmentInteractionListener{
-    boolean onPasswordEntered(char[] pwd);
+    void onPasswordEntered(char[] pwd);
   }
 }

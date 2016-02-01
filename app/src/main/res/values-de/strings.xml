@@ -44,4 +44,6 @@
     <string name="delete">Löschen</string>
     <string name="copy">Kopieren</string>
     <string name="image">Bild</string>
+    <string name="invalid_pwd">Das Passwort ist falsch</string>
+    <string name="logging_in">Einloggen</string>
 </resources>

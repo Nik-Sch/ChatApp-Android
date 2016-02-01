@@ -28,6 +28,8 @@
     <string name="delete">Delete</string>
     <string name="copy">Copy</string>
     <string name="image">Image</string>
+    <string name="invalid_pwd">The password is incorrect</string>
+    <string name="logging_in">Logging in</string>
 
 
     <!-- Strings related to Settings -->

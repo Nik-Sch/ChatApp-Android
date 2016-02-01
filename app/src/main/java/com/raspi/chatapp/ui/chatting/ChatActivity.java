@@ -58,6 +58,8 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.CONN_LOST";
   public static final String IMAGE_URI = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.IMAGE_URI";
+  public static final String PWD_REQUEST = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.PWD_REQUEST";
 
   public static final String IMAGE_DIR = "ChatApp Images";
 
@@ -73,6 +75,13 @@ public class ChatActivity extends AppCompatActivity implements
     super.onCreate(savedInstanceState);
     UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
 
+    setContentView(R.layout.activity_chat);
+    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    setSupportActionBar(toolbar);
+
+    getSupportFragmentManager().addOnBackStackChangedListener(this);
+    shouldDisplayHomeUp();
+
     setUserPwd();
 
     Intent callingIntent = getIntent();
@@ -84,8 +93,18 @@ public class ChatActivity extends AppCompatActivity implements
         currentChatName = extras.getString(ChatActivity.CHAT_NAME);
       }
     }
-    Intent intent = new Intent(this, PasswordActivity.class);
-    startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
+  }
+
+  @Override
+  protected void onResume(){
+    super.onResume();
+    if (getSharedPreferences(ChatActivity.PREFERENCES, 0).getBoolean
+            (ChatActivity.PWD_REQUEST, true)){
+      Intent intent = new Intent(this, PasswordActivity.class);
+      startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
+    }
+    getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
+            (ChatActivity.PWD_REQUEST, true).apply();
   }
 
   @Override
@@ -123,6 +142,8 @@ public class ChatActivity extends AppCompatActivity implements
   public void onSettingsClick(MenuItem menuItem){
     Intent intent = new Intent(this, SettingsActivity.class);
     startActivity(intent);
+    getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
+            (ChatActivity.PWD_REQUEST, false).apply();
   }
 
   public void onAddChatClick(MenuItem menuItem){
@@ -131,6 +152,8 @@ public class ChatActivity extends AppCompatActivity implements
   public void onDatabaseDebug(MenuItem menuItem){
     Intent intent = new Intent(this, AndroidDatabaseManager.class);
     startActivity(intent);
+    getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
+            (ChatActivity.PWD_REQUEST, false).apply();
   }
 
   private void setUserPwd(){
@@ -141,7 +164,7 @@ public class ChatActivity extends AppCompatActivity implements
     //if (!preferences.contains(PASSWORD))
     preferences.edit().putString(PASSWORD, "passwdAylin").apply();
   }
-
+  
   @Override
   public void onChatOpened(String buddyId, String name){
     ChatFragment fragment = new ChatFragment();
@@ -150,8 +173,8 @@ public class ChatActivity extends AppCompatActivity implements
     extras.putString(ChatActivity.CHAT_NAME, name);
     fragment.setArguments(extras);
     getSupportFragmentManager().beginTransaction().replace(R.id
-            .fragment_container, fragment).addToBackStack(ChatFragment.class.getName())
-            .commit();
+            .fragment_container, fragment).addToBackStack(ChatFragment.class
+            .getName()).commit();
     currentBuddyId = buddyId;
     currentChatName = name;
   }
@@ -171,19 +194,12 @@ public class ChatActivity extends AppCompatActivity implements
               .fragment_container, fragment).addToBackStack(SendImageFragment
               .class.getName()).commit();
     }else if (requestCode == PasswordActivity.ASK_PWD_REQUEST){
+      getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
+              (ChatActivity.PWD_REQUEST, false).apply();
       if (resultCode == Activity.RESULT_OK){
-        setContentView(R.layout.activity_chat);
-        if (!ChatActivity.BUDDY_ID.equals(currentBuddyId)){
-          onChatOpened(currentBuddyId, currentChatName);
-        }else
-          getSupportFragmentManager().beginTransaction().add(R.id
+        if (ChatActivity.BUDDY_ID.equals(currentBuddyId))
+          getSupportFragmentManager().beginTransaction().replace(R.id
                   .fragment_container, new ChatListFragment()).commit();
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        getSupportFragmentManager().addOnBackStackChangedListener(this);
-        shouldDisplayHomeUp();
 
         this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
@@ -210,6 +226,8 @@ public class ChatActivity extends AppCompatActivity implements
     chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new
             Intent[]{pickIntent});
     startActivityForResult(chooserIntent, ChatActivity.PHOTO_ATTACH_SELECTED);
+    getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
+            (ChatActivity.PWD_REQUEST, false).apply();
   }
 
   @Override
