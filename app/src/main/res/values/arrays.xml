@@ -5,4 +5,8 @@
         <item>@string/pref_value2_privacy</item>
         <item>@string/pref_value3_privacy</item>
     </string-array>
+    <string-array name="chatlist_options_array">
+        <item>@string/chatlist_option_1</item>
+        <item>@string/chatlist_option_2</item>
+    </string-array>
 </resources>

@@ -31,6 +31,9 @@
     <string name="invalid_pwd">The password is incorrect</string>
     <string name="logging_in">Logging in</string>
 
+    <!-- String array chatlist_options_array's values -->
+    <string name="chatlist_option_1">Rename Chat</string>
+    <string name="chatlist_option_2">Delete Chat</string>
 
     <!-- Strings related to Settings -->
     <string name="pref_header_notifications">Notifications</string>

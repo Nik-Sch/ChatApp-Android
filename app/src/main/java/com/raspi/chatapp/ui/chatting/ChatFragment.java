@@ -1,6 +1,8 @@
 package com.raspi.chatapp.ui.chatting;
 
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,6 +18,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -364,7 +367,36 @@ public class ChatFragment extends Fragment{
 
       @Override
       public boolean onActionItemClicked(ActionMode mode, MenuItem item){
-        return false;
+        boolean result = false;
+        switch (item.getItemId()){
+          case R.id.action_copy:
+            int size = listView.getCount();
+            SparseBooleanArray checked = listView.getCheckedItemPositions();
+            for (int i = 0; i < size; i++)
+              if (checked.get(i)){
+                MessageArrayContent mac = (MessageArrayContent) listView
+                        .getItemAtPosition(i);
+                String text = null;
+                if (mac instanceof TextMessage)
+                  text = ((TextMessage) mac).message;
+                else if (mac instanceof ImageMessage)
+                  text = ((ImageMessage) mac).description;
+
+                if (text != null){
+                  ClipboardManager clipboard = (ClipboardManager) getContext()
+                          .getSystemService(Context.CLIPBOARD_SERVICE);
+                  ClipData clipData = ClipData.newPlainText("simple text", text);
+                  clipboard.setPrimaryClip(clipData);
+                }
+                break;
+              }
+            mode.finish();
+            result = true;
+            break;
+          case R.id.action_delete:
+            break;
+        }
+        return result;
       }
 
       @Override
@@ -459,34 +491,34 @@ public class ChatFragment extends Fragment{
   }
 
   private void updateStatus(String lastOnline){
-      try{
-        long time = Long.valueOf(lastOnline);
-        Calendar startOfDay = Calendar.getInstance();
-        startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-        startOfDay.set(Calendar.MINUTE, 0);
-        startOfDay.set(Calendar.SECOND, 0);
-        startOfDay.set(Calendar.MILLISECOND, 0);
-        long diff = startOfDay.getTimeInMillis() - time;
-        if (diff <= 0)
-          lastOnline = getResources().getString(R.string.last_online_today) + " ";
-        else if (diff > 1000 * 60 * 60 * 24)
-          lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                  (time) + " " + getResources().getString(R.string
-                  .last_online_at) + " ";
-        else
-          lastOnline = getResources().getString(R.string.last_online_yesterday)
-                  + " ";
-        lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
-                .format(time);
-        if (actionBar != null)
-          actionBar.setSubtitle(lastOnline);
-      }catch (NumberFormatException e){
-        if (actionBar != null)
-          if (lastOnline != null)
-            actionBar.setSubtitle(Html
-                    .fromHtml("<font " +
-                            "color='#55AAFF'>" + lastOnline + "</font>"));
-      }
+    try{
+      long time = Long.valueOf(lastOnline);
+      Calendar startOfDay = Calendar.getInstance();
+      startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+      startOfDay.set(Calendar.MINUTE, 0);
+      startOfDay.set(Calendar.SECOND, 0);
+      startOfDay.set(Calendar.MILLISECOND, 0);
+      long diff = startOfDay.getTimeInMillis() - time;
+      if (diff <= 0)
+        lastOnline = getResources().getString(R.string.last_online_today) + " ";
+      else if (diff > 1000 * 60 * 60 * 24)
+        lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                (time) + " " + getResources().getString(R.string
+                .last_online_at) + " ";
+      else
+        lastOnline = getResources().getString(R.string.last_online_yesterday)
+                + " ";
+      lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
+              .format(time);
+      if (actionBar != null)
+        actionBar.setSubtitle(lastOnline);
+    }catch (NumberFormatException e){
+      if (actionBar != null)
+        if (lastOnline != null)
+          actionBar.setSubtitle(Html
+                  .fromHtml("<font " +
+                          "color='#55AAFF'>" + lastOnline + "</font>"));
+    }
   }
 
   private void updateMessage(int index){

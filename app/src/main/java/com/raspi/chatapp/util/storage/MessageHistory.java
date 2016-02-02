@@ -55,72 +55,83 @@ public class MessageHistory{
     chats.moveToFirst();
     if (chats.getCount() > 0)
       do{
-          String buddyId = chats.getString(0);
-          String name = chats.getString(1);
-          MessageArrayContent mac = getLastMessage(buddyId);
+        String buddyId = chats.getString(0);
+        String name = chats.getString(1);
+        MessageArrayContent mac = getLastMessage(buddyId);
 
-          if (mac instanceof TextMessage){
-            TextMessage msg = (TextMessage) mac;
+        if (mac instanceof TextMessage){
+          TextMessage msg = (TextMessage) mac;
 
-            String lastMessageDate;
-            Date msgTime = new Date(msg.time);
-            Calendar startOfDay = Calendar.getInstance();
-            startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-            startOfDay.set(Calendar.MINUTE, 0);
-            startOfDay.set(Calendar.SECOND, 0);
-            startOfDay.set(Calendar.MILLISECOND, 0);
-            long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
-            if (diff <= 0)
-              lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
-            else if (diff > 1000 * 60 * 60 * 24)
-              lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                      (msgTime);
-            else
-              lastMessageDate = "Yesterday";
+          String lastMessageDate;
+          Date msgTime = new Date(msg.time);
+          Calendar startOfDay = Calendar.getInstance();
+          startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+          startOfDay.set(Calendar.MINUTE, 0);
+          startOfDay.set(Calendar.SECOND, 0);
+          startOfDay.set(Calendar.MILLISECOND, 0);
+          long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
+          if (diff <= 0)
+            lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+          else if (diff > 1000 * 60 * 60 * 24)
+            lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                    (msgTime);
+          else
+            lastMessageDate = "Yesterday";
 
-            resultChats[i] = new ChatEntry(
-                    buddyId,
-                    name,
-                    MessageHistory.TYPE_TEXT,
-                    msg.status,
-                    lastMessageDate,
-                    ((msg.left)? name + ": " : "") + msg.message,
-                    !msg.left);
-          }else if (mac instanceof ImageMessage){
-            ImageMessage msg = (ImageMessage) mac;
+          resultChats[i] = new ChatEntry(
+                  buddyId,
+                  name,
+                  MessageHistory.TYPE_TEXT,
+                  msg.status,
+                  lastMessageDate,
+                  ((msg.left) ? name + ": " : "") + msg.message,
+                  !msg.left);
+        }else if (mac instanceof ImageMessage){
+          ImageMessage msg = (ImageMessage) mac;
 
-            String lastMessageDate;
-            Date msgTime = new Date(msg.time);
-            Calendar startOfDay = Calendar.getInstance();
-            startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-            startOfDay.set(Calendar.MINUTE, 0);
-            startOfDay.set(Calendar.SECOND, 0);
-            startOfDay.set(Calendar.MILLISECOND, 0);
-            long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
-            if (diff <= 0)
-              lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
-            else if (diff > 1000 * 60 * 60 * 24)
-              lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                      (msgTime);
-            else
-              lastMessageDate = "Yesterday";
-            msg.description += "".equals(msg.description)?context
-                    .getResources().getString(R.string.image):"";
+          String lastMessageDate;
+          Date msgTime = new Date(msg.time);
+          Calendar startOfDay = Calendar.getInstance();
+          startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+          startOfDay.set(Calendar.MINUTE, 0);
+          startOfDay.set(Calendar.SECOND, 0);
+          startOfDay.set(Calendar.MILLISECOND, 0);
+          long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
+          if (diff <= 0)
+            lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+          else if (diff > 1000 * 60 * 60 * 24)
+            lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                    (msgTime);
+          else
+            lastMessageDate = "Yesterday";
+          msg.description += "".equals(msg.description) ? context
+                  .getResources().getString(R.string.image) : "";
 
-            resultChats[i] = new ChatEntry(
-                    buddyId,
-                    name,
-                    MessageHistory.TYPE_IMAGE,
-                    msg.status,
-                    lastMessageDate,
-                    msg.description,
-                    !msg.left);
-          }
+          resultChats[i] = new ChatEntry(
+                  buddyId,
+                  name,
+                  MessageHistory.TYPE_IMAGE,
+                  msg.status,
+                  lastMessageDate,
+                  msg.description,
+                  !msg.left);
+        }
         i++;
       }while (chats.move(1));
     chats.close();
     db.close();
     return resultChats;
+  }
+
+  public boolean renameChat(String buddyId, String newName){
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    ContentValues cv = new ContentValues();
+    cv.put(MessageHistoryContract.ChatEntry.COLUMN_NAME_NAME, newName);
+    String where = MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID + "=?";
+
+    int res = db.update(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS,
+            cv, where, new String[]{buddyId});
+    return (res > 0);
   }
 
   public MessageArrayContent getLastMessage(String buddyId, boolean markAsRead){
@@ -224,8 +235,8 @@ public class MessageHistory{
     }
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     Cursor c = db.query(MessageHistoryContract.ChatEntry
-            .TABLE_NAME_ALL_CHATS, new String[]{MessageHistoryContract
-            .ChatEntry.COLUMN_NAME_LAST_ONLINE}, MessageHistoryContract
+                    .TABLE_NAME_ALL_CHATS, new String[]{MessageHistoryContract
+                    .ChatEntry.COLUMN_NAME_LAST_ONLINE}, MessageHistoryContract
                     .ChatEntry.COLUMN_NAME_BUDDY_ID + "=?", new
                     String[]{buddyId},
             null, null, null);
@@ -409,7 +420,7 @@ public class MessageHistory{
 
   public void addMessage(String chatId, String buddyId, String type, String content, String
           status){
-    addMessage(chatId, buddyId, type, content, "",  "0", status);
+    addMessage(chatId, buddyId, type, content, "", "0", status);
   }
 
   public void updateMessageStatus(String chatId, long _ID, String newStatus){
