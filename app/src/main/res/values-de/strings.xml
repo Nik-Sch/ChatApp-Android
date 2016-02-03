@@ -46,4 +46,8 @@
     <string name="image">Bild</string>
     <string name="invalid_pwd">Das Passwort ist falsch</string>
     <string name="logging_in">Einloggen</string>
+    <string name="chatlist_option_1">Chat umbennen</string>
+    <string name="chatlist_option_2">Chat löschen</string>
+    <string name="delete_message">Lösche die Nachricht vom Chat?</string>
+    <string name="delete_messages">Lösche die Nachrichten vom Chat?</string>
 </resources>
