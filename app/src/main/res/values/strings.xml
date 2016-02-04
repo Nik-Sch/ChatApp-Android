@@ -30,6 +30,8 @@
     <string name="image">Image</string>
     <string name="invalid_pwd">The password is incorrect</string>
     <string name="logging_in">Logging in</string>
+    <string name="delete_message">Delete message from this Chat?</string>
+    <string name="delete_messages">Delete messages from this Chat?</string>
 
     <!-- String array chatlist_options_array's values -->
     <string name="chatlist_option_1">Rename Chat</string>

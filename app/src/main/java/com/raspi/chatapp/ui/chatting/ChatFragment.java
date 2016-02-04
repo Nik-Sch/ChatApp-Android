@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
@@ -15,6 +16,7 @@ import android.os.ResultReceiver;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
@@ -49,6 +51,7 @@ import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -335,17 +338,37 @@ public class ChatFragment extends Fragment{
     listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener(){
 
       int count = 0;
+      int wrongSelected = 0;
       Menu menu;
 
       @Override
       public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked){
         //TODO update number in CAB
+        //this does not work perfectly, if you select an item below an date
+        // or newMessage and afterwards select the date or newMessage it gets
+        // confused... I don't really care atm
+        MessageArrayContent mac = maa.getItem(position);
+        if (mac instanceof Date || mac instanceof NewMessage){
+          try{
+            listView.setItemChecked(position + 1, checked);
+          }catch (Exception e){
+          }
+          if (checked)
+            wrongSelected++;
+          else
+            wrongSelected--;
+        }
         if (checked)
           count++;
         else
           count--;
         MenuItem itemCopy = menu.findItem(R.id.action_copy);
-        itemCopy.setVisible(count == 1);
+        itemCopy.setVisible((count - wrongSelected) == 1);
+        if (count == wrongSelected){
+          mode.finish();
+          wrongSelected = 0;
+          count = 0;
+        }
       }
 
       @Override
@@ -362,16 +385,18 @@ public class ChatFragment extends Fragment{
 
       @Override
       public boolean onPrepareActionMode(ActionMode mode, Menu menu){
-        return false;
+        return true;
       }
 
       @Override
-      public boolean onActionItemClicked(ActionMode mode, MenuItem item){
+      public boolean onActionItemClicked(final ActionMode mode, MenuItem item){
         boolean result = false;
+        final int size;
+        SparseBooleanArray checked;
         switch (item.getItemId()){
           case R.id.action_copy:
-            int size = listView.getCount();
-            SparseBooleanArray checked = listView.getCheckedItemPositions();
+            size = listView.getCount();
+            checked = listView.getCheckedItemPositions();
             for (int i = 0; i < size; i++)
               if (checked.get(i)){
                 MessageArrayContent mac = (MessageArrayContent) listView
@@ -394,10 +419,59 @@ public class ChatFragment extends Fragment{
             result = true;
             break;
           case R.id.action_delete:
+            new AlertDialog.Builder(getActivity())
+                    .setMessage(listView.getCheckedItemCount() > 1 ? R.string
+                            .delete_messages : R.string.delete_message)
+                    .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener(){
+                      @Override
+                      public void onClick(DialogInterface dialog, int which){
+                        SparseBooleanArray checked = listView
+                                .getCheckedItemPositions();
+                        ArrayList<Long> deletedRows = new ArrayList<>();
+                        ArrayList<Integer> deletedIndices = new ArrayList<>();
+
+                        int i = -1;
+                        for (MessageArrayContent mac : maa){
+                          if (checked.get(++i)){
+                            if (mac instanceof TextMessage){
+                              deletedRows.add(((TextMessage) mac)._ID);
+                              deletedIndices.add(i);
+                            }else if (mac instanceof ImageMessage){
+                              deletedRows.add(((ImageMessage) mac)._ID);
+                              deletedIndices.add(i);
+                            }
+                          }
+                        }
+
+                        for (int j : deletedIndices)
+                          maa.remove(maa.getCount()-1);
+
+                        long[] array = convertArray(deletedRows);
+                        messageHistory.removeMessages(buddyId, array);
+
+                        mode.finish();
+                        dialog.dismiss();
+                      }
+                    })
+                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
+                      @Override
+                      public void onClick(DialogInterface dialog, int which){
+                        dialog.dismiss();
+                      }
+                    }).create().show();
+            result = true;
             break;
         }
         return result;
       }
+
+      private long[] convertArray(ArrayList<Long> list){
+        long[] array = new long[list.size()];
+        for (int i = 0; i < array.length; i++)
+          array[i] = list.get(i);
+        return array;
+      }
+
 
       @Override
       public void onDestroyActionMode(ActionMode mode){

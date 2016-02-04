@@ -25,11 +25,13 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
-  private List<MessageArrayContent> MessageList = new ArrayList<MessageArrayContent>();
+public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
+        implements Iterable<MessageArrayContent>{
+  private List<MessageArrayContent> messageList = new ArrayList<MessageArrayContent>();
 
   public MessageArrayAdapter(Context context, int textViewResourceId){
     super(context, textViewResourceId);
@@ -59,23 +61,22 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
 
   @Override
   public void add(MessageArrayContent obj){
-    MessageList.add(obj);
+    messageList.add(obj);
     notifyDataSetChanged();
   }
 
   @Override
   public void clear(){
-    MessageList.clear();
+    messageList.clear();
     notifyDataSetChanged();
   }
 
-
   public int getCount(){
-    return MessageList.size();
+    return messageList.size();
   }
 
   public MessageArrayContent getItem(int i){
-    return MessageList.get(i);
+    return messageList.get(i);
   }
 
   public View getView(final int position, View ConvertView, ViewGroup parent){
@@ -248,6 +249,23 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
     return v;
   }
 
+  /**
+   * Removes the object at the specified location from this {@code List}.
+   *
+   * @param position
+   *            the index of the object to remove.
+   * @return the removed object.
+   * @throws UnsupportedOperationException
+   *                if removing from this {@code MessageArrayAdapter} is not
+   *                supported.
+   * @throws IndexOutOfBoundsException
+   *                if {@code location < 0 || location >= size()}
+   */
+  public MessageArrayContent remove(int position) throws UnsupportedOperationException,
+          IndexOutOfBoundsException{
+    return messageList.remove(position);
+  }
+
   private void loadBitmap(File file, ImageView imageView) throws Exception{
     if (cancelPotentialWork(file, imageView)){
       final BitmapWorkerTask task = new BitmapWorkerTask(imageView, imageView
@@ -259,6 +277,30 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>{
       task.execute(file);
 
     }
+  }
+
+  @Override
+  public Iterator<MessageArrayContent> iterator(){
+    return new Iterator<MessageArrayContent>(){
+
+      private int currentIndex = 0;
+
+      @Override
+      public boolean hasNext(){
+        return currentIndex < messageList.size() && messageList.get
+                (currentIndex) != null;
+      }
+
+      @Override
+      public MessageArrayContent next(){
+        return messageList.get(currentIndex++);
+      }
+
+      @Override
+      public void remove(){
+        throw new UnsupportedOperationException();
+      }
+    };
   }
 
   static class AsyncDrawable extends BitmapDrawable{

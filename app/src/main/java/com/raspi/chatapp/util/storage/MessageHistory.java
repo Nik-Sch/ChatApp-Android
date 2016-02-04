@@ -131,6 +131,7 @@ public class MessageHistory{
 
     int res = db.update(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS,
             cv, where, new String[]{buddyId});
+    db.close();
     return (res > 0);
   }
 
@@ -144,14 +145,15 @@ public class MessageHistory{
                     + " DESC", "1");
     c.moveToFirst();
     updateMessageStatus(buddyId, c.getLong(0), MessageHistory.STATUS_READ);
+    db.close();
     return getLastMessage(buddyId);
   }
 
   public MessageArrayContent getLastMessage(String buddyId){
     MessageArrayContent mac = null;
-    try{
-      SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
+    try{
       String[] columns = new String[]{
               MessageHistoryContract.MessageEntry.COLUMN_NAME_BUDDY_ID,
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
@@ -194,14 +196,14 @@ public class MessageHistory{
       }
     }catch (Exception e){
 
+    }finally{
+      db.close();
     }
     return mac;
   }
 
   public void addChat(String buddyId, String name){
-    //Log.d("DATABASE", "Adding a text_message: " + buddyId + " - " + name);
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    //remove everything after @ if it exists
     int index = buddyId.indexOf('@');
     if (index >= 0){
       buddyId = buddyId.substring(0, index);
@@ -240,15 +242,17 @@ public class MessageHistory{
                     .ChatEntry.COLUMN_NAME_BUDDY_ID + "=?", new
                     String[]{buddyId},
             null, null, null);
+    String result = null;
     try{
       c.moveToFirst();
       if (c.getCount() > 0)
-        return c.getString(0);
+        result = c.getString(0);
     }catch (Exception e){
       e.printStackTrace();
     }
     c.close();
-    return null;
+    db.close();
+    return result;
   }
 
   public void setOnline(String buddyId, String status){
@@ -388,6 +392,7 @@ public class MessageHistory{
         }
         break;
     }
+    db.close();
     return mac;
   }
 
@@ -430,6 +435,16 @@ public class MessageHistory{
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, newStatus);
     String whereClause = MessageHistoryContract.MessageEntry._ID + " == ?";
     db.update(chatId, values, whereClause, new String[]{Long.toString(_ID)});
+    db.close();
+  }
+
+  public void removeMessages(String buddyId, long... _ID){
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    for (long id : _ID){
+      db.delete(buddyId,
+              MessageHistoryContract.MessageEntry._ID + "=?",
+              new String[]{String.valueOf(id)});
+    }
     db.close();
   }
 
