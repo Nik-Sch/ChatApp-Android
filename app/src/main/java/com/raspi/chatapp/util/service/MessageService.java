@@ -93,6 +93,7 @@ public class MessageService extends Service{
     super.onCreate();
     Log.d("SERVICE_DEBUG", "MessageService created.");
     messageHistory = new MessageHistory(this);
+    xmppManager = XmppManager.getInstance(getApplicationContext());
   }
 
   @Override
