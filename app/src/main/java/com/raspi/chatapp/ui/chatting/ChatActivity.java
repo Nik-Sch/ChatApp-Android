@@ -6,7 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
@@ -98,13 +100,26 @@ public class ChatActivity extends AppCompatActivity implements
   @Override
   protected void onResume(){
     super.onResume();
-    if (getSharedPreferences(ChatActivity.PREFERENCES, 0).getBoolean
-            (ChatActivity.PWD_REQUEST, true)){
-      Intent intent = new Intent(this, PasswordActivity.class);
-      startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
+    if (getSharedPreferences(ChatActivity.PREFERENCES, 0)
+            .getBoolean(ChatActivity.PWD_REQUEST, true)
+            && PreferenceManager.getDefaultSharedPreferences(getApplication())
+            .getBoolean(
+                    getResources().getString(R.string.pref_key_enablepwd),
+                    true)){
+      startActivityForResult(new Intent(this, PasswordActivity.class),
+              PasswordActivity.ASK_PWD_REQUEST);
+    }else{
+      init();
     }
     getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
             (ChatActivity.PWD_REQUEST, true).apply();
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig){
+    super.onConfigurationChanged(newConfig);
+    getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
+            (ChatActivity.PWD_REQUEST, false).apply();
   }
 
   @Override
@@ -164,7 +179,7 @@ public class ChatActivity extends AppCompatActivity implements
     //if (!preferences.contains(PASSWORD))
     preferences.edit().putString(PASSWORD, "passwdAylin").apply();
   }
-  
+
   @Override
   public void onChatOpened(String buddyId, String name){
     ChatFragment fragment = new ChatFragment();
@@ -197,23 +212,14 @@ public class ChatActivity extends AppCompatActivity implements
       getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
               (ChatActivity.PWD_REQUEST, false).apply();
       if (resultCode == Activity.RESULT_OK){
-        if (ChatActivity.BUDDY_ID.equals(currentBuddyId))
-          getSupportFragmentManager().beginTransaction().replace(R.id
-                  .fragment_container, new ChatListFragment()).commit();
-        else if (getSupportFragmentManager().getFragments() == null){
-          //for propagating the backstack...
-          getSupportFragmentManager().beginTransaction().replace(R.id
-                  .fragment_container, new ChatListFragment()).commit();
-          onChatOpened(currentBuddyId, currentChatName);
-        }
-
-        this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
-        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
-                (Notification.NOTIFICATION_ID);
-        new Notification(this).reset();
+        init();
       }else{
-        startActivityForResult(new Intent(this, PasswordActivity.class),
-                PasswordActivity.ASK_PWD_REQUEST);
+        if (PreferenceManager.getDefaultSharedPreferences(getApplication())
+                .getBoolean(
+                        getResources().getString(R.string.pref_key_enablepwd),
+                        true))
+          startActivityForResult(new Intent(this, PasswordActivity.class),
+                  PasswordActivity.ASK_PWD_REQUEST);
       }
     }
   }
@@ -249,6 +255,23 @@ public class ChatActivity extends AppCompatActivity implements
       currentBuddyId = ChatActivity.BUDDY_ID;
       currentChatName = ChatActivity.CHAT_NAME;
     }
+  }
+
+  private void init(){
+    if (ChatActivity.BUDDY_ID.equals(currentBuddyId))
+      getSupportFragmentManager().beginTransaction().replace(R.id
+              .fragment_container, new ChatListFragment()).commit();
+    else if (getSupportFragmentManager().getFragments() == null){
+      //for propagating the backstack...
+      getSupportFragmentManager().beginTransaction().replace(R.id
+              .fragment_container, new ChatListFragment()).commit();
+      onChatOpened(currentBuddyId, currentChatName);
+    }
+
+    this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
+    ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
+            (Notification.NOTIFICATION_ID);
+    new Notification(this).reset();
   }
 
   @Override

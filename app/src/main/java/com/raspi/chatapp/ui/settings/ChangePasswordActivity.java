@@ -26,8 +26,10 @@ import javax.crypto.spec.PBEKeySpec;
 
 public class ChangePasswordActivity extends AppCompatActivity{
 
-  public static final String CHANGE_PWD = "com.raspi.chatapp.ui.settings" +
-          ".ChangePasswordActivity.CHANGE_PWD";
+  public static final String ASK_PWD = "com.raspi.chatapp.ui.settings" +
+          ".ChangePasswordActivity.ASK_PWD";
+
+  public static final int CHANGE_PWD_REQUEST = 4242;
 
   private boolean changed = false;
   private boolean active = false;
@@ -36,9 +38,15 @@ public class ChangePasswordActivity extends AppCompatActivity{
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
 
-    Intent intent = new Intent(this, PasswordActivity.class);
-    intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS | Intent.FLAG_ACTIVITY_NO_HISTORY);
-    startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
+    Bundle extras = getIntent().getExtras();
+    setResult(Activity.RESULT_CANCELED);
+    if (extras.getBoolean(ASK_PWD, true)){
+      Intent intent = new Intent(this, PasswordActivity.class);
+      intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS | Intent.FLAG_ACTIVITY_NO_HISTORY);
+      startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
+    }else
+      onActivityResult(PasswordActivity.ASK_PWD_REQUEST, Activity.RESULT_OK,
+              null);
   }
 
   @Override
@@ -50,51 +58,54 @@ public class ChangePasswordActivity extends AppCompatActivity{
   private void ui(){
     final EditText np = (EditText) findViewById(R.id.new_pin);
     final EditText cp = (EditText) findViewById(R.id.confirm_pin);
-    np.addTextChangedListener(new TextWatcher(){
-      @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after){
-      }
-
-      @Override
-      public void onTextChanged(CharSequence s, int start, int before, int count){
-      }
-
-      @Override
-      public void afterTextChanged(Editable s){
-        if (s.length() == 4){
-          cp.requestFocus();
-          s = null;
+    if (np != null)
+      np.addTextChangedListener(new TextWatcher(){
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after){
         }
-      }
-    });
 
-    cp.addTextChangedListener(new TextWatcher(){
-      @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after){
-      }
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count){
+        }
 
-      @Override
-      public void onTextChanged(CharSequence s, int start, int before, int count){
-      }
-
-      @Override
-      public void afterTextChanged(Editable s){
-        s.length();
-        if (s.length() == 4){
-          if (checkEqual(s, np.getText())){
-            changePwd(s.toString().toCharArray());
+        @Override
+        public void afterTextChanged(Editable s){
+          if (s.length() == 4){
+            cp.requestFocus();
             s = null;
-            changed = true;
-            finish();
-          }else{
-            s.clear();
-            np.getText().clear();
-            np.requestFocus();
-            findViewById(R.id.pwd_no_match).setVisibility(View.VISIBLE);
           }
         }
-      }
-    });
+      });
+
+    if (cp != null)
+      cp.addTextChangedListener(new TextWatcher(){
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after){
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count){
+        }
+
+        @Override
+        public void afterTextChanged(Editable s){
+          s.length();
+          if (s.length() == 4){
+            if (checkEqual(s, np.getText())){
+              changePwd(s.toString().toCharArray());
+              s = null;
+              changed = true;
+              setResult(Activity.RESULT_OK);
+              finish();
+            }else{
+              s.clear();
+              np.getText().clear();
+              np.requestFocus();
+              findViewById(R.id.pwd_no_match).setVisibility(View.VISIBLE);
+            }
+          }
+        }
+      });
   }
 
   private boolean checkEqual(Editable c, Editable n){

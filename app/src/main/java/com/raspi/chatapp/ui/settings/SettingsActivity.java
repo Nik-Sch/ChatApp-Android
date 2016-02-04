@@ -2,6 +2,7 @@ package com.raspi.chatapp.ui.settings;
 
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -16,12 +17,14 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.preference.SwitchPreference;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.view.MenuItem;
 
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.password.PasswordActivity;
 import com.raspi.chatapp.ui.util.AppCompatPreferenceActivity;
 
 import java.util.List;
@@ -85,6 +88,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
         // For all other preferences, set the summary to the value's
         // simple string representation.
         preference.setSummary(stringValue);
+
+
       }
       return true;
     }
@@ -186,7 +191,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
   }
 
   /**
-   * This fragment shows general preferences only. It is used when the
+   * This fragment shows password preferences only. It is used when the
    * activity is showing a two-pane settings UI.
    */
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -196,6 +201,43 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
       super.onCreate(savedInstanceState);
       addPreferencesFromResource(R.xml.pref_password);
       setHasOptionsMenu(true);
+      findPreference(getResources().getString(R.string.pref_key_enablepwd))
+              .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
+                @Override
+                public boolean onPreferenceChange(Preference preference,
+                                                  Object value){
+                  if (((SwitchPreference) preference).isChecked())
+                    startActivityForResult(
+                            new Intent(getActivity(), PasswordActivity.class),
+                            PasswordActivity.ASK_PWD_REQUEST);
+                  else{
+                    Intent intent = new Intent(getActivity(), ChangePasswordActivity
+                            .class);
+                    intent.putExtra(ChangePasswordActivity.ASK_PWD, false);
+                    startActivityForResult(intent, ChangePasswordActivity
+                            .CHANGE_PWD_REQUEST);
+                  }
+                  return true;
+                }
+              });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+      super.onActivityResult(requestCode, resultCode, data);
+      switch (requestCode){
+        case PasswordActivity.ASK_PWD_REQUEST:
+          if (resultCode != Activity.RESULT_OK){
+            ((SwitchPreference) findPreference(getResources().getString(R.string
+                    .pref_key_enablepwd))).setChecked(true);
+          }
+          break;
+        case ChangePasswordActivity.CHANGE_PWD_REQUEST:
+          if (resultCode != Activity.RESULT_OK)
+            ((SwitchPreference) findPreference(getResources().getString(R.string
+                    .pref_key_enablepwd))).setChecked(false);
+          break;
+      }
     }
 
     @Override

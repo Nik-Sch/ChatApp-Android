@@ -79,6 +79,11 @@
     <string name="pref_title_changepwd">Change the password</string>
     <string name="pref_summary_changepwd">Enter a new password</string>
 
+    <string name="pref_key_enablepwd" translatable="false">password_enable_pwd</string>
+    <string name="pref_title_enablepwd">Enable the password</string>
+    <string name="pref_summary_enablepwd">Enable to activate the
+        password protection</string>
+
     <string name="title_activity_add_chat" translatable="false">AddChatActivity</string>
     <string name="large_text" translatable="false">
         "Material is the metaphor.\n\n"
