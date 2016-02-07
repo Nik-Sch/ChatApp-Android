@@ -179,7 +179,8 @@ public class MessageHistory{
                   !sent,
                   lastMessage.getString(2),
                   lastMessage.getLong(4),
-                  lastMessage.getString(3));
+                  lastMessage.getString(3),
+                  lastMessage.getLong(7));
         }else if (TYPE_IMAGE.equals(type)){
           JSONArray contentJSON = new JSONArray(lastMessage.getString(2));
           mac = new ImageMessage(
@@ -372,7 +373,7 @@ public class MessageHistory{
     long _ID = message.getLong(7);
     switch (type){
       case (MessageHistory.TYPE_TEXT):
-        mac = new TextMessage(!me.equals(from), content, time, status);
+        mac = new TextMessage(!me.equals(from), content, time, status, _ID);
         break;
       case (MessageHistory.TYPE_IMAGE):
         try{
@@ -396,7 +397,7 @@ public class MessageHistory{
     return mac;
   }
 
-  public void addMessage(String chatId, String buddyId, String type, String
+  public long addMessage(String chatId, String buddyId, String type, String
           content, String url, String progress, String status){
     //Log.d("DATABASE", "Adding a message");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
@@ -419,17 +420,24 @@ public class MessageHistory{
             .COLUMN_NAME_MESSAGE_PROGRESS, progress);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, status);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP, new Date().getTime());
-    db.insert(chatId, MessageHistoryContract.MessageEntry._ID, values);
+    long result = db.insert(chatId, MessageHistoryContract.MessageEntry._ID,
+            values);
     db.close();
+    return result;
   }
 
-  public void addMessage(String chatId, String buddyId, String type, String content, String
+  public long addMessage(String chatId, String buddyId, String type, String
+          content, String
           status){
-    addMessage(chatId, buddyId, type, content, "", "0", status);
+    return addMessage(chatId, buddyId, type, content, "", "0", status);
   }
 
   public void updateMessageStatus(String chatId, long _ID, String newStatus){
     //Log.d("DATABASE", "Changing MessageStatus");
+    int index = chatId.indexOf('@');
+    if (index >= 0){
+      chatId = chatId.substring(0, index);
+    }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     ContentValues values = new ContentValues();
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, newStatus);

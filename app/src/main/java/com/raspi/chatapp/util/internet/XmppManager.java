@@ -34,13 +34,14 @@ import javax.xml.transform.stream.StreamResult;
 /**
  * XmppManager is the wrapper Singleton for the xmppConnection which provides
  * all important functions. It is a Singleton to prohibit that one
- * message is received twice
+ * message is received twice and to make sure it always exists :)
  */
 public class XmppManager{
 
   public static final String SERVER = "raspi-server.ddns.net";
   private static final String SERVICE = "chatapp.com";
   private static final int PORT = 5222;
+
 
   private static class Holder {
     static final XmppManager INSTANCE = new XmppManager(SERVER, SERVICE, PORT);
@@ -94,11 +95,14 @@ public class XmppManager{
   public boolean init(){
     SmackConfiguration.setDefaultPacketReplyTimeout(packetReplyTime);
     ReconnectionManager.setEnabledPerDefault(true);
+    ReconnectionManager.setDefaultReconnectionPolicy(ReconnectionManager.ReconnectionPolicy.FIXED_DELAY);
+    ReconnectionManager.setDefaultFixedDelay(5);
 
     XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
             .setServiceName(service)
             .setHost(server)
             .setPort(port)
+            .setSendPresence(false)
             .setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible).build();
     connection = new XMPPTCPConnection(config);
     connection.setUseStreamManagement(true);
@@ -110,6 +114,8 @@ public class XmppManager{
       Log.e("ERROR", e.toString());
       return false;
     }
+
+
     Log.d("DEBUG", "Success: Initialized XmppManager.");
     return true;
   }
@@ -158,7 +164,7 @@ public class XmppManager{
    * @param buddyJID the Buddy to receive the message
    * @return true if sending was successful
    */
-  public boolean sendTextMessage(String message, String buddyJID){
+  public boolean sendTextMessage(String message, String buddyJID, long id){
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
     if (connection != null && connection.isConnected() && chatManager != null){
       if (buddyJID.indexOf('@') == -1)
@@ -170,6 +176,7 @@ public class XmppManager{
         Element msg = doc.createElement("message");
         doc.appendChild(msg);
         msg.setAttribute("type", MessageHistory.TYPE_TEXT);
+        msg.setAttribute("id", String.valueOf(id));
         Element file = doc.createElement("content");
         msg.appendChild(file);
         file.setTextContent(message);
@@ -201,7 +208,7 @@ public class XmppManager{
    * @return true if sending was successful
    */
   public boolean sendImageMessage(String serverFile, String description, String
-          buddyJID){
+          buddyJID, long id){
     if (buddyJID.indexOf('@') == -1)
       buddyJID += "@" + service;
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
@@ -215,6 +222,7 @@ public class XmppManager{
         Element msg = doc.createElement("message");
         doc.appendChild(msg);
         msg.setAttribute("type", MessageHistory.TYPE_IMAGE);
+        msg.setAttribute("id", String.valueOf(id));
         Element file = doc.createElement("file");
         msg.appendChild(file);
         file.setTextContent(serverFile);
@@ -241,6 +249,38 @@ public class XmppManager{
     Log.e("ERROR", "Sending failed: No connection.");
     return false;
   }
+
+  public boolean sendAcknowledgement(String buddyId, long id, String type){
+    ChatManager chatManager = ChatManager.getInstanceFor(connection);
+    if (connection != null && connection.isConnected() && chatManager != null){
+      if (buddyId.indexOf('@') == -1)
+        buddyId += "@" + service;
+      Chat chat = chatManager.createChat(buddyId);
+      try{
+        Document doc = DocumentBuilderFactory.newInstance()
+                .newDocumentBuilder().newDocument();
+        Element ack = doc.createElement("acknowledgement");
+        doc.appendChild(ack);
+        ack.setAttribute("id", String.valueOf(id));
+        ack.setAttribute("type", type);
+
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        StringWriter writer = new StringWriter();
+        StreamResult r = new StreamResult(writer);
+        t.transform(new DOMSource(doc), r);
+
+        String message = writer.toString();
+        chat.sendMessage(message);
+        Log.d("DEBUG", "Success: Sent message");
+        return true;
+      }catch (Exception e){
+        Log.e("ERROR", "Couldn't send message.");
+        Log.e("ERROR", e.toString());
+        return false;
+      }
+    }
+    Log.e("ERROR", "Sending failed: No connection.");
+    return false;  }
 
   /**
    * sets the status

@@ -85,9 +85,9 @@ public class Upload{
                 MessageArrayContent mac = messageHistory.getMessage(buddyId,
                         messageId);
                 try{
-                  String des = ((ImageMessage) mac).description;
-                  if (xmppManager.sendImageMessage(serverResponseMessage, des,
-                          buddyId))
+                  ImageMessage msg = (ImageMessage) mac;
+                  if (xmppManager.sendImageMessage(serverResponseMessage, msg.description,
+                          buddyId, msg._ID))
                     messageHistory.updateMessageStatus(buddyId, Long
                             .parseLong(messageId), MessageHistory
                             .STATUS_SENT);

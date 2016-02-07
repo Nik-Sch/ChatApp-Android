@@ -22,6 +22,7 @@ import android.widget.ListView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
+import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 /**
@@ -38,6 +39,21 @@ public class ChatListFragment extends Fragment{
   private OnFragmentInteractionListener mListener;
   private ChatArrayAdapter caa;
   private ListView lv;
+  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      initUI();
+      Bundle extras = intent.getExtras();
+      try{
+        XmppManager.getInstance(context).sendAcknowledgement(extras.getString
+                        (ChatActivity.BUDDY_ID), extras.getLong("id"),
+                MessageHistory.STATUS_RECEIVED);
+      }catch (Exception e){
+      }
+
+      abortBroadcast();
+    }
+  };
 
   /**
    * Use this factory method to create a new instance of
@@ -104,15 +120,15 @@ public class ChatListFragment extends Fragment{
     }
   }
 
+  /*
+      USER SPECIFIC FUNCTIONS
+   */
+
   @Override
   public void onDetach(){
     super.onDetach();
     mListener = null;
   }
-
-  /*
-      USER SPECIFIC FUNCTIONS
-   */
 
   private void initUI(){
     caa = new ChatArrayAdapter(getContext(), R.layout.chat_list_entry);
@@ -146,14 +162,6 @@ public class ChatListFragment extends Fragment{
     actionBar.setTitle(R.string.app_name);
     actionBar.setSubtitle(null);
   }
-
-  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
-    @Override
-    public void onReceive(Context context, Intent intent){
-      initUI();
-      abortBroadcast();
-    }
-  };
 
   /**
    * This interface must be implemented by ui that contain this

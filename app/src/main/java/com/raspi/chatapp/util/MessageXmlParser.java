@@ -20,35 +20,44 @@ public class MessageXmlParser{
       InputStream in = new ByteArrayInputStream(str.getBytes("UTF-8"));
       parser.setInput(in, null);
       parser.nextTag();
-      parser.require(XmlPullParser.START_TAG, null, "message");
-      String type = parser.getAttributeValue(null, "type");
-      if (MessageHistory.TYPE_TEXT.equals(type)){
-        msg = new Message(MessageHistory.TYPE_TEXT);
-        while (parser.next() != XmlPullParser.END_TAG){
-          if (parser.getEventType() != XmlPullParser.START_TAG)
-            continue;
-          if ("content".equals(parser.getName())){
-            parser.require(XmlPullParser.START_TAG, null, "content");
-            msg.content = parser.nextText();
-            parser.require(XmlPullParser.END_TAG, null, "content");
+      //parser.require(XmlPullParser.START_TAG, null, "message");
+      String name = parser.getName();
+      if ("message".equals(name)){
+        String type = parser.getAttributeValue(null, "type");
+        long othersId = Long.parseLong(parser.getAttributeValue(null, "id"));
+        if (MessageHistory.TYPE_TEXT.equals(type)){
+          msg = new Message(MessageHistory.TYPE_TEXT);
+          msg.id = othersId;
+          while (parser.next() != XmlPullParser.END_TAG){
+            if (parser.getEventType() != XmlPullParser.START_TAG)
+              continue;
+            if ("content".equals(parser.getName())){
+              parser.require(XmlPullParser.START_TAG, null, "content");
+              msg.content = parser.nextText();
+              parser.require(XmlPullParser.END_TAG, null, "content");
+            }
+          }
+        }else if (MessageHistory.TYPE_IMAGE.equals(type)){
+          msg = new Message(MessageHistory.TYPE_IMAGE);
+          msg.id = othersId;
+          while (parser.next() != XmlPullParser.END_TAG){
+            if (parser.getEventType() != XmlPullParser.START_TAG)
+              continue;
+            if ("file".equals(parser.getName())){
+              parser.require(XmlPullParser.START_TAG, null, "file");
+              msg.url = parser.nextText();
+              parser.require(XmlPullParser.END_TAG, null, "file");
+            }else if ("description".equals(parser.getName())){
+              parser.require(XmlPullParser.START_TAG, null, "description");
+              msg.description = parser.nextText();
+              parser.require(XmlPullParser.END_TAG, null, "description");
+            }
           }
         }
-      }else if (MessageHistory.TYPE_IMAGE.equals(type)){
-        msg = new Message(MessageHistory.TYPE_IMAGE);
-        while (parser.next() != XmlPullParser.END_TAG){
-          if (parser.getEventType() != XmlPullParser.START_TAG)
-            continue;
-          if ("file".equals(parser.getName())){
-            parser.require(XmlPullParser.START_TAG, null, "file");
-            msg.url = parser.nextText();
-            parser.require(XmlPullParser.END_TAG, null, "file");
-          }else if("description".equals(parser.getName())){
-            parser.require(XmlPullParser.START_TAG, null, "description");
-            msg.description = parser.nextText();
-            parser.require(XmlPullParser.END_TAG, null, "description");
-          }
-        }
-
+      }else if ("acknowledgement".equals(name)){
+        msg = new Message("acknowledgement");
+        msg.content = parser.getAttributeValue(null, "type");
+        msg.id = Long.parseLong(parser.getAttributeValue(null, "id"));
       }
     }catch (Exception e){
 
@@ -61,6 +70,7 @@ public class MessageXmlParser{
     public String content = null;
     public String url = null;
     public String description = null;
+    public long id = -1;
 
     public Message(String type){
       this.type = type;

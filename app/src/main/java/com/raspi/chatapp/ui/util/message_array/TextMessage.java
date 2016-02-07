@@ -16,8 +16,4 @@ public class TextMessage extends MessageArrayContent{
     this.status = status;
     this._ID = _ID;
   }
-
-  public TextMessage(boolean left, String message, long time, String status){
-    this(left, message, time, status, -1);
-  }
 }

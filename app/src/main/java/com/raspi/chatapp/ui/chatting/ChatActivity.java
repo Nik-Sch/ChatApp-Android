@@ -2,7 +2,6 @@ package com.raspi.chatapp.ui.chatting;
 
 import android.app.Activity;
 import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -62,6 +61,8 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.IMAGE_URI";
   public static final String PWD_REQUEST = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.PWD_REQUEST";
+  public static final String MESSAGE_STATUS_CHANGED = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.MESSAGE_STATUS_CHANGED";
 
   public static final String IMAGE_DIR = "ChatApp Images";
 
@@ -283,21 +284,5 @@ public class ChatActivity extends AppCompatActivity implements
   @Override
   public void onReturnClick(){
     getSupportFragmentManager().popBackStack();
-  }
-
-  //receiving boot intents
-  public static class BootReceiver extends BroadcastReceiver{
-
-    public BootReceiver(){
-    }
-
-    @Override
-    public void onReceive(Context context, Intent intent){
-      if (intent != null && intent.getAction() != null){
-        if (intent.getAction().equals(BOOT_COMPLETED)){
-          context.startService(new Intent(context, MessageService.class));
-        }
-      }
-    }
   }
 }

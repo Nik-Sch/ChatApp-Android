@@ -124,7 +124,7 @@ public class ChatFragment extends Fragment{
   private EditText textIn;
   private ActionBar actionBar;
   private OnFragmentInteractionListener mListener;
-  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
+  private BroadcastReceiver messageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
@@ -137,18 +137,56 @@ public class ChatFragment extends Fragment{
         if (mac instanceof ImageMessage)
           downloadImage((ImageMessage) mac);
         maa.add(mac);
-
+        //also send the received acknowledgement
+        try{
+          XmppManager.getInstance(context).sendAcknowledgement(buddyId,
+                  extras.getLong("id"), MessageHistory.STATUS_READ);
+        }catch (Exception e){
+        }
         abortBroadcast();
       }
     }
   };
-  private BroadcastReceiver PresenceChangeReceiver = new BroadcastReceiver(){
+  private BroadcastReceiver presenceChangeReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
       if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras.containsKey(ChatActivity.PRESENCE_STATUS)){
         if (buddyId.equals(extras.getString(ChatActivity.BUDDY_ID))){
           updateStatus(extras.getString(ChatActivity.PRESENCE_STATUS));
+        }
+      }
+    }
+  };
+  private BroadcastReceiver messageStatusChangedReceiver = new BroadcastReceiver(){
+    @Override
+    public void onReceive(Context context, Intent intent){
+      Bundle extras = intent.getExtras();
+      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) &&
+              extras.containsKey("id") && extras.containsKey("status")){
+        String bId = extras.getString(ChatActivity.BUDDY_ID);
+        int index = bId.indexOf('@');
+        if (index >= 0){
+          bId = bId.substring(0, index);
+        }
+        if (buddyId.equals(bId)){
+          long id = extras.getLong("id");
+          int i = 0;
+          for (MessageArrayContent mac : maa){
+            if (mac instanceof ImageMessage){
+              ImageMessage msg = (ImageMessage) mac;
+              if (msg._ID == id)
+                msg.status = extras.getString("status");
+            }else if (mac instanceof TextMessage){
+              TextMessage msg = (TextMessage) mac;
+              if (msg._ID == id){
+                msg.status = extras.getString("status");
+                maa.getView(i, listView.getChildAt(i - listView
+                        .getFirstVisiblePosition()), listView);
+              }
+            }
+            i++;
+          }
         }
       }
     }
@@ -219,15 +257,17 @@ public class ChatFragment extends Fragment{
     super.onResume();
     IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
     filter.setPriority(1);
-    getContext().registerReceiver(MessageReceiver, filter);
+    getContext().registerReceiver(messageReceiver, filter);
     LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance
             (getContext());
     LBmgr.registerReceiver(reconnectedReceiver, new IntentFilter
             (ChatActivity.RECONNECTED));
     LBmgr.registerReceiver(disconnectedReceiver, new IntentFilter
             (ChatActivity.DISCONNECTED));
-    LBmgr.registerReceiver(PresenceChangeReceiver, new IntentFilter
+    LBmgr.registerReceiver(presenceChangeReceiver, new IntentFilter
             (ChatActivity.PRESENCE_CHANGED));
+    LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
+            (ChatActivity.MESSAGE_STATUS_CHANGED));
     uploadReceiver.register(getContext());
     initUI();
   }
@@ -238,11 +278,13 @@ public class ChatFragment extends Fragment{
             .getSystemService(Context.INPUT_METHOD_SERVICE);
     mgr.hideSoftInputFromWindow(getView().findViewById(R.id.chat_in)
             .getWindowToken(), 0);
-    getContext().unregisterReceiver(MessageReceiver);
+    getContext().unregisterReceiver(messageReceiver);
     LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance(getContext());
-    LBmgr.unregisterReceiver(PresenceChangeReceiver);
+    LBmgr.unregisterReceiver(presenceChangeReceiver);
     LBmgr.unregisterReceiver(reconnectedReceiver);
     LBmgr.unregisterReceiver(disconnectedReceiver);
+    LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
+            (ChatActivity.MESSAGE_STATUS_CHANGED));
     uploadReceiver.unregister(getContext());
     super.onPause();
   }
@@ -306,15 +348,19 @@ public class ChatFragment extends Fragment{
       @Override
       public void onClick(View v){
         String message = textIn.getText().toString();
-        String status = sendTextMessage(message)
+        long id = messageHistory.addMessage(buddyId, getContext()
+                .getSharedPreferences(ChatActivity.PREFERENCES, 0).getString
+                        (ChatActivity.USERNAME, ""), MessageHistory
+                .TYPE_TEXT, message, MessageHistory.STATUS_WAITING);
+        boolean st = sendTextMessage(message, id);
+        String status = st
                 ? MessageHistory.STATUS_SENT
                 : MessageHistory.STATUS_WAITING;
-        messageHistory.addMessage(buddyId, getContext().getSharedPreferences
-                (ChatActivity.PREFERENCES, 0).getString(ChatActivity
-                .USERNAME, ""), MessageHistory.TYPE_TEXT, message, status);
+        if (st)
+          messageHistory.updateMessageStatus(buddyId, id, MessageHistory.STATUS_SENT);
         textIn.setText("");
         maa.add(new TextMessage(false, message, new GregorianCalendar()
-                .getTimeInMillis(), status));
+                .getTimeInMillis(), status, id));
       }
     });
 
@@ -444,7 +490,7 @@ public class ChatFragment extends Fragment{
                         }
 
                         for (int j : deletedIndices)
-                          maa.remove(maa.getCount()-1);
+                          maa.remove(maa.getCount() - 1);
 
                         long[] array = convertArray(deletedRows);
                         messageHistory.removeMessages(buddyId, array);
@@ -491,13 +537,13 @@ public class ChatFragment extends Fragment{
     updateStatus(lastOnline);
   }
 
-  private boolean sendTextMessage(String message){
+  private boolean sendTextMessage(String message, long id){
     XmppManager xmppManager = XmppManager.getInstance(getContext());
-    return (xmppManager.sendTextMessage(message, buddyId));
+    return (xmppManager.sendTextMessage(message, buddyId, id));
   }
 
   private void resendTextMessage(TextMessage msg){
-    boolean status = sendTextMessage(msg.message);
+    boolean status = sendTextMessage(msg.message, msg._ID);
     if (status){
       messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory.STATUS_SENT);
       msg.status = MessageHistory.STATUS_SENT;
@@ -523,13 +569,19 @@ public class ChatFragment extends Fragment{
           maa.add(new Date(msg.time));
         oldDate = msg.time;
         if (msg.left){
-          if (MessageHistory.STATUS_RECEIVED.equals(msg.status))
+          if (MessageHistory.STATUS_RECEIVED.equals(msg.status)){
             if (nm == null){
               nm = new NewMessage(getResources().getString(R.string
                       .new_message));
               maa.add(nm);
             }else
               nm.status = getResources().getString(R.string.new_messages);
+            try{
+              XmppManager.getInstance(null).sendAcknowledgement(buddyId,
+                      msg._ID, MessageHistory.STATUS_READ);
+            }catch (Exception e){
+            }
+          }
           messageHistory.updateMessageStatus(buddyId, 2, MessageHistory
                   .STATUS_READ);
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status))
