@@ -135,6 +135,20 @@ public class MessageHistory{
     return (res > 0);
   }
 
+  public String getName(String buddyId){
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    String where = MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID + "=?";
+    Cursor c = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS,
+            new String[]{MessageHistoryContract.ChatEntry.COLUMN_NAME_NAME},
+            where, new String[]{buddyId}, null, null, null);
+    c.moveToFirst();
+    String result = null;
+    if (c.getCount() > 1)
+      result = c.getString(0);
+    db.close();
+    return result;
+  }
+
   public MessageArrayContent getLastMessage(String buddyId, boolean markAsRead){
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     Cursor c = db.query(
@@ -428,7 +442,7 @@ public class MessageHistory{
 
   public long addMessage(String chatId, String buddyId, String type, String
           content, String
-          status){
+                                 status){
     return addMessage(chatId, buddyId, type, content, "", "0", status);
   }
 
