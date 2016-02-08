@@ -185,7 +185,7 @@ public class MessageService extends Service{
         if (MessageHistory.TYPE_TEXT.equals(msg.type)){
           messageHistory.addMessage(buddyId, buddyId, MessageHistory
                   .TYPE_TEXT, msg.content, MessageHistory
-                  .STATUS_RECEIVED);
+                  .STATUS_RECEIVED, id);
           msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.content);
         }else if (MessageHistory.TYPE_IMAGE.equals(msg.type)){
           try{
@@ -199,7 +199,7 @@ public class MessageService extends Service{
                             msg.description).toString(),
                     "http://" + XmppManager.SERVER + "/ChatApp/" + msg.url,
                     "0",
-                    MessageHistory.STATUS_WAITING);
+                    MessageHistory.STATUS_WAITING, id);
           }catch (Exception e){
           }
         }

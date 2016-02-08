@@ -137,7 +137,7 @@ public class ChatFragment extends Fragment{
         if (mac instanceof ImageMessage)
           downloadImage((ImageMessage) mac);
         maa.add(mac);
-        //also send the received acknowledgement
+        //also send the read acknowledgement
         try{
           XmppManager.getInstance(context).sendAcknowledgement(buddyId,
                   extras.getLong("id"), MessageHistory.STATUS_READ);
@@ -351,7 +351,7 @@ public class ChatFragment extends Fragment{
         long id = messageHistory.addMessage(buddyId, getContext()
                 .getSharedPreferences(ChatActivity.PREFERENCES, 0).getString
                         (ChatActivity.USERNAME, ""), MessageHistory
-                .TYPE_TEXT, message, MessageHistory.STATUS_WAITING);
+                .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
         boolean st = sendTextMessage(message, id);
         String status = st
                 ? MessageHistory.STATUS_SENT
@@ -360,7 +360,7 @@ public class ChatFragment extends Fragment{
           messageHistory.updateMessageStatus(buddyId, id, MessageHistory.STATUS_SENT);
         textIn.setText("");
         maa.add(new TextMessage(false, message, new GregorianCalendar()
-                .getTimeInMillis(), status, id));
+                .getTimeInMillis(), status, id, -1));
       }
     });
 
@@ -578,7 +578,7 @@ public class ChatFragment extends Fragment{
               nm.status = getResources().getString(R.string.new_messages);
             try{
               XmppManager.getInstance(null).sendAcknowledgement(buddyId,
-                      msg._ID, MessageHistory.STATUS_READ);
+                      msg.othersId, MessageHistory.STATUS_READ);
             }catch (Exception e){
             }
           }

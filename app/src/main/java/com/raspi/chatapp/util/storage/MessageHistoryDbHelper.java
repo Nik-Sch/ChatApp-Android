@@ -11,7 +11,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class MessageHistoryDbHelper extends SQLiteOpenHelper{
-  public static final int DATABASE_VERSION = 7;
+  public static final int DATABASE_VERSION = 8;
   public static final String DATABASE_NAME = "MessageHistory.db";
   private static final String CREATE_ALL_CHATS = "CREATE TABLE IF NOT EXISTS " +
           MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS + " (" + MessageHistoryContract
@@ -28,8 +28,8 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
   public void createMessageTable(String tableName){
     getWritableDatabase().execSQL("CREATE TABLE IF NOT EXISTS " + tableName + " (" +
             MessageHistoryContract.MessageEntry
-                    ._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + MessageHistoryContract
-            .MessageEntry
+            ._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + MessageHistoryContract.MessageEntry
+            .COLUMN_NAME_OTHERS_ID + " INTEGER, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_BUDDY_ID + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_TYPE + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_CONTENT + " TEXT, " + MessageHistoryContract.MessageEntry

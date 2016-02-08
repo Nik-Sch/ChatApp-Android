@@ -162,7 +162,8 @@ public class MessageHistory{
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL,
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
-              MessageHistoryContract.MessageEntry._ID
+              MessageHistoryContract.MessageEntry._ID,
+              MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID
       };
       Cursor lastMessage = db.query(buddyId, columns, null, null, null, null,
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
@@ -180,7 +181,8 @@ public class MessageHistory{
                   lastMessage.getString(2),
                   lastMessage.getLong(4),
                   lastMessage.getString(3),
-                  lastMessage.getLong(7));
+                  lastMessage.getLong(7),
+                  lastMessage.getLong(8));
         }else if (TYPE_IMAGE.equals(type)){
           JSONArray contentJSON = new JSONArray(lastMessage.getString(2));
           mac = new ImageMessage(
@@ -287,7 +289,8 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
-            MessageHistoryContract.MessageEntry._ID
+            MessageHistoryContract.MessageEntry._ID,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID
     };
     Cursor messages = db.query(buddyId, columns, null, null, null, null, MessageHistoryContract
             .MessageEntry
@@ -310,10 +313,11 @@ public class MessageHistory{
         String status = messages.getString(5);
         long time = messages.getLong(6);
         long _ID = messages.getLong(7);
+        long othersId = messages.getLong(8);
         switch (type){
           case (MessageHistory.TYPE_TEXT):
             result[i] = new TextMessage(!me.equals(from), content, time,
-                    status, _ID);
+                    status, _ID, othersId);
             if (((TextMessage) result[i]).left)
               updateMessageStatus(from, _ID, STATUS_READ);
             break;
@@ -353,7 +357,8 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
-            MessageHistoryContract.MessageEntry._ID
+            MessageHistoryContract.MessageEntry._ID,
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID
     };
     String sel = MessageHistoryContract.MessageEntry._ID + "=?";
     Cursor message = db.query(buddyId, columns, sel, new
@@ -371,9 +376,10 @@ public class MessageHistory{
     String status = message.getString(5);
     long time = message.getLong(6);
     long _ID = message.getLong(7);
+    long othersId = message.getLong(8);
     switch (type){
       case (MessageHistory.TYPE_TEXT):
-        mac = new TextMessage(!me.equals(from), content, time, status, _ID);
+        mac = new TextMessage(!me.equals(from), content, time, status, _ID, othersId);
         break;
       case (MessageHistory.TYPE_IMAGE):
         try{
@@ -398,7 +404,7 @@ public class MessageHistory{
   }
 
   public long addMessage(String chatId, String buddyId, String type, String
-          content, String url, String progress, String status/*, TODO: long othersId*/){
+          content, String url, String progress, String status, long othersId){
     //Log.d("DATABASE", "Adding a message");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     //remove everything after @ if it exists
@@ -420,6 +426,7 @@ public class MessageHistory{
             .COLUMN_NAME_MESSAGE_PROGRESS, progress);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, status);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP, new Date().getTime());
+    values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID, othersId);
     long result = db.insert(chatId, MessageHistoryContract.MessageEntry._ID,
             values);
     db.close();
@@ -427,9 +434,8 @@ public class MessageHistory{
   }
 
   public long addMessage(String chatId, String buddyId, String type, String
-          content, String
-          status){
-    return addMessage(chatId, buddyId, type, content, "", "0", status);
+          content, String status, long othersId){
+    return addMessage(chatId, buddyId, type, content, "", "0", status, othersId);
   }
 
   public void updateMessageStatus(String chatId, long _ID, String newStatus){

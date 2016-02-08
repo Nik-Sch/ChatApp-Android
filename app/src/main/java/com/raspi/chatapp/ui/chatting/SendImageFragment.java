@@ -179,7 +179,7 @@ public class SendImageFragment extends Fragment{
                         .getString(ChatActivity.USERNAME, ""),
                 MessageHistory.TYPE_IMAGE,
                 contentJSON.toString(),
-                MessageHistory.STATUS_WAITING);
+                MessageHistory.STATUS_WAITING, -1);
       }catch (Exception e){
         e.printStackTrace();
       }
