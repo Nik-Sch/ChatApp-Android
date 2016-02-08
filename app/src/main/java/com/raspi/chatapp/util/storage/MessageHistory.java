@@ -398,7 +398,7 @@ public class MessageHistory{
   }
 
   public long addMessage(String chatId, String buddyId, String type, String
-          content, String url, String progress, String status){
+          content, String url, String progress, String status/*, TODO: long othersId*/){
     //Log.d("DATABASE", "Adding a message");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     //remove everything after @ if it exists
