@@ -232,8 +232,6 @@ public class MessageService extends Service{
 
   @Override
   public void onDestroy(){
-    Log.d("SERVICE_DEBUG", "disconnecting xmpp");
-    XmppManager.getInstance(null).disconnect();
     super.onDestroy();
   }
 
