@@ -22,7 +22,7 @@ import android.widget.ListView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
-import com.raspi.chatapp.util.internet.XmppManager;
+import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 /**
@@ -45,9 +45,14 @@ public class ChatListFragment extends Fragment{
       initUI();
       Bundle extras = intent.getExtras();
       try{
-        XmppManager.getInstance(context).sendAcknowledgement(extras.getString
-                        (ChatActivity.BUDDY_ID), extras.getLong("id"),
+        Intent ackIntent = new Intent(getContext(), MessageService.class);
+        ackIntent.setAction(MessageService.ACTION_SEND_ACKNOWLEDGE);
+        ackIntent.putExtra(MessageService.KEY_ACKNOWLEDGE_TYPE,
                 MessageHistory.STATUS_RECEIVED);
+        ackIntent.putExtra(MessageService.KEY_BUDDYID, extras.getString
+                (ChatActivity.BUDDY_ID));
+        ackIntent.putExtra(MessageService.KEY_ID, extras.getLong("id"));
+        getActivity().startService(ackIntent);
       }catch (Exception e){
       }
 

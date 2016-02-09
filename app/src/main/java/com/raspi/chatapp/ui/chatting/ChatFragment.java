@@ -43,9 +43,9 @@ import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
-import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.internet.http.DownloadService;
 import com.raspi.chatapp.util.internet.http.Upload;
+import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
@@ -138,11 +138,14 @@ public class ChatFragment extends Fragment{
           downloadImage((ImageMessage) mac);
         maa.add(mac);
         //also send the read acknowledgement
-        try{
-          XmppManager.getInstance(context).sendAcknowledgement(buddyId,
-                  extras.getLong("id"), MessageHistory.STATUS_READ);
-        }catch (Exception e){
-        }
+        Intent ackIntent = new Intent(getContext(), MessageService.class);
+        ackIntent.setAction(MessageService.ACTION_SEND_ACKNOWLEDGE);
+        ackIntent.putExtra(MessageService.KEY_ACKNOWLEDGE_TYPE,
+                MessageHistory.STATUS_READ);
+        ackIntent.putExtra(MessageService.KEY_BUDDYID, extras.getString
+                (ChatActivity.BUDDY_ID));
+        ackIntent.putExtra(MessageService.KEY_ID, extras.getLong("id"));
+        getActivity().startService(ackIntent);
         abortBroadcast();
       }
     }
@@ -175,8 +178,11 @@ public class ChatFragment extends Fragment{
           for (MessageArrayContent mac : maa){
             if (mac instanceof ImageMessage){
               ImageMessage msg = (ImageMessage) mac;
-              if (msg._ID == id)
+              if (msg._ID == id){
                 msg.status = extras.getString("status");
+                maa.getView(i, listView.getChildAt(i - listView
+                        .getFirstVisiblePosition()), listView);
+              }
             }else if (mac instanceof TextMessage){
               TextMessage msg = (TextMessage) mac;
               if (msg._ID == id){
@@ -352,15 +358,10 @@ public class ChatFragment extends Fragment{
                 .getSharedPreferences(ChatActivity.PREFERENCES, 0).getString
                         (ChatActivity.USERNAME, ""), MessageHistory
                 .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
-        boolean st = sendTextMessage(message, id);
-        String status = st
-                ? MessageHistory.STATUS_SENT
-                : MessageHistory.STATUS_WAITING;
-        if (st)
-          messageHistory.updateMessageStatus(buddyId, id, MessageHistory.STATUS_SENT);
+        sendTextMessage(message, id);
         textIn.setText("");
         maa.add(new TextMessage(false, message, new GregorianCalendar()
-                .getTimeInMillis(), status, id, -1));
+                .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
       }
     });
 
@@ -537,23 +538,17 @@ public class ChatFragment extends Fragment{
     updateStatus(lastOnline);
   }
 
-  private boolean sendTextMessage(String message, long id){
-    XmppManager xmppManager = XmppManager.getInstance(getContext());
-    return (xmppManager.sendTextMessage(message, buddyId, id));
+  private void sendTextMessage(String message, long id){
+    Intent sendIntent = new Intent(getContext(), MessageService.class);
+    sendIntent.setAction(MessageService.ACTION_SEND_TEXT);
+    sendIntent.putExtra(MessageService.KEY_MESSAGE, message);
+    sendIntent.putExtra(MessageService.KEY_BUDDYID, buddyId);
+    sendIntent.putExtra(MessageService.KEY_ID, id);
+    getActivity().startService(sendIntent);
   }
 
   private void resendTextMessage(TextMessage msg){
-    boolean status = sendTextMessage(msg.message, msg._ID);
-    if (status){
-      messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory.STATUS_SENT);
-      msg.status = MessageHistory.STATUS_SENT;
-      int size = maa.getCount();
-      for (int i = 0; i < size; i++){
-        MessageArrayContent mac = maa.getItem(i);
-        if (mac instanceof TextMessage && ((TextMessage) mac)._ID == msg._ID)
-          updateMessage(i);
-      }
-    }
+    sendTextMessage(msg.message, msg._ID);
   }
 
   private void reloadMessages(){
@@ -576,11 +571,14 @@ public class ChatFragment extends Fragment{
               maa.add(nm);
             }else
               nm.status = getResources().getString(R.string.new_messages);
-            try{
-              XmppManager.getInstance(null).sendAcknowledgement(buddyId,
-                      msg.othersId, MessageHistory.STATUS_READ);
-            }catch (Exception e){
-            }
+            //send the read acknowledgement
+            Intent ackIntent = new Intent(getContext(), MessageService.class);
+            ackIntent.setAction(MessageService.ACTION_SEND_ACKNOWLEDGE);
+            ackIntent.putExtra(MessageService.KEY_ACKNOWLEDGE_TYPE,
+                    MessageHistory.STATUS_READ);
+            ackIntent.putExtra(MessageService.KEY_BUDDYID, buddyId);
+            ackIntent.putExtra(MessageService.KEY_ID, msg.othersId);
+            getActivity().startService(ackIntent);
           }
           messageHistory.updateMessageStatus(buddyId, 2, MessageHistory
                   .STATUS_READ);
