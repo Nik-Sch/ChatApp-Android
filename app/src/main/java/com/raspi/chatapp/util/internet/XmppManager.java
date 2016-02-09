@@ -309,16 +309,16 @@ public class XmppManager{
     return false;
   }
 
-  /**
-   * disconnects
-   */
-  public void disconnect(){
-    if (connection != null && connection.isConnected()){
-      connection.disconnect();
-      Log.d("DEBUG", "Success: Disconnected.");
-    }else
-      Log.e("ERROR", "Disconnecting failed: No connection.");
-  }
+//  /**
+//   * disconnects
+//   */
+//  public void disconnect(){
+//    if (connection != null && connection.isConnected()){
+//      connection.disconnect();
+//      Log.d("DEBUG", "Success: Disconnected.");
+//    }else
+//      Log.e("ERROR", "Disconnecting failed: No connection.");
+//  }
 
   public boolean isConnected(){
     return connection != null && connection.isConnected();

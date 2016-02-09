@@ -163,20 +163,11 @@ public class MessageService extends Service{
   private void processMessages(Message... messages){
     for (Message message : messages){
       Log.d("SERVICE_DEBUG", "Received message and processing it.");
-      Roster roster = xmppManager.getRoster();
-      if (!roster.isLoaded())
-        try{
-          roster.reloadAndWait();
-        }catch (Exception e){
-          Log.e("SERVICE_ERROR", "An error occurred while reloading the roster");
-        }
       String buddyId = message.getFrom();
       MessageXmlParser.Message msg = MessageXmlParser.parse(message.getBody());
       if (!"acknowledgement".equals(msg.type)){
         long id = msg.id;
-        String name = roster.contains(buddyId)
-                ? roster.getEntry(buddyId).getName()
-                : buddyId;
+        String name = messageHistory.getName(buddyId);
 
         messageHistory.addChat(buddyId, buddyId);
         Intent msgIntent = new Intent(ChatActivity.RECEIVE_MESSAGE)

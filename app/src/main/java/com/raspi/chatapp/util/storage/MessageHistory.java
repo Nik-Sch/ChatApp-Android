@@ -123,6 +123,26 @@ public class MessageHistory{
     return resultChats;
   }
 
+  public String getName(String buddyId){
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    String where = MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID + "=?";
+    Cursor c = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS,
+            new String[]{MessageHistoryContract.ChatEntry.COLUMN_NAME_NAME},
+            where, new String[]{buddyId}, null, null, null);
+    c.moveToFirst();
+    String result = null;
+    if (c.getCount() > 1){
+      try{
+        result = c.getString(0);
+      }catch (Exception e){
+        result = buddyId;
+      }
+    }
+    db.close();
+    c.close();
+    return result;
+  }
+
   public boolean renameChat(String buddyId, String newName){
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     ContentValues cv = new ContentValues();
