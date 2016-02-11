@@ -34,6 +34,7 @@ import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.offline.OfflineMessageManager;
+import org.jivesoftware.smackx.ping.PingManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -233,6 +234,10 @@ public class MessageService extends Service{
           processMessages(offlineMessageManager.getMessages().toArray(new
                   Message[offlineMessageManager.getMessageCount()]));
         }
+
+        PingManager pingManager = PingManager.getInstanceFor(connection);
+        pingManager.setPingInterval(60);
+
         setStatus(true, isAppRunning ? "online" : Long.toString(new Date()
                 .getTime()));
         ChatManager.getInstanceFor(connection).addChatListener(new
