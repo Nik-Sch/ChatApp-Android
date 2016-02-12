@@ -124,6 +124,9 @@ public class MessageHistory{
   }
 
   public String getName(String buddyId){
+    int index = buddyId.indexOf('@');
+    if (index > -1)
+      buddyId = buddyId.substring(0, index);
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     String where = MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID + "=?";
     Cursor c = db.query(MessageHistoryContract.ChatEntry.TABLE_NAME_ALL_CHATS,
@@ -131,7 +134,7 @@ public class MessageHistory{
             where, new String[]{buddyId}, null, null, null);
     c.moveToFirst();
     String result = null;
-    if (c.getCount() > 1){
+    if (c.getCount() >= 1){
       try{
         result = c.getString(0);
       }catch (Exception e){
@@ -140,6 +143,7 @@ public class MessageHistory{
     }
     db.close();
     c.close();
+//    Log.d("MH_DEBUG", result);
     return result;
   }
 

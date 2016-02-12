@@ -2,12 +2,14 @@ package com.raspi.chatapp.ui.chatting;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import com.raspi.chatapp.R;
@@ -144,6 +147,36 @@ public class ChatListFragment extends Fragment{
       public void onItemClick(AdapterView<?> parent, View view, int position, long id){
         ChatEntry chatEntry = caa.getItem(position);
         mListener.onChatOpened(chatEntry.buddyId, chatEntry.name);
+      }
+    });
+    lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+      @Override
+      public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id){
+        final EditText newName = new EditText(getActivity());
+        String title = getResources().getString(R.string.change_name_title) +
+                " " + caa.getItem(position).name;
+        new AlertDialog.Builder(getContext())
+                .setTitle(title)
+                .setMessage(R.string.change_name)
+                .setView(newName)
+                .setPositiveButton(R.string.rename, new DialogInterface.OnClickListener(){
+                  @Override
+                  public void onClick(DialogInterface dialog, int which){
+                    MessageHistory messageHistory = new MessageHistory
+                            (getContext());
+                    String buddyId = caa.getItem(position).buddyId;
+                    String name = newName.getText().toString();
+                    messageHistory.renameChat(buddyId, name);
+                    initUI();
+                  }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
+                  @Override
+                  public void onClick(DialogInterface dialog, int which){
+
+                  }
+                }).show();
+        return true;
       }
     });
     lv.setAdapter(caa);

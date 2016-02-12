@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ChatApp</string>
     <string name="action_attach">Datei anhängen</string>
     <string name="action_settings">Einstellungen</string>
     <string name="cancel">Abbrechen</string>
@@ -32,8 +31,8 @@
     <string name="pref_summary_changepwd">Gebe ein neues Passwort ein</string>
     <string name="pref_title_changepwd">Passwort ändern</string>
     <string name="pref_header_password">Passwort</string>
-    <string name="new_messages">Neue Nachrichten</string>
-    <string name="new_message">Neue Nachricht</string>
+    <string name="new_messages">neue Nachrichten</string>
+    <string name="new_message">neue Nachricht</string>
     <string name="confirm_password">Wiederhole dein neues Passwort</string>
     <string name="new_password">Gebe dein neus Passwort ein</string>
     <string name="from">von</string>
@@ -53,4 +52,7 @@
     <string name="pref_title_enablepwd">Passwort aktivieren</string>
     <string name="send_image">Bild senden</string>
     <string name="pref_summary_enablepwd">Aktivieren um den Passwortschutz zu aktivieren</string>
+    <string name="change_name">Wähle den neuen Namen für diesen Chat:</string>
+    <string name="change_name_title">Ändere den Namen von</string>
+    <string name="rename">Umbennen</string>
 </resources>

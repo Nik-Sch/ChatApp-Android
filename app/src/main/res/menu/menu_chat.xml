@@ -10,4 +10,8 @@
         android:orderInCategory="3"
         android:title="@string/action_attach"
         app:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_rename"
+          android:orderInCategory="4"
+          android:title="@string/rename"
+          app:showAsAction="never"/>
 </menu>

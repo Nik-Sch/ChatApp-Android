@@ -133,6 +133,12 @@ public class ChatFragment extends Fragment{
       if (index >= 0)
         intentBuddyId = intentBuddyId.substring(0, index);
       if (buddyId.equals(intentBuddyId)){
+        int i = 0;
+        for (MessageArrayContent mac : maa){
+          if (mac instanceof NewMessage)
+            maa.remove(i);
+          i++;
+        }
         MessageArrayContent mac = messageHistory.getLastMessage(buddyId, true);
         if (mac instanceof ImageMessage)
           downloadImage((ImageMessage) mac);
@@ -312,12 +318,39 @@ public class ChatFragment extends Fragment{
   @Override
   public boolean onOptionsItemSelected(MenuItem item){
     switch (item.getItemId()){
-      case R.id.action_settings:
-        return false;
       case R.id.action_attach:
         mListener.onAttachClicked();
         return true;
+      case R.id.action_rename:
+        final EditText newName = new EditText(getActivity());
+        String title = getResources().getString(R.string.change_name_title) +
+                " " + chatName;
+        new AlertDialog.Builder(getContext())
+                .setTitle(title)
+                .setMessage(R.string.change_name)
+                .setView(newName)
+                .setPositiveButton(R.string.rename, new DialogInterface.OnClickListener(){
+                  @Override
+                  public void onClick(DialogInterface dialog, int which){
+                    MessageHistory messageHistory = new MessageHistory
+                            (getContext());
+                    String name = newName.getText().toString();
+                    messageHistory.renameChat(buddyId, name);
+                    chatName = name;
+                    actionBar.setTitle(chatName);
+                  }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
+                  @Override
+                  public void onClick(DialogInterface dialog, int which){
+
+                  }
+                }).show();
+        return true;
+      case R.id.action_settings:
+        break;
       case R.id.home:
+        break;
       default:
         break;
     }
@@ -360,6 +393,12 @@ public class ChatFragment extends Fragment{
                 .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
         sendTextMessage(message, id);
         textIn.setText("");
+        int i = 0;
+        for (MessageArrayContent mac : maa){
+          if (mac instanceof NewMessage)
+            maa.remove(i);
+          i++;
+        }
         maa.add(new TextMessage(false, message, new GregorianCalendar()
                 .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
       }
@@ -555,12 +594,12 @@ public class ChatFragment extends Fragment{
     maa.clear();
     MessageArrayContent[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
     long oldDate = 0;
-    final int c = 24 * 60 * 60 * 1000;
+    final long c = 24 * 60 * 60 * 1000;
     NewMessage nm = null;
     for (MessageArrayContent message : messages){
       if (message instanceof TextMessage){
         TextMessage msg = (TextMessage) message;
-        if ((msg.time - oldDate) / c > 0)
+        if (msg.time / c > oldDate / c)
           maa.add(new Date(msg.time));
         oldDate = msg.time;
         if (msg.left){
@@ -587,7 +626,7 @@ public class ChatFragment extends Fragment{
         maa.add(msg);
       }else if (message instanceof ImageMessage){
         ImageMessage msg = (ImageMessage) message;
-        if ((msg.time - oldDate) / c > 0)
+        if (msg.time / c > oldDate / c)
           maa.add(new Date(msg.time));
         oldDate = msg.time;
         if (msg.left){
