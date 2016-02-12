@@ -36,6 +36,7 @@
     <string name="change_name_title">Change the name for</string>
     <string name="change_name">Choose a new name for this chat:</string>
     <string name="rename">rename</string>
+    <string name="load_more_messages">Load more messages</string>
 
     <!-- String array chatlist_options_array's values -->
     <string name="chatlist_option_1">Rename Chat</string>

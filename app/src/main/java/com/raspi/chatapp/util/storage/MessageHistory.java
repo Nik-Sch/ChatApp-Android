@@ -299,10 +299,11 @@ public class MessageHistory{
   }
 
   public MessageArrayContent[] getMessages(String buddyId, int limit){
-    return getMessages(buddyId, limit, 0);
+    return getMessages(buddyId, limit, 0, false);
   }
 
-  public MessageArrayContent[] getMessages(String buddyId, int amount, int offset){
+  public MessageArrayContent[] getMessages(String buddyId, int amount, int
+          offset, boolean reverse){
     //Log.d("DATABASE", "Getting messages");
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     String[] columns = new String[]{
@@ -320,7 +321,10 @@ public class MessageHistory{
             .MessageEntry
             .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", offset + "," + amount);
 
-    messages.moveToLast();
+    if (reverse)
+      messages.moveToFirst();
+    else
+      messages.moveToLast();
     int messageCount = messages.getCount();
     MessageArrayContent[] result = new MessageArrayContent[messageCount];
     int i = 0;
@@ -364,10 +368,19 @@ public class MessageHistory{
             break;
         }
         i++;
-      }while (messages.move(-1));
+      }while (messages.move((reverse) ? 1 : -1));
     db.close();
     messages.close();
     return result;
+  }
+
+  public int getMessageAmount(String buddyId){
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    Cursor c = db.rawQuery("SELECT * FROM " + buddyId, null);
+    int cnt = c.getCount();
+    c.close();
+    db.close();
+    return cnt;
   }
 
   public MessageArrayContent getMessage(String buddyId, String messageId){

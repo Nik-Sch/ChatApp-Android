@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,7 +19,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -39,6 +37,7 @@ import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.message_array.Date;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
+import com.raspi.chatapp.ui.util.message_array.LoadMoreMessages;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.NewMessage;
@@ -51,10 +50,12 @@ import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -66,6 +67,8 @@ import java.util.Locale;
  */
 public class ChatFragment extends Fragment{
   private static final int MESSAGE_LIMIT = 30;
+
+  private int messageAmount = MESSAGE_LIMIT;
 
   private String buddyId;
   private String chatName;
@@ -143,6 +146,7 @@ public class ChatFragment extends Fragment{
         if (mac instanceof ImageMessage)
           downloadImage((ImageMessage) mac);
         maa.add(mac);
+        listView.setSelection(maa.getCount() - 1);
         //also send the read acknowledgement
         Intent ackIntent = new Intent(getContext(), MessageService.class);
         ackIntent.setAction(MessageService.ACTION_SEND_ACKNOWLEDGE);
@@ -225,6 +229,135 @@ public class ChatFragment extends Fragment{
       updateStatus(null);
     }
   };
+  private AbsListView.MultiChoiceModeListener
+          multiChoiceModeListener = new AbsListView.MultiChoiceModeListener(){
+    Menu menu;
+    Set<MessageArrayContent> selected;
+    //as I am only using unsigned integer I add a sign in front of it, so the
+    // treeset sorts it reverse. Because I am going to remove the items from
+    // the arrayadapter I need the positions to be sorted reversed, because
+    // fi removing one item all indices larger than the removed ones are
+    // decremented
+    Set<Integer> selectedPositions;
+
+    @Override
+    public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked){
+      //TODO update number in CAB
+      MessageArrayContent mac = maa.getItem(position);
+      if (mac instanceof Date || mac instanceof NewMessage || mac instanceof
+              LoadMoreMessages){
+        try{
+          listView.setItemChecked(position + 1, true);
+        }catch (Exception e){
+          e.printStackTrace();
+        }
+      }
+      if (checked){
+        if (selected.add(mac))
+          selectedPositions.add(-position);
+      }else{
+        if (selected.remove(mac)){
+          Integer x = -position;
+          selectedPositions.remove(x);
+        }
+      }
+
+      MenuItem itemCopy = menu.findItem(R.id.action_copy);
+      itemCopy.setVisible((count()) == 1);
+
+      if (count() == 0)
+        mode.finish();
+    }
+
+    private int count(){
+      int result = 0;
+      for (MessageArrayContent mac : selected)
+        if (mac instanceof TextMessage || mac instanceof ImageMessage)
+          result++;
+      return result;
+    }
+
+    @Override
+    public boolean onCreateActionMode(ActionMode mode, Menu menu){
+      MenuInflater inflater = mode.getMenuInflater();
+      inflater.inflate(R.menu.menu_message_select, menu);
+      this.menu = menu;
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+        getActivity().getWindow().setStatusBarColor(getResources().getColor
+                (R.color.colorPrimaryDark));
+      }
+      return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(ActionMode mode, Menu menu){
+      selected = new HashSet<>();
+      selectedPositions = new TreeSet<>();
+      return true;
+    }
+
+    @Override
+    public boolean onActionItemClicked(final ActionMode mode, MenuItem item){
+      boolean result = false;
+      switch (item.getItemId()){
+        case R.id.action_copy:
+          MessageArrayContent mac = selected.toArray(new
+                  MessageArrayContent[1])[0];
+          String text = null;
+          if (mac instanceof TextMessage)
+            text = ((TextMessage) mac).message;
+          else if (mac instanceof ImageMessage)
+            text = ((ImageMessage) mac).description;
+
+          if (text != null){
+            ClipboardManager clipboard = (ClipboardManager) getContext()
+                    .getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clipData = ClipData.newPlainText("simple text", text);
+            clipboard.setPrimaryClip(clipData);
+          }
+          mode.finish();
+          result = true;
+          break;
+        case R.id.action_delete:
+          new AlertDialog.Builder(getActivity())
+                  .setMessage(listView.getCheckedItemCount() > 1 ? R.string
+                          .delete_messages : R.string.delete_message)
+                  .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which){
+                      for (MessageArrayContent mac : selected){
+                        if (mac instanceof TextMessage || mac instanceof ImageMessage){
+                          long _ID = (mac instanceof TextMessage)
+                                  ? ((TextMessage) mac)._ID
+                                  : ((ImageMessage) mac)._ID;
+                          messageHistory.removeMessages(buddyId, _ID);
+                        }
+                      }
+                      for (int i : selectedPositions){
+                        maa.remove(-i);
+                      }
+                      mode.finish();
+                      dialog.dismiss();
+                    }
+                  })
+                  .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which){
+                      dialog.dismiss();
+                    }
+                  }).create().show();
+          result = true;
+          break;
+      }
+      return result;
+    }
+
+    @Override
+    public void onDestroyActionMode(ActionMode mode){
+      selected = null;
+      selectedPositions = null;
+    }
+  };
 
   public ChatFragment(){
     // Required empty public constructor
@@ -256,6 +389,7 @@ public class ChatFragment extends Fragment{
   @Override
   public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
+    messageAmount = MESSAGE_LIMIT;
     if (getArguments() != null){
       buddyId = getArguments().getString(ChatActivity.BUDDY_ID);
       chatName = getArguments().getString(ChatActivity.CHAT_NAME);
@@ -401,10 +535,11 @@ public class ChatFragment extends Fragment{
         }
         maa.add(new TextMessage(false, message, new GregorianCalendar()
                 .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
+        listView.setSelection(maa.getCount() - 1);
       }
     });
 
-    listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+//    listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
     listView.setAdapter(maa);
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
       @Override
@@ -416,162 +551,50 @@ public class ChatFragment extends Fragment{
           pickIntent.setDataAndType(Uri.fromFile(new File(im.file)),
                   "image/*");
           startActivity(pickIntent);
+        }else if (mac instanceof LoadMoreMessages){
+          MessageArrayContent[] macs = messageHistory.getMessages(buddyId,
+                  MESSAGE_LIMIT, messageAmount, true);
+          messageAmount += MESSAGE_LIMIT;
+          //save position to not scroll
+          int index = listView.getFirstVisiblePosition() + 2;
+          View v = listView.getChildAt(2);
+          int top = (v == null) ? 0 : v.getTop();
+          //remove the date
+          maa.remove(1);
+          final long c = 24 * 60 * 60 * 1000;
+          MessageArrayContent macT = maa.getItem(1);
+          long oldDate = (macT instanceof TextMessage)?((TextMessage) macT)
+                  .time:((ImageMessage)macT).time;
+          int count = macs.length;
+          for (MessageArrayContent macTemp : macs){
+            if (macTemp instanceof TextMessage){
+              TextMessage msg = (TextMessage) macTemp;
+              if (msg.time / c < oldDate / c){
+                maa.insert(new Date(msg.time), 1);
+                count++;
+              }
+              oldDate = msg.time;
+            }else if (macTemp instanceof ImageMessage){
+              ImageMessage msg = (ImageMessage) macTemp;
+              if (msg.time / c < oldDate / c){
+                maa.insert(new Date(msg.time), 1);
+                count++;
+              }
+              oldDate = msg.time;
+            }
+            maa.insert(macTemp, 1);
+          }
+          maa.insert(new Date(oldDate), 1);
+          maa.notifyDataSetChanged();
+          listView.setSelectionFromTop(index + count - 1, top);
+          if (messageAmount >= messageHistory.getMessageAmount(buddyId))
+            maa.remove(0);
         }
       }
     });
 
     listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
-    listView.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener(){
-
-      int count = 0;
-      int wrongSelected = 0;
-      Menu menu;
-
-      @Override
-      public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked){
-        //TODO update number in CAB
-        //this does not work perfectly, if you select an item below an date
-        // or newMessage and afterwards select the date or newMessage it gets
-        // confused... I don't really care atm
-        MessageArrayContent mac = maa.getItem(position);
-        if (mac instanceof Date || mac instanceof NewMessage){
-          try{
-            listView.setItemChecked(position + 1, checked);
-          }catch (Exception e){
-          }
-          if (checked)
-            wrongSelected++;
-          else
-            wrongSelected--;
-        }
-        if (checked)
-          count++;
-        else
-          count--;
-        MenuItem itemCopy = menu.findItem(R.id.action_copy);
-        itemCopy.setVisible((count - wrongSelected) == 1);
-        if (count == wrongSelected){
-          mode.finish();
-          wrongSelected = 0;
-          count = 0;
-        }
-      }
-
-      @Override
-      public boolean onCreateActionMode(ActionMode mode, Menu menu){
-        MenuInflater inflater = mode.getMenuInflater();
-        inflater.inflate(R.menu.menu_message_select, menu);
-        this.menu = menu;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-          getActivity().getWindow().setStatusBarColor(getResources().getColor
-                  (R.color.colorPrimaryDark));
-        }
-        return true;
-      }
-
-      @Override
-      public boolean onPrepareActionMode(ActionMode mode, Menu menu){
-        return true;
-      }
-
-      @Override
-      public boolean onActionItemClicked(final ActionMode mode, MenuItem item){
-        boolean result = false;
-        final int size;
-        SparseBooleanArray checked;
-        switch (item.getItemId()){
-          case R.id.action_copy:
-            size = listView.getCount();
-            checked = listView.getCheckedItemPositions();
-            for (int i = 0; i < size; i++)
-              if (checked.get(i)){
-                MessageArrayContent mac = (MessageArrayContent) listView
-                        .getItemAtPosition(i);
-                String text = null;
-                if (mac instanceof TextMessage)
-                  text = ((TextMessage) mac).message;
-                else if (mac instanceof ImageMessage)
-                  text = ((ImageMessage) mac).description;
-
-                if (text != null){
-                  ClipboardManager clipboard = (ClipboardManager) getContext()
-                          .getSystemService(Context.CLIPBOARD_SERVICE);
-                  ClipData clipData = ClipData.newPlainText("simple text", text);
-                  clipboard.setPrimaryClip(clipData);
-                }
-                break;
-              }
-            mode.finish();
-            result = true;
-            break;
-          case R.id.action_delete:
-            new AlertDialog.Builder(getActivity())
-                    .setMessage(listView.getCheckedItemCount() > 1 ? R.string
-                            .delete_messages : R.string.delete_message)
-                    .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener(){
-                      @Override
-                      public void onClick(DialogInterface dialog, int which){
-                        SparseBooleanArray checked = listView
-                                .getCheckedItemPositions();
-                        ArrayList<Long> deletedRows = new ArrayList<>();
-                        ArrayList<Integer> deletedIndices = new ArrayList<>();
-
-                        int i = -1;
-                        for (MessageArrayContent mac : maa){
-                          if (checked.get(++i)){
-                            if (mac instanceof TextMessage){
-                              deletedRows.add(((TextMessage) mac)._ID);
-                              deletedIndices.add(i);
-                            }else if (mac instanceof ImageMessage){
-                              deletedRows.add(((ImageMessage) mac)._ID);
-                              deletedIndices.add(i);
-                            }
-                          }
-                        }
-
-                        for (int j : deletedIndices)
-                          maa.remove(maa.getCount() - 1);
-
-                        long[] array = convertArray(deletedRows);
-                        messageHistory.removeMessages(buddyId, array);
-
-                        mode.finish();
-                        dialog.dismiss();
-                      }
-                    })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
-                      @Override
-                      public void onClick(DialogInterface dialog, int which){
-                        dialog.dismiss();
-                      }
-                    }).create().show();
-            result = true;
-            break;
-        }
-        return result;
-      }
-
-      private long[] convertArray(ArrayList<Long> list){
-        long[] array = new long[list.size()];
-        for (int i = 0; i < array.length; i++)
-          array[i] = list.get(i);
-        return array;
-      }
-
-
-      @Override
-      public void onDestroyActionMode(ActionMode mode){
-        count = 0;
-      }
-    });
-
-    maa.registerDataSetObserver(new DataSetObserver(){
-      @Override
-      public void onChanged(){
-        super.onChanged();
-        listView.setSelection(maa.getCount() - 1);
-      }
-    });
+    listView.setMultiChoiceModeListener(multiChoiceModeListener);
     reloadMessages();
     String lastOnline = messageHistory.getOnline(buddyId);
     updateStatus(lastOnline);
@@ -592,10 +615,14 @@ public class ChatFragment extends Fragment{
 
   private void reloadMessages(){
     maa.clear();
-    MessageArrayContent[] messages = messageHistory.getMessages(buddyId, MESSAGE_LIMIT);
+    MessageArrayContent[] messages = messageHistory.getMessages(buddyId, messageAmount);
     long oldDate = 0;
     final long c = 24 * 60 * 60 * 1000;
     NewMessage nm = null;
+
+    if (messageAmount < messageHistory.getMessageAmount(buddyId))
+      maa.add(new LoadMoreMessages());
+
     for (MessageArrayContent message : messages){
       if (message instanceof TextMessage){
         TextMessage msg = (TextMessage) message;
@@ -651,6 +678,7 @@ public class ChatFragment extends Fragment{
         maa.add(msg);
       }
     }
+    listView.setSelection(maa.getCount() - 1);
   }
 
   private void updateStatus(String lastOnline){

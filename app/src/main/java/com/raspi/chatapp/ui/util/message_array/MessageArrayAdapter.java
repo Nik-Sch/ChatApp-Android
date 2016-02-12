@@ -31,10 +31,15 @@ import java.util.Locale;
 
 public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
         implements Iterable<MessageArrayContent>{
-  private List<MessageArrayContent> messageList = new ArrayList<MessageArrayContent>();
+  private List<MessageArrayContent> messageList = new ArrayList<>();
 
   public MessageArrayAdapter(Context context, int textViewResourceId){
     super(context, textViewResourceId);
+  }
+
+  @Override
+  public void insert(MessageArrayContent object, int index){
+    messageList.add(index, object);
   }
 
   private static boolean cancelPotentialWork(File file, ImageView imageView){
@@ -238,6 +243,10 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
 
       TextView date = (TextView) v.findViewById(R.id.date);
       date.setText(new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format(((Date) Obj).date));
+    }else if (Obj.getClass() == LoadMoreMessages.class){
+      LayoutInflater inflater = (LayoutInflater) this.getContext()
+              .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      v = inflater.inflate(R.layout.message_load_more, parent, false);
     }else if (Obj.getClass() == NewMessage.class){
       LayoutInflater inflater = (LayoutInflater) this.getContext()
               .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
