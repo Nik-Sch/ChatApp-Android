@@ -654,8 +654,8 @@ public class ChatFragment extends Fragment{
   }
 
   private void updateStatus(String lastOnline){
-    try{
-      long time = Long.valueOf(lastOnline);
+    long time = Long.valueOf(lastOnline);
+    if (time > 0){
       Calendar startOfDay = Calendar.getInstance();
       startOfDay.set(Calendar.HOUR_OF_DAY, 0);
       startOfDay.set(Calendar.MINUTE, 0);
@@ -675,12 +675,12 @@ public class ChatFragment extends Fragment{
               .format(time);
       if (actionBar != null)
         actionBar.setSubtitle(lastOnline);
-    }catch (NumberFormatException e){
+    }else{
       if (actionBar != null)
-        if (lastOnline != null)
-          actionBar.setSubtitle(Html
-                  .fromHtml("<font " +
-                          "color='#55AAFF'>" + lastOnline + "</font>"));
+        actionBar.setSubtitle(Html
+                .fromHtml("<font " +
+                        "color='#55AAFF'>" + getResources().getString(R
+                        .string.online) + "</font>"));
     }
   }
 

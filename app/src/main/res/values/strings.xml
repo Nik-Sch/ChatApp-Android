@@ -10,6 +10,7 @@
     <string name="last_online_yesterday">yesterday at</string>
     <string name="last_online_at">at</string>
     <string name="last_message_yesterday">YESTERDAY</string>
+    <string name="online">online</string>
     <string name="send">Send</string>
     <string name="cancel">Cancel</string>
     <string name="retry">Retry</string>

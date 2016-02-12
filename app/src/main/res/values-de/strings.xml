@@ -55,4 +55,5 @@
     <string name="change_name">Wähle den neuen Namen für diesen Chat:</string>
     <string name="change_name_title">Ändere den Namen von</string>
     <string name="rename">Umbennen</string>
+    <string name="online">Online</string>
 </resources>

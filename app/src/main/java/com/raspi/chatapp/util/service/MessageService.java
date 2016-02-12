@@ -191,9 +191,11 @@ public class MessageService extends Service{
           }
           break;
         case ChatActivity.APP_LAUNCHED:
+          setStatus(true, "0");
           isAppRunning = true;
           break;
         case ChatActivity.APP_CLOSED:
+          setStatus(true, Long.toString(new Date().getTime()));
           isAppRunning = false;
           break;
       }
@@ -238,8 +240,6 @@ public class MessageService extends Service{
         PingManager pingManager = PingManager.getInstanceFor(connection);
         pingManager.setPingInterval(60);
 
-        setStatus(true, isAppRunning ? "online" : Long.toString(new Date()
-                .getTime()));
         ChatManager.getInstanceFor(connection).addChatListener(new
                 MyChatManagerListener());
       }catch (Exception e){
