@@ -1,14 +1,13 @@
 package com.raspi.chatapp.util.internet.http;
 
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 
 import com.alexbbb.uploadservice.MultipartUploadRequest;
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
-import com.raspi.chatapp.util.service.MessageService;
+import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.io.File;
@@ -20,10 +19,12 @@ public class Upload{
   private static final String PARAM_TYPE = "type";
 
   private MessageHistory messageHistory;
+  private XmppManager xmppManager;
   private Context context;
 
   public void uploadFile(final Context context, Task task){
     messageHistory = new MessageHistory(context);
+    xmppManager = XmppManager.getInstance();
     this.context = context;
     final String uploadID = task.chatId + "|" + task.messageID;
     try{
@@ -85,16 +86,11 @@ public class Upload{
                         messageId);
                 try{
                   ImageMessage msg = (ImageMessage) mac;
-
-                  Intent sendIntent = new Intent(context, MessageService.class);
-                  sendIntent.setAction(MessageService.ACTION_SEND_IMAGE);
-                  sendIntent.putExtra(MessageService.KEY_SERVER_FILE,
-                          serverResponseMessage);
-                  sendIntent.putExtra(MessageService.KEY_DESCRIPTION, msg
-                          .description);
-                  sendIntent.putExtra(MessageService.KEY_BUDDYID, buddyId);
-                  sendIntent.putExtra(MessageService.KEY_ID, msg._ID);
-                  context.startService(sendIntent);
+                  if (xmppManager.sendImageMessage(serverResponseMessage, msg.description,
+                          buddyId, msg._ID))
+                    messageHistory.updateMessageStatus(buddyId, Long
+                            .parseLong(messageId), MessageHistory
+                            .STATUS_SENT);
                 }catch (ClassCastException e){
                   Log.e("UPLOAD", "Sending the uploaded image failed");
                   e.printStackTrace();

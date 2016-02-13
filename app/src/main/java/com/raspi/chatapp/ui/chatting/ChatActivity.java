@@ -21,8 +21,11 @@ import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.password.PasswordActivity;
 import com.raspi.chatapp.ui.settings.SettingsActivity;
 import com.raspi.chatapp.util.Notification;
+import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.AndroidDatabaseManager;
+
+import java.util.Date;
 
 public class ChatActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener, ChatListFragment
@@ -35,12 +38,6 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.USERNAME";
   public static final String PASSWORD = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.PASSWORD";
-  public static final String CLASS = "com.raspi.chatapp.ui.chatting" +
-          ".ChatActivity.CLASS";
-  public static final String APP_LAUNCHED = "con.raspi.chatapp.ui.chatting" +
-          ".ChatActivity.APP_CREATED";
-  public static final String APP_CLOSED = "con.raspi.chatapp.ui.chatting" +
-          ".ChatActivity.APP_DESTROYED";
   public static final String BUDDY_ID = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.BUDDY_ID";
   public static final String CHAT_NAME = "com.raspi.chatapp.ui.chatting" +
@@ -63,10 +60,10 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.PWD_REQUEST";
   public static final String MESSAGE_STATUS_CHANGED = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.MESSAGE_STATUS_CHANGED";
+  public static final String LAST_SENT_PRESENCE = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.LAST_SENT_PRESENCE";
 
   public static final String IMAGE_DIR = "ChatApp Images";
-
-  public static final String BOOT_COMPLETED = "android.intent.action.BOOT_COMPLETED";
 
   public static final int PHOTO_ATTACH_SELECTED = 42;
 
@@ -101,17 +98,21 @@ public class ChatActivity extends AppCompatActivity implements
   @Override
   protected void onResume(){
     super.onResume();
+    startService(new Intent(getApplicationContext(), MessageService.class));
     if (getSharedPreferences(ChatActivity.PREFERENCES, 0)
             .getBoolean(ChatActivity.PWD_REQUEST, true)
             && PreferenceManager.getDefaultSharedPreferences(getApplication())
             .getBoolean(
                     getResources().getString(R.string.pref_key_enablepwd),
-                    true)){
+                    false)){
       startActivityForResult(new Intent(this, PasswordActivity.class),
               PasswordActivity.ASK_PWD_REQUEST);
     }else{
       init();
     }
+    XmppManager.getInstance(getApplicationContext()).setStatus(true, "0");
+    getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putLong
+            (ChatActivity.LAST_SENT_PRESENCE, 0).apply();
     getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putBoolean
             (ChatActivity.PWD_REQUEST, true).apply();
   }
@@ -125,15 +126,12 @@ public class ChatActivity extends AppCompatActivity implements
 
   @Override
   protected void onPause(){
-    this.startService(new Intent(this, MessageService.class).setAction(APP_CLOSED));
+    startService(new Intent(getApplicationContext(), MessageService.class));
+    Long time = new Date().getTime();
+    XmppManager.getInstance().setStatus(true, Long.toString(time));
+    getSharedPreferences(ChatActivity.PREFERENCES, 0).edit().putLong
+            (ChatActivity.LAST_SENT_PRESENCE, time).apply();
     super.onPause();
-  }
-
-  @Override
-  protected void onDestroy(){
-    //signal the service that the app is about to get destroyed
-    this.startService(new Intent(this, MessageService.class).setAction(APP_CLOSED));
-    super.onDestroy();
   }
 
   @Override
@@ -175,10 +173,10 @@ public class ChatActivity extends AppCompatActivity implements
   private void setUserPwd(){
     SharedPreferences preferences = getSharedPreferences(PREFERENCES, 0);
     //if (!preferences.contains(USERNAME))
-    preferences.edit().putString(USERNAME, "aylin").apply();
+    preferences.edit().putString(USERNAME, "niklas").apply();
 
     //if (!preferences.contains(PASSWORD))
-    preferences.edit().putString(PASSWORD, "passwdAylin").apply();
+    preferences.edit().putString(PASSWORD, "passwdNiklas").apply();
   }
 
   @Override
@@ -269,7 +267,6 @@ public class ChatActivity extends AppCompatActivity implements
       onChatOpened(currentBuddyId, currentChatName);
     }
 
-    this.startService(new Intent(this, MessageService.class).setAction(APP_LAUNCHED));
     ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancel
             (Notification.NOTIFICATION_ID);
     new Notification(this).reset();

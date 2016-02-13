@@ -42,9 +42,9 @@ import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
+import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.internet.http.DownloadService;
 import com.raspi.chatapp.util.internet.http.Upload;
-import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
@@ -148,14 +148,11 @@ public class ChatFragment extends Fragment{
         maa.add(mac);
         listView.setSelection(maa.getCount() - 1);
         //also send the read acknowledgement
-        Intent ackIntent = new Intent(getContext(), MessageService.class);
-        ackIntent.setAction(MessageService.ACTION_SEND_ACKNOWLEDGE);
-        ackIntent.putExtra(MessageService.KEY_ACKNOWLEDGE_TYPE,
-                MessageHistory.STATUS_READ);
-        ackIntent.putExtra(MessageService.KEY_BUDDYID, extras.getString
-                (ChatActivity.BUDDY_ID));
-        ackIntent.putExtra(MessageService.KEY_ID, extras.getLong("id"));
-        getActivity().startService(ackIntent);
+        try{
+          XmppManager.getInstance(context).sendAcknowledgement(buddyId,
+                  extras.getLong("id"), MessageHistory.STATUS_READ);
+        }catch (Exception e){
+        }
         abortBroadcast();
       }
     }
@@ -221,12 +218,6 @@ public class ChatFragment extends Fragment{
             resendTextMessage(msg);
         }
       }
-    }
-  };
-  private BroadcastReceiver disconnectedReceiver = new BroadcastReceiver(){
-    @Override
-    public void onReceive(Context context, Intent intent){
-      updateStatus(null);
     }
   };
   private AbsListView.MultiChoiceModeListener
@@ -408,8 +399,6 @@ public class ChatFragment extends Fragment{
             (getContext());
     LBmgr.registerReceiver(reconnectedReceiver, new IntentFilter
             (ChatActivity.RECONNECTED));
-    LBmgr.registerReceiver(disconnectedReceiver, new IntentFilter
-            (ChatActivity.DISCONNECTED));
     LBmgr.registerReceiver(presenceChangeReceiver, new IntentFilter
             (ChatActivity.PRESENCE_CHANGED));
     LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
@@ -428,7 +417,6 @@ public class ChatFragment extends Fragment{
     LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance(getContext());
     LBmgr.unregisterReceiver(presenceChangeReceiver);
     LBmgr.unregisterReceiver(reconnectedReceiver);
-    LBmgr.unregisterReceiver(disconnectedReceiver);
     LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
             (ChatActivity.MESSAGE_STATUS_CHANGED));
     uploadReceiver.unregister(getContext());
@@ -525,6 +513,8 @@ public class ChatFragment extends Fragment{
                 .getSharedPreferences(ChatActivity.PREFERENCES, 0).getString
                         (ChatActivity.USERNAME, ""), MessageHistory
                 .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
+        maa.add(new TextMessage(false, message, new GregorianCalendar()
+                .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
         sendTextMessage(message, id);
         textIn.setText("");
         int i = 0;
@@ -533,13 +523,11 @@ public class ChatFragment extends Fragment{
             maa.remove(i);
           i++;
         }
-        maa.add(new TextMessage(false, message, new GregorianCalendar()
-                .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
         listView.setSelection(maa.getCount() - 1);
       }
     });
 
-//    listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+    listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
     listView.setAdapter(maa);
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
       @Override
@@ -563,8 +551,8 @@ public class ChatFragment extends Fragment{
           maa.remove(1);
           final long c = 24 * 60 * 60 * 1000;
           MessageArrayContent macT = maa.getItem(1);
-          long oldDate = (macT instanceof TextMessage)?((TextMessage) macT)
-                  .time:((ImageMessage)macT).time;
+          long oldDate = (macT instanceof TextMessage) ? ((TextMessage) macT)
+                  .time : ((ImageMessage) macT).time;
           int count = macs.length;
           for (MessageArrayContent macTemp : macs){
             if (macTemp instanceof TextMessage){
@@ -585,10 +573,12 @@ public class ChatFragment extends Fragment{
             maa.insert(macTemp, 1);
           }
           maa.insert(new Date(oldDate), 1);
-          maa.notifyDataSetChanged();
-          listView.setSelectionFromTop(index + count - 1, top);
-          if (messageAmount >= messageHistory.getMessageAmount(buddyId))
+          listView.setSelectionFromTop(index + count, top);
+          if (messageAmount >= messageHistory.getMessageAmount(buddyId)){
             maa.remove(0);
+            count--;
+          }
+          listView.setSelectionFromTop(index + count, top);
         }
       }
     });
@@ -601,12 +591,26 @@ public class ChatFragment extends Fragment{
   }
 
   private void sendTextMessage(String message, long id){
-    Intent sendIntent = new Intent(getContext(), MessageService.class);
-    sendIntent.setAction(MessageService.ACTION_SEND_TEXT);
-    sendIntent.putExtra(MessageService.KEY_MESSAGE, message);
-    sendIntent.putExtra(MessageService.KEY_BUDDYID, buddyId);
-    sendIntent.putExtra(MessageService.KEY_ID, id);
-    getActivity().startService(sendIntent);
+    try{
+      XmppManager xmppManager = XmppManager.getInstance(getContext());
+      if (xmppManager.sendTextMessage(message, buddyId, id)){
+        messageHistory.updateMessageStatus(buddyId, id, MessageHistory.STATUS_SENT);
+        int i = 0;
+        for (MessageArrayContent mac : maa){
+          if (mac instanceof TextMessage){
+            TextMessage msg = (TextMessage) mac;
+            if (msg._ID == id){
+              msg.status = MessageHistory.STATUS_SENT;
+              maa.getView(i, listView.getChildAt(i - listView
+                      .getFirstVisiblePosition()), listView);
+            }
+          }
+          i++;
+        }
+      }
+    }catch (Exception e){
+      e.printStackTrace();
+    }
   }
 
   private void resendTextMessage(TextMessage msg){
@@ -638,13 +642,12 @@ public class ChatFragment extends Fragment{
             }else
               nm.status = getResources().getString(R.string.new_messages);
             //send the read acknowledgement
-            Intent ackIntent = new Intent(getContext(), MessageService.class);
-            ackIntent.setAction(MessageService.ACTION_SEND_ACKNOWLEDGE);
-            ackIntent.putExtra(MessageService.KEY_ACKNOWLEDGE_TYPE,
-                    MessageHistory.STATUS_READ);
-            ackIntent.putExtra(MessageService.KEY_BUDDYID, buddyId);
-            ackIntent.putExtra(MessageService.KEY_ID, msg.othersId);
-            getActivity().startService(ackIntent);
+            try{
+              XmppManager.getInstance().sendAcknowledgement(buddyId,
+                      msg.othersId, MessageHistory.STATUS_READ);
+            }catch (Exception e){
+              e.printStackTrace();
+            }
           }
           messageHistory.updateMessageStatus(buddyId, 2, MessageHistory
                   .STATUS_READ);
@@ -682,33 +685,35 @@ public class ChatFragment extends Fragment{
   }
 
   private void updateStatus(String lastOnline){
-    long time = Long.valueOf(lastOnline);
-    if (time > 0){
-      Calendar startOfDay = Calendar.getInstance();
-      startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-      startOfDay.set(Calendar.MINUTE, 0);
-      startOfDay.set(Calendar.SECOND, 0);
-      startOfDay.set(Calendar.MILLISECOND, 0);
-      long diff = startOfDay.getTimeInMillis() - time;
-      if (diff <= 0)
-        lastOnline = getResources().getString(R.string.last_online_today) + " ";
-      else if (diff > 1000 * 60 * 60 * 24)
-        lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                (time) + " " + getResources().getString(R.string
-                .last_online_at) + " ";
-      else
-        lastOnline = getResources().getString(R.string.last_online_yesterday)
-                + " ";
-      lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
-              .format(time);
-      if (actionBar != null)
-        actionBar.setSubtitle(lastOnline);
-    }else{
-      if (actionBar != null)
-        actionBar.setSubtitle(Html
-                .fromHtml("<font " +
-                        "color='#55AAFF'>" + getResources().getString(R
-                        .string.online) + "</font>"));
+    if (lastOnline != null){
+      long time = Long.valueOf(lastOnline);
+      if (time > 0){
+        Calendar startOfDay = Calendar.getInstance();
+        startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+        startOfDay.set(Calendar.MINUTE, 0);
+        startOfDay.set(Calendar.SECOND, 0);
+        startOfDay.set(Calendar.MILLISECOND, 0);
+        long diff = startOfDay.getTimeInMillis() - time;
+        if (diff <= 0)
+          lastOnline = getResources().getString(R.string.last_online_today) + " ";
+        else if (diff > 1000 * 60 * 60 * 24)
+          lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                  (time) + " " + getResources().getString(R.string
+                  .last_online_at) + " ";
+        else
+          lastOnline = getResources().getString(R.string.last_online_yesterday)
+                  + " ";
+        lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
+                .format(time);
+        if (actionBar != null)
+          actionBar.setSubtitle(lastOnline);
+      }else{
+        if (actionBar != null)
+          actionBar.setSubtitle(Html
+                  .fromHtml("<font " +
+                          "color='#55AAFF'>" + getResources().getString(R
+                          .string.online) + "</font>"));
+      }
     }
   }
 
