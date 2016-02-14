@@ -386,6 +386,10 @@ public class MessageHistory{
   }
 
   public MessageArrayContent getMessage(String buddyId, String messageId){
+    int index = buddyId.indexOf('@');
+    if (index >= 0){
+      buddyId = buddyId.substring(0, index);
+    }
     MessageArrayContent mac = null;
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     String[] columns = new String[]{

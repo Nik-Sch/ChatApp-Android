@@ -12,6 +12,9 @@ import android.util.Log;
 
 import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.chatting.SendImageFragment;
+import com.raspi.chatapp.ui.util.message_array.ImageMessage;
+import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
+import com.raspi.chatapp.ui.util.message_array.TextMessage;
 import com.raspi.chatapp.util.MessageXmlParser;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.internet.XmppManager;
@@ -164,6 +167,7 @@ public class MessageService extends Service{
       // message that starts with recUnav followed by the body that was sent
       if (body.startsWith(recUnav)){
         xmppManager.sendRaw(body.substring(recUnav.length() + 1), buddyId);
+        Log.d("StreamManagement", "resending a message");
         return;
       }
       MessageXmlParser.Message msg = MessageXmlParser.parse(message.getBody());
@@ -200,13 +204,19 @@ public class MessageService extends Service{
         msgIntent.putExtra("id", id);
         getApplicationContext().sendOrderedBroadcast(msgIntent, null);
       }else{
-        messageHistory.updateMessageStatus(buddyId, msg.id, msg.content);
-        Intent intent = new Intent(ChatActivity.MESSAGE_STATUS_CHANGED);
-        intent.putExtra("id", msg.id);
-        intent.putExtra("status", msg.content);
-        intent.putExtra(ChatActivity.BUDDY_ID, buddyId);
-        LocalBroadcastManager.getInstance(getApplicationContext())
-                .sendBroadcast(intent);
+        MessageArrayContent msgToUpdate = messageHistory.getMessage(buddyId,
+                String.valueOf(msg.id));
+        String oldStatus = msgToUpdate instanceof TextMessage?((TextMessage)
+                msgToUpdate).status : ((ImageMessage)msgToUpdate).status;
+        if (!MessageHistory.STATUS_READ.equals(oldStatus)){
+          messageHistory.updateMessageStatus(buddyId, msg.id, msg.content);
+          Intent intent = new Intent(ChatActivity.MESSAGE_STATUS_CHANGED);
+          intent.putExtra("id", msg.id);
+          intent.putExtra("status", msg.content);
+          intent.putExtra(ChatActivity.BUDDY_ID, buddyId);
+          LocalBroadcastManager.getInstance(getApplicationContext())
+                  .sendBroadcast(intent);
+        }
       }
     }
   }
