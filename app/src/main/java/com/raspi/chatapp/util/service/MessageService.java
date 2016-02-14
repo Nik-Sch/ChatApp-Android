@@ -33,6 +33,8 @@ import java.util.Collection;
 
 public class MessageService extends Service{
 
+  private static final String recUnav = "recipient-unavailable:";
+
   XmppManager xmppManager = null;
   MessageHistory messageHistory;
 
@@ -157,6 +159,13 @@ public class MessageService extends Service{
     for (Message message : messages){
       Log.d("SERVICE_DEBUG", "Received message and processing it.");
       String buddyId = message.getFrom();
+      String body = message.getBody();
+      //my server is not sending an error on recipient-unavailable but a
+      // message that starts with recUnav followed by the body that was sent
+      if (body.startsWith(recUnav)){
+        xmppManager.sendRaw(body.substring(recUnav.length() + 1), buddyId);
+        return;
+      }
       MessageXmlParser.Message msg = MessageXmlParser.parse(message.getBody());
       if (!"acknowledgement".equals(msg.type)){
         long id = msg.id;

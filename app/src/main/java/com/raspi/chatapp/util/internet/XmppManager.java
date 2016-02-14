@@ -13,10 +13,14 @@ import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackConfiguration;
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.chat.Chat;
 import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
@@ -112,6 +116,12 @@ public class XmppManager{
     connection = new XMPPTCPConnection(config);
     connection.setUseStreamManagement(true);
     connection.addConnectionListener(connectionListener);
+    connection.addAsyncStanzaListener(stanzaListener, new StanzaFilter(){
+      @Override
+      public boolean accept(Stanza stanza){
+        return (stanza.getError() != null);
+      }
+    });
     PingManager pingManager = PingManager.getInstanceFor(connection);
     pingManager.setPingInterval(60);
     try{
@@ -121,11 +131,16 @@ public class XmppManager{
       Log.e("ERROR", e.toString());
       return false;
     }
-
-
     Log.d("DEBUG", "Success: Initialized XmppManager.");
     return true;
   }
+
+  private StanzaListener stanzaListener = new StanzaListener(){
+    @Override
+    public void processPacket(Stanza packet) throws SmackException.NotConnectedException{
+      Log.d("STANZA RECEIVED", packet.toString());
+    }
+  };
 
   /**
    * logs in to the server
@@ -162,6 +177,18 @@ public class XmppManager{
     }else{
       Log.d("DEBUG", "Couldn't get the roster: No connection.");
       return null;
+    }
+  }
+
+  public void sendRaw(String message, String buddyJID){
+    ChatManager chatManager = ChatManager.getInstanceFor(connection);
+    if (connection != null && connection.isConnected() && chatManager != null){
+      try{
+        Chat chat = chatManager.createChat(buddyJID);
+        chat.sendMessage(message);
+      }catch (Exception e){
+        e.printStackTrace();
+      }
     }
   }
 
@@ -207,8 +234,9 @@ public class XmppManager{
     Log.e("ERROR", "Sending failed: No connection.");
     return false;
   }
+
   /**
-   * sends a text message
+   * sends an image message
    *
    * @param serverFile  the file on the server
    * @param description the description of the sent image
