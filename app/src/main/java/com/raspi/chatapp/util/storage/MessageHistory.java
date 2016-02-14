@@ -218,7 +218,8 @@ public class MessageHistory{
                   lastMessage.getLong(4),
                   lastMessage.getString(3),
                   lastMessage.getLong(7),
-                  lastMessage.getString(1));
+                  lastMessage.getString(1),
+                  lastMessage.getLong(8));
         }
       }
     }catch (Exception e){
@@ -361,7 +362,8 @@ public class MessageHistory{
                       time,                               //timeStamp
                       status,                             //status
                       _ID,                                //_ID
-                      buddyId);                           //buddyID
+                      buddyId,                            //buddyID
+                      othersId);                          //othersId
             }catch (Exception e){
               e.printStackTrace();
             }
@@ -430,7 +432,8 @@ public class MessageHistory{
                   time,                               //timeStamp
                   status,                             //status
                   _ID,                                //_ID
-                  buddyId);                           //buddyID
+                  buddyId,                            //buddyID
+                  othersId);                          //othersId
         }catch (Exception e){
           e.printStackTrace();
         }

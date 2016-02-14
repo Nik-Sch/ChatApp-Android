@@ -1,6 +1,7 @@
 package com.raspi.chatapp.ui.chatting;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,10 +24,8 @@ import com.raspi.chatapp.util.storage.file.MyFileUtils;
 import org.json.JSONArray;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -67,6 +66,13 @@ public class SendImageFragment extends Fragment{
     args.putString(ChatActivity.CHAT_NAME, name);
     fragment.setArguments(args);
     return fragment;
+  }
+
+  public static JSONArray createJSON(String path, String desc){
+    JSONArray contentJSON = new JSONArray();
+    contentJSON.put(path);
+    contentJSON.put(desc);
+    return contentJSON;
   }
 
   @Override
@@ -148,26 +154,24 @@ public class SendImageFragment extends Fragment{
             .setOnClickListener(new View.OnClickListener(){
               @Override
               public void onClick(View v){
+                // this should probably be done in a seperate thread but I
+                // don't care atm
                 sendImage();
                 mListener.onReturnClick();
               }
             });
   }
 
-  /*
-  USER SPECIFIC FUNCTIONS
-   */
-
   private void sendImage(){
     MyFileUtils mfu = new MyFileUtils();
     if (mfu.isExternalStorageWritable()){
       try{
         //creating the directory
-       File file = mfu.getFileName();
+        File file = mfu.getFileName();
         //creating the file
         file.createNewFile();
         //moving the given image into the file
-        copyFile(FileUtils.getFile(getContext(), imageUri), file);
+        copyImage(FileUtils.getPath(getContext(), imageUri), file);
         //adding the image message to the messageHistory
         JSONArray contentJSON = createJSON(file.getAbsolutePath(), (
                 (TextView) getView().findViewById(R.id
@@ -179,29 +183,20 @@ public class SendImageFragment extends Fragment{
                         .getString(ChatActivity.USERNAME, ""),
                 MessageHistory.TYPE_IMAGE,
                 contentJSON.toString(),
-                MessageHistory.STATUS_WAITING, -1);
+                MessageHistory.STATUS_WAITING,
+                -1);
       }catch (Exception e){
         e.printStackTrace();
       }
     }
   }
 
-  public static JSONArray createJSON(String path, String desc){
-    JSONArray contentJSON = new JSONArray();
-    contentJSON.put(path);
-    contentJSON.put(desc);
-    return contentJSON;
-  }
-
-  private void copyFile(File sourceFile, File destFile) throws IOException{
-    InputStream in = new FileInputStream(sourceFile);
+  private void copyImage(String sourcePath, File destFile) throws IOException{
     OutputStream out = new FileOutputStream(destFile);
-
-    byte[] buf = new byte[1024];
-    int len;
-    while ((len = in.read(buf)) > 0)
-      out.write(buf, 0, len);
-    in.close();
+    final BitmapFactory.Options options = new BitmapFactory.Options();
+    options.inDensity = 96;
+    Bitmap image = BitmapFactory.decodeFile(sourcePath, options);
+    image.compress(Bitmap.CompressFormat.JPEG, 42, out);
     out.close();
   }
 

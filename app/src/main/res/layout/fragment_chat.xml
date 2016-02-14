@@ -40,7 +40,7 @@
                 android:layout_toStartOf="@+id/chat_sendBtn"
                 android:ems="10"
                 android:inputType="textMultiLine"
-                android:maxLines="3"
+                android:maxLines="4"
                 android:minLines="1"
                 android:textSize="@dimen/font_size"/>
 

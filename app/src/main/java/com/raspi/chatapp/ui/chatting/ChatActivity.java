@@ -172,11 +172,11 @@ public class ChatActivity extends AppCompatActivity implements
 
   private void setUserPwd(){
     SharedPreferences preferences = getSharedPreferences(PREFERENCES, 0);
-    //if (!preferences.contains(USERNAME))
-    preferences.edit().putString(USERNAME, "niklas").apply();
+    if (!preferences.contains(USERNAME))
+      preferences.edit().putString(USERNAME, "niklas").apply();
 
-    //if (!preferences.contains(PASSWORD))
-    preferences.edit().putString(PASSWORD, "passwdNiklas").apply();
+    if (!preferences.contains(PASSWORD))
+      preferences.edit().putString(PASSWORD, "passwdNiklas").apply();
   }
 
   @Override

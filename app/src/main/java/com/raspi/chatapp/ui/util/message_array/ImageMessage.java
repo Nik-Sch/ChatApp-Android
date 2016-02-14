@@ -10,10 +10,11 @@ public class ImageMessage extends MessageArrayContent{
   public String status;
   public long _ID;
   public String chatId;
+  public long othersId;
 
   public ImageMessage(boolean left, String file, String description,
                       String url, int progress, long time, String status,
-                      long _ID, String chatId){
+                      long _ID, String chatId, long othersId){
     this.left = left;
     this.file = file;
     this.description = description;
@@ -23,5 +24,6 @@ public class ImageMessage extends MessageArrayContent{
     this.status = status;
     this._ID = _ID;
     this.chatId = chatId;
+    this.othersId = othersId;
   }
 }

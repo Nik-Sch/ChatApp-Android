@@ -678,7 +678,13 @@ public class ChatFragment extends Fragment{
           new Upload().uploadFile(getContext(), task);
           msg.status = MessageHistory.STATUS_SENDING;
         }
-        maa.add(msg);
+        maa.add(msg);//send the read acknowledgement
+        try{
+          XmppManager.getInstance().sendAcknowledgement(buddyId,
+                  msg.othersId, MessageHistory.STATUS_READ);
+        }catch (Exception e){
+          e.printStackTrace();
+        }
       }
     }
     listView.setSelection(maa.getCount() - 1);
@@ -732,25 +738,26 @@ public class ChatFragment extends Fragment{
   }
 
   private void downloadImage(ImageMessage msg){
-    try{
-      MyFileUtils mfu = new MyFileUtils();
-      if (!mfu.isExternalStorageWritable())
-        throw new Exception("ext storage not writable. Cannot save " +
-                "image");
-      messageHistory.updateMessageStatus(chatName, msg._ID,
-              MessageHistory.STATUS_RECEIVING);
-      msg.status = MessageHistory.STATUS_RECEIVING;
-      Intent intent = new Intent(getContext(), DownloadService.class);
-      intent.setAction(DownloadService.DOWNLOAD_ACTION);
-      intent.putExtra(DownloadService.PARAM_URL, msg.url);
-      intent.putExtra(DownloadService.PARAM_RECEIVER, new
-              DownloadReceiver(new Handler()));
-      intent.putExtra(DownloadService.PARAM_FILE, msg.file);
-      intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
-      getContext().startService(intent);
-    }catch (Exception e){
-      e.printStackTrace();
-    }
+    if (msg.left)
+      try{
+        MyFileUtils mfu = new MyFileUtils();
+        if (!mfu.isExternalStorageWritable())
+          throw new Exception("ext storage not writable. Cannot save " +
+                  "image");
+        messageHistory.updateMessageStatus(chatName, msg._ID,
+                MessageHistory.STATUS_RECEIVING);
+        msg.status = MessageHistory.STATUS_RECEIVING;
+        Intent intent = new Intent(getContext(), DownloadService.class);
+        intent.setAction(DownloadService.DOWNLOAD_ACTION);
+        intent.putExtra(DownloadService.PARAM_URL, msg.url);
+        intent.putExtra(DownloadService.PARAM_RECEIVER, new
+                DownloadReceiver(new Handler()));
+        intent.putExtra(DownloadService.PARAM_FILE, msg.file);
+        intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
+        getContext().startService(intent);
+      }catch (Exception e){
+        e.printStackTrace();
+      }
   }
 
   /**
