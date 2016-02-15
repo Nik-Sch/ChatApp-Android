@@ -52,8 +52,8 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.RECEIVE_MESSAGE";
   public static final String RECONNECTED = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.RECONNECTED";
-  public static final String DISCONNECTED = "com.raspi.chatapp.ui.chatting" +
-          ".ChatActivity.DISCONNECTED";
+  public static final String MESSAGE_TYPE = "com.raspi.chatapp.ui.chatting" +
+          ".ChatActivity.MESSAGE_TYPE";
   public static final String IMAGE_URI = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.IMAGE_URI";
   public static final String PWD_REQUEST = "com.raspi.chatapp.ui.chatting" +

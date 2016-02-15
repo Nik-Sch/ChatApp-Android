@@ -691,35 +691,39 @@ public class ChatFragment extends Fragment{
   }
 
   private void updateStatus(String lastOnline){
-    if (lastOnline != null){
-      long time = Long.valueOf(lastOnline);
-      if (time > 0){
-        Calendar startOfDay = Calendar.getInstance();
-        startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-        startOfDay.set(Calendar.MINUTE, 0);
-        startOfDay.set(Calendar.SECOND, 0);
-        startOfDay.set(Calendar.MILLISECOND, 0);
-        long diff = startOfDay.getTimeInMillis() - time;
-        if (diff <= 0)
-          lastOnline = getResources().getString(R.string.last_online_today) + " ";
-        else if (diff > 1000 * 60 * 60 * 24)
-          lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                  (time) + " " + getResources().getString(R.string
-                  .last_online_at) + " ";
-        else
-          lastOnline = getResources().getString(R.string.last_online_yesterday)
-                  + " ";
-        lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
-                .format(time);
-        if (actionBar != null)
-          actionBar.setSubtitle(lastOnline);
-      }else{
-        if (actionBar != null)
-          actionBar.setSubtitle(Html
-                  .fromHtml("<font " +
-                          "color='#55AAFF'>" + getResources().getString(R
-                          .string.online) + "</font>"));
+    try{
+      if (lastOnline != null){
+        long time = Long.valueOf(lastOnline);
+        if (time > 0){
+          Calendar startOfDay = Calendar.getInstance();
+          startOfDay.set(Calendar.HOUR_OF_DAY, 0);
+          startOfDay.set(Calendar.MINUTE, 0);
+          startOfDay.set(Calendar.SECOND, 0);
+          startOfDay.set(Calendar.MILLISECOND, 0);
+          long diff = startOfDay.getTimeInMillis() - time;
+          if (diff <= 0)
+            lastOnline = getResources().getString(R.string.last_online_today) + " ";
+          else if (diff > 1000 * 60 * 60 * 24)
+            lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
+                    (time) + " " + getResources().getString(R.string
+                    .last_online_at) + " ";
+          else
+            lastOnline = getResources().getString(R.string.last_online_yesterday)
+                    + " ";
+          lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
+                  .format(time);
+          if (actionBar != null)
+            actionBar.setSubtitle(lastOnline);
+        }else{
+          if (actionBar != null)
+            actionBar.setSubtitle(Html
+                    .fromHtml("<font " +
+                            "color='#55AAFF'>" + getResources().getString(R
+                            .string.online) + "</font>"));
+        }
       }
+    }catch (Exception e){
+      e.printStackTrace();
     }
   }
 

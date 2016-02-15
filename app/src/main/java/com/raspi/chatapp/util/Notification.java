@@ -23,6 +23,7 @@ import android.util.TypedValue;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import org.json.JSONArray;
 
@@ -44,7 +45,8 @@ public class Notification{
     this.context = context;
   }
 
-  public void createNotification(String buddyId, String name, String message){
+  public void createNotification(String buddyId, String name, String message,
+                                 String type){
     SharedPreferences defaultSharedPreferences = PreferenceManager
             .getDefaultSharedPreferences(context);
 
@@ -114,7 +116,9 @@ public class Notification{
               .setContentTitle(title)
               .setContentText(currentNotifications[currentNotifications
                       .length - 1])
-              .setSmallIcon(R.drawable.ic_forum_white_48dp)
+              .setSmallIcon(MessageHistory.TYPE_TEXT.equals(type)
+                      ? R.drawable.ic_forum_white_48dp
+                      : R.drawable.ic_photo_camera_white_48dp)
               .setLargeIcon(getLargeIcon(Character.toUpperCase(name
                       .toCharArray()[0])))
               .setStyle(style)

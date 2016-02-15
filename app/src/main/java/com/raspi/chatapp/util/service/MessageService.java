@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.chatting.SendImageFragment;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
@@ -184,6 +185,8 @@ public class MessageService extends Service{
                   .TYPE_TEXT, msg.content, MessageHistory
                   .STATUS_RECEIVED, id);
           msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.content);
+          msgIntent.putExtra(ChatActivity.MESSAGE_TYPE, MessageHistory
+                  .TYPE_TEXT);
         }else if (MessageHistory.TYPE_IMAGE.equals(msg.type)){
           try{
             MyFileUtils mfu = new MyFileUtils();
@@ -197,6 +200,10 @@ public class MessageService extends Service{
                     "http://" + XmppManager.SERVER + "/ChatApp/" + msg.url,
                     "0",
                     MessageHistory.STATUS_WAITING, id);
+            msgIntent.putExtra(ChatActivity.MESSAGE_TYPE, MessageHistory
+                    .TYPE_IMAGE);
+            msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.description
+                    .isEmpty()?getResources().getString(R.string.image):msg.description);
           }catch (Exception e){
             e.printStackTrace();
           }
@@ -249,8 +256,9 @@ public class MessageService extends Service{
       String buddyId = extras.getString(ChatActivity.BUDDY_ID);
       String name = extras.getString(ChatActivity.CHAT_NAME);
       String msg = extras.getString(ChatActivity.MESSAGE_BODY);
+      String type = extras.getString(ChatActivity.MESSAGE_TYPE);
       long id = extras.getLong("id");
-      new Notification(context).createNotification(buddyId, name, msg);
+      new Notification(context).createNotification(buddyId, name, msg, type);
       //also send the received acknowledgement
       try{
         XmppManager.getInstance(context).sendAcknowledgement(buddyId, id,
