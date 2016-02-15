@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -121,6 +122,12 @@ public class SendImageFragment extends Fragment{
       actionBar.setTitle(R.string.send_image);
       actionBar.setSubtitle(name);
     }
+
+    EditText et = (EditText) getView().findViewById(R.id
+            .send_image_description);
+    et.setHorizontallyScrolling(false);
+    et.setMaxLines(3);
+
     ImageView imageView = ((ImageView) getView().findViewById(R.id
             .send_image_image));
     String imagePath = FileUtils.getPath(getContext(), imageUri);

@@ -5,7 +5,6 @@
     <color name="colorAccent">#3F3F9F</color>
     <color name="colorLink">#0000EE</color>
     <color name="colorTimeStamp">#606060</color>
-    <color name="colorSendImageButtonFG">#262626</color>
     <color name="new_message_bg">#50A0A0A0</color>
     <color name="selectedListView">#440000EE</color>
     <color name="incorrect">#BB0000</color>

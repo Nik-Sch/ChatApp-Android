@@ -203,7 +203,8 @@ public class MessageService extends Service{
             msgIntent.putExtra(ChatActivity.MESSAGE_TYPE, MessageHistory
                     .TYPE_IMAGE);
             msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.description
-                    .isEmpty()?getResources().getString(R.string.image):msg.description);
+                    .isEmpty()?getResources().getString(R.string.image):msg
+                    .description);
           }catch (Exception e){
             e.printStackTrace();
           }
