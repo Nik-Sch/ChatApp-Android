@@ -148,6 +148,7 @@ public class ChatListFragment extends Fragment{
       @Override
       public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id){
         final EditText newName = new EditText(getActivity());
+        newName.setText(caa.getItem(position).name);
         String title = getResources().getString(R.string.change_name_title) +
                 " " + caa.getItem(position).name;
         new AlertDialog.Builder(getContext())

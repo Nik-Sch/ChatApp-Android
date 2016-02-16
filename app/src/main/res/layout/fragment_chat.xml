@@ -61,7 +61,8 @@
                 android:layout_alignParentRight="true"
                 android:text="@string/send"
                 android:background="@drawable/send_button_bg"
-                android:layout_margin="4dp"/>
+                android:layout_margin="4dp"
+                android:textColor="@android:color/white"/>
         </RelativeLayout>
     </RelativeLayout>
 

@@ -451,6 +451,7 @@ public class ChatFragment extends Fragment{
         return true;
       case R.id.action_rename:
         final EditText newName = new EditText(getActivity());
+        newName.setText(chatName);
         String title = getResources().getString(R.string.change_name_title) +
                 " " + chatName;
         new AlertDialog.Builder(getContext())
@@ -516,22 +517,24 @@ public class ChatFragment extends Fragment{
     sendBtn.setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){
-        String message = textIn.getText().toString();
-        long id = messageHistory.addMessage(buddyId, getContext()
-                .getSharedPreferences(ChatActivity.PREFERENCES, 0).getString
-                        (ChatActivity.USERNAME, ""), MessageHistory
-                .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
-        maa.add(new TextMessage(false, message, new GregorianCalendar()
-                .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
-        sendTextMessage(message, id);
-        textIn.setText("");
-        int i = 0;
-        for (MessageArrayContent mac : maa){
-          if (mac instanceof NewMessage)
-            maa.remove(i);
-          i++;
+        String message = textIn.getText().toString().trim();
+        if (!message.isEmpty()){
+          long id = messageHistory.addMessage(buddyId, getContext()
+                  .getSharedPreferences(ChatActivity.PREFERENCES, 0).getString
+                          (ChatActivity.USERNAME, ""), MessageHistory
+                  .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
+          maa.add(new TextMessage(false, message, new GregorianCalendar()
+                  .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
+          sendTextMessage(message, id);
+          textIn.setText("");
+          int i = 0;
+          for (MessageArrayContent mac : maa){
+            if (mac instanceof NewMessage)
+              maa.remove(i);
+            i++;
+          }
+          listView.setSelection(maa.getCount() - 1);
         }
-        listView.setSelection(maa.getCount() - 1);
       }
     });
 

@@ -58,4 +58,8 @@
     <string name="online">Online</string>
     <string name="load_more_messages">Zeige ältere Nachrichten</string>
     <string name="pref_header_chats">Chats</string>
+    <string name="pref_summary_wallpaper">Wähle ein Hintergrundbild für die Chats</string>
+    <string name="pref_title_wallpaper">Hintergrundbild</string>
+    <string name="wallpaper_changed">Das Hintergrundbild wurde erfolgreich geändert</string>
+    <string name="wallpaper_not_changed">Das Hintergrundbild wurde nicht geändert</string>
 </resources>
