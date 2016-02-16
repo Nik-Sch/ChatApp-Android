@@ -7,7 +7,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,11 +29,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
@@ -49,6 +54,7 @@ import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -497,6 +503,8 @@ public class ChatFragment extends Fragment{
   }
 
   private void initUI(){
+    //load wallpaper
+    loadWallPaper();
     if (actionBar != null)
       actionBar.setTitle(chatName);
     maa = new MessageArrayAdapter(getContext(), R.layout.message_text);
@@ -588,6 +596,28 @@ public class ChatFragment extends Fragment{
     reloadMessages();
     String lastOnline = messageHistory.getOnline(buddyId);
     updateStatus(lastOnline);
+    //scroll down for notification click
+    listView.setSelection(maa.getCount() - 1);
+  }
+
+  private void loadWallPaper(){
+    final File file = new File(getActivity().getFilesDir(), ChatActivity
+            .WALLPAPER_NAME);
+    if (file.exists()){
+      final ImageView imageView = (ImageView) getView().findViewById(R.id
+              .chat_wallpaper);
+      ViewTreeObserver vto = imageView.getViewTreeObserver();
+      vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
+        @Override
+        public boolean onPreDraw(){
+          imageView.getViewTreeObserver().removeOnPreDrawListener(this);
+          int width = imageView.getMeasuredWidth();
+          int height = imageView.getMeasuredHeight();
+          new WallpaperWorkerTask(imageView, width, height).execute(file);
+          return true;
+        }
+      });
+    }
   }
 
   private void sendTextMessage(String message, long id){
@@ -776,6 +806,64 @@ public class ChatFragment extends Fragment{
    */
   public interface OnFragmentInteractionListener{
     void onAttachClicked();
+  }
+
+  class WallpaperWorkerTask extends AsyncTask<File, Void, Bitmap>{
+    private final WeakReference<ImageView> imageViewWeakReference;
+    private File data;
+    private int width, height;
+
+    public WallpaperWorkerTask(ImageView imageView, int width, int height){
+      imageViewWeakReference = new WeakReference<>(imageView);
+      this.width = width;
+      this.height = height;
+    }
+
+    @Override
+    protected Bitmap doInBackground(File... params){
+      data = params[0];
+
+      // First decode with inJustDecodeBounds=true to check dimensions
+      final BitmapFactory.Options options = new BitmapFactory.Options();
+      options.inJustDecodeBounds = true;
+      BitmapFactory.decodeFile(data.getAbsolutePath(), options);
+
+      // Calculate inSampleSize
+      options.inSampleSize = calculateInSampleSize(options, width, height);
+
+      // Decode bitmap with inSampleSize set
+      options.inJustDecodeBounds = false;
+      return BitmapFactory.decodeFile(data.getAbsolutePath(), options);
+    }
+    @Override
+    protected void onPostExecute(Bitmap bitmap){
+      if (bitmap != null){
+        final ImageView imageView = imageViewWeakReference.get();
+        if (imageView != null)
+          imageView.setImageBitmap(bitmap);
+      }
+    }
+  }
+  //see MAA
+  private int calculateInSampleSize(
+          BitmapFactory.Options options, int reqWidth, int reqHeight){
+    if (reqHeight <= 0 && reqWidth <= 0)
+      throw new IllegalArgumentException("reqWidth and reqHeigth must be " +
+              "positive.");
+      final int height = options.outHeight;
+      final int width = options.outWidth;
+      int inSampleSize = 1;
+
+      if (height > reqHeight || width > reqWidth){
+
+        final int halfHeight = height / 2;
+        final int halfWidth = width / 2;
+        while ((halfHeight / inSampleSize) > reqHeight
+                && (halfWidth / inSampleSize) > reqWidth){
+          inSampleSize *= 2;
+        }
+      }
+      return inSampleSize;
   }
 
   public class DownloadReceiver extends ResultReceiver{

@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/new_message_bg">
+    android:background="@color/listview_transparent_bg">
 
     <ImageView
         android:paddingStart="10dp"
@@ -19,5 +19,6 @@
         android:layout_centerHorizontal="true"
         android:text="@string/new_messages"
         android:padding="10dp"
-        android:textSize="20sp"/>
+        android:textSize="20sp"
+        android:textColor="@android:color/black"/>
 </RelativeLayout>

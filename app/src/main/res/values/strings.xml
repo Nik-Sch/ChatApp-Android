@@ -37,6 +37,8 @@
     <string name="change_name">Choose a new name for this chat:</string>
     <string name="rename">rename</string>
     <string name="load_more_messages">Load more messages</string>
+    <string name="wallpaper_changed">The wallpaper was successfully changed</string>
+    <string name="wallpaper_not_changed">The wallpaper was not changed</string>
 
     <!-- String array chatlist_options_array's values -->
     <string name="chatlist_option_1">Rename Chat</string>
@@ -45,6 +47,7 @@
     <!-- Strings related to Settings -->
     <string name="pref_header_notifications">Notifications</string>
     <string name="pref_header_password">Password</string>
+    <string name="pref_header_chats">Chats</string>
 
     <string name="pref_title_new_message_notifications">New message
         notifications</string>
@@ -88,6 +91,12 @@
     <string name="pref_title_enablepwd">Enable the password</string>
     <string name="pref_summary_enablepwd">Enable to activate the
         password protection</string>
+
+    <string name="pref_key_wallpaper" translatable="false">password_wallpaper
+    </string>
+    <string name="pref_title_wallpaper">Wallpaper</string>
+    <string name="pref_summary_wallpaper">Choose a wallpaper for the
+        Chats</string>
 
     <string name="title_activity_add_chat" translatable="false">AddChatActivity</string>
     <string name="large_text" translatable="false">

@@ -35,5 +35,5 @@
         android:inputType="numberPassword"
         android:maxEms="4"
         android:textSize="35sp"
-        android:background="@color/new_message_bg"/>
+        android:background="@color/listview_transparent_bg"/>
 </RelativeLayout>

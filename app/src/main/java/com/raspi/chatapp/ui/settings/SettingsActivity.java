@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -18,15 +20,23 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.preference.SwitchPreference;
+import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.password.PasswordActivity;
 import com.raspi.chatapp.ui.util.AppCompatPreferenceActivity;
+import com.raspi.chatapp.util.storage.file.FileUtils;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -187,7 +197,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
   protected boolean isValidFragment(String fragmentName){
     return PreferenceFragment.class.getName().equals(fragmentName)
             || PasswordPreferenceFragment.class.getName().equals(fragmentName)
-            || NotificationPreferenceFragment.class.getName().equals(fragmentName);
+            || NotificationPreferenceFragment.class.getName().equals(fragmentName)
+            || ChatPreferenceFragment.class.getName().equals(fragmentName);
   }
 
   /**
@@ -268,6 +279,87 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
       // updated to reflect the new value, per the Android Design
       // guidelines.
       bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+      int id = item.getItemId();
+      if (id == android.R.id.home){
+        startActivity(new Intent(getActivity(), SettingsActivity.class));
+        return true;
+      }
+      return super.onOptionsItemSelected(item);
+    }
+  }
+
+  /**
+   * This fragment shows chat specific preferences only. It is used when the
+   * activity is showing a two-pane settings UI.
+   */
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+  public static class ChatPreferenceFragment extends PreferenceFragment{
+
+    private static final int WALLPAPER_CHOSEN = 4242;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+      super.onCreate(savedInstanceState);
+      addPreferencesFromResource(R.xml.pref_chats);
+      setHasOptionsMenu(true);
+      findPreference(getResources().getString(R.string.pref_key_wallpaper))
+              .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener(){
+                @Override
+                public boolean onPreferenceClick(Preference preference){
+
+                  Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                  getIntent.setType("image/*");
+
+                  Intent pickIntent = new Intent(Intent.ACTION_PICK,
+                          MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                  pickIntent.setType("image/*");
+
+                  Intent chooserIntent = Intent.createChooser(getIntent, getResources()
+                          .getString(R.string.select_image));
+                  chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new
+                          Intent[]{pickIntent});
+                  startActivityForResult(chooserIntent, WALLPAPER_CHOSEN);
+                  return true;
+                }
+              });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+      super.onActivityResult(requestCode, resultCode, data);
+      if (requestCode == WALLPAPER_CHOSEN){
+        if (resultCode == Activity.RESULT_OK){
+          String imageUriPath = FileUtils.getPath(getActivity(), data.getData());
+          File file = new File(getActivity().getFilesDir(), ChatActivity
+                  .WALLPAPER_NAME);
+          try{
+            copyImage(imageUriPath, file);
+            Toast.makeText(getActivity(), R.string.wallpaper_changed, Toast
+                    .LENGTH_LONG).show();
+          }catch (Exception e){
+            e.printStackTrace();
+            Toast.makeText(getActivity(), R.string.wallpaper_not_changed, Toast
+                    .LENGTH_LONG).show();
+          }
+        }else{
+          Toast.makeText(getActivity(), R.string.wallpaper_not_changed, Toast
+                  .LENGTH_LONG).show();
+        }
+      }
+    }
+
+
+    private void copyImage(String sourcePath, File destFile) throws IOException{
+      OutputStream out = new FileOutputStream(destFile);
+      final BitmapFactory.Options options = new BitmapFactory.Options();
+      options.inDensity = 96;
+      Bitmap image = BitmapFactory.decodeFile(sourcePath, options);
+      image.compress(Bitmap.CompressFormat.JPEG, 42, out);
+      out.close();
     }
 
     @Override

@@ -62,6 +62,7 @@ public class ChatActivity extends AppCompatActivity implements
           ".ChatActivity.MESSAGE_STATUS_CHANGED";
   public static final String LAST_SENT_PRESENCE = "com.raspi.chatapp.ui.chatting" +
           ".ChatActivity.LAST_SENT_PRESENCE";
+  public static final String WALLPAPER_NAME = "wallpaper.jpg";
 
   public static final String IMAGE_DIR = "ChatApp Images";
 
