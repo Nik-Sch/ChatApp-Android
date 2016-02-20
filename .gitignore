@@ -41,4 +41,4 @@ images/
 app/build.gradle
 
 #xml files are generated
-*.xml
+.idea/*.xml
