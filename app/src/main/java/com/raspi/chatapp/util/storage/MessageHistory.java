@@ -318,9 +318,9 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry._ID,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID
     };
-    Cursor messages = db.query(buddyId, columns, null, null, null, null, MessageHistoryContract
-            .MessageEntry
-            .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", offset + "," + amount);
+      Cursor messages = db.query(buddyId, columns, null, null, null, null, MessageHistoryContract
+              .MessageEntry
+              .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", offset + "," + amount);
 
     if (reverse)
       messages.moveToFirst();
@@ -378,11 +378,15 @@ public class MessageHistory{
 
   public int getMessageAmount(String buddyId){
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
-    Cursor c = db.rawQuery("SELECT * FROM " + buddyId, null);
-    int cnt = c.getCount();
-    c.close();
-    db.close();
-    return cnt;
+    try{
+      Cursor c = db.rawQuery("SELECT * FROM " + buddyId, null);
+      int cnt = c.getCount();
+      c.close();
+      db.close();
+      return cnt;
+    }catch (Exception e){
+      return 0;
+    }
   }
 
   public MessageArrayContent getMessage(String buddyId, String messageId){

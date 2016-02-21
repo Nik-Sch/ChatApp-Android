@@ -22,9 +22,13 @@ import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.roster.Roster;
+import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.ping.PingManager;
+import org.jivesoftware.smackx.search.ReportedData;
+import org.jivesoftware.smackx.search.UserSearchManager;
+import org.jivesoftware.smackx.xdata.Form;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -48,7 +52,7 @@ public class XmppManager{
   private static final int PORT = 5222;
 
 
-  private static class Holder {
+  private static class Holder{
     static final XmppManager INSTANCE = new XmppManager(SERVER, SERVICE, PORT);
   }
 
@@ -64,6 +68,7 @@ public class XmppManager{
 
   /**
    * returns an instance of the xmppManager
+   *
    * @param context - the context with which to initialize a
    *                LocalBroadCastManager, if this is not the first call of
    *                this function it might also be null
@@ -85,9 +90,10 @@ public class XmppManager{
 
   /**
    * creates a IM Manager with the given server ID
+   *
    * @param server  host address
    * @param service service name
-   * @param port port
+   * @param port    port
    */
   protected XmppManager(String server, String service, int port){
     this.server = server;
@@ -240,7 +246,7 @@ public class XmppManager{
    *
    * @param serverFile  the file on the server
    * @param description the description of the sent image
-   * @param buddyJID the Buddy to receive the message
+   * @param buddyJID    the Buddy to receive the message
    * @return true if sending was successful
    */
   public boolean sendImageMessage(String serverFile, String description, String
@@ -316,7 +322,27 @@ public class XmppManager{
       }
     }
     Log.e("ERROR", "Sending failed: No connection.");
-    return false;  }
+    return false;
+  }
+
+
+
+  public RosterEntry[] listRoster(){
+    try{
+      Roster roster = Roster.getInstanceFor(connection);
+      if (!roster.isLoaded())
+        roster.reloadAndWait();
+      RosterEntry[] result = new RosterEntry[roster.getEntries().size()];
+      int i = 0;
+      for (RosterEntry entry: roster.getEntries()){
+        result[i++] = entry;
+      }
+      return result;
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+    return new RosterEntry[0];
+  }
 
   /**
    * sets the status

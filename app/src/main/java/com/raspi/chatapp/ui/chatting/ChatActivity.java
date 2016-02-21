@@ -3,6 +3,7 @@ package com.raspi.chatapp.ui.chatting;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -10,10 +11,12 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 import com.alexbbb.uploadservice.UploadService;
 import com.raspi.chatapp.BuildConfig;
@@ -24,6 +27,9 @@ import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.AndroidDatabaseManager;
+import com.raspi.chatapp.util.storage.MessageHistory;
+
+import org.jivesoftware.smack.roster.RosterEntry;
 
 import java.util.Date;
 
@@ -161,7 +167,33 @@ public class ChatActivity extends AppCompatActivity implements
             (ChatActivity.PWD_REQUEST, false).apply();
   }
 
-  public void onAddChatClick(MenuItem menuItem){
+  public void onAddChatClick(final MenuItem menuItem){
+    String title = getResources().getString(R.string.add_chat_title);
+    XmppManager xmppManager = XmppManager.getInstance();
+    final RosterEntry[] rosterList = xmppManager.listRoster();
+    final String[] nameList = new String[rosterList.length];
+    for (int i=0;i<rosterList.length;i++){
+      nameList[i] = rosterList[i].getName();
+      if (nameList[i] == null){
+        nameList[i] = rosterList[i].getUser();
+        int index = nameList[i].indexOf('@');
+        if (index >= 0)
+          nameList[i] = nameList[i].substring(0, index);
+      }
+    }
+    new AlertDialog.Builder(this)
+            .setTitle(title)
+            .setItems(nameList, new DialogInterface.OnClickListener(){
+              @Override
+              public void onClick(DialogInterface dialog, int which){
+                MessageHistory messageHistory = new MessageHistory
+                        (ChatActivity.this);
+                messageHistory.addChat(rosterList[which].getUser(),
+                        nameList[which]);
+                onChatOpened(rosterList[which].getUser(), messageHistory
+                        .getName(rosterList[which].getUser()swit));
+              }
+            }).show();
   }
 
   public void onDatabaseDebug(MenuItem menuItem){
@@ -174,10 +206,10 @@ public class ChatActivity extends AppCompatActivity implements
   private void setUserPwd(){
     SharedPreferences preferences = getSharedPreferences(PREFERENCES, 0);
     if (!preferences.contains(USERNAME))
-      preferences.edit().putString(USERNAME, "dummy").apply();
+      preferences.edit().putString(USERNAME, "niklas").apply();
 
     if (!preferences.contains(PASSWORD))
-      preferences.edit().putString(PASSWORD, "passwdDummy").apply();
+      preferences.edit().putString(PASSWORD, "passwdNiklas").apply();
   }
 
   @Override

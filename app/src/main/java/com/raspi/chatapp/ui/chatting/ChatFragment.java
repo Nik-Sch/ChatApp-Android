@@ -652,7 +652,12 @@ public class ChatFragment extends Fragment{
 
   private void reloadMessages(){
     maa.clear();
-    MessageArrayContent[] messages = messageHistory.getMessages(buddyId, messageAmount);
+    MessageArrayContent[] messages;
+    try{
+      messages = messageHistory.getMessages(buddyId, messageAmount);
+    }catch (Exception e){
+      messages = new MessageArrayContent[0];
+    }
     long oldDate = 0;
     final long c = 24 * 60 * 60 * 1000;
     NewMessage nm = null;

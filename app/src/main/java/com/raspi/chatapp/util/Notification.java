@@ -137,7 +137,7 @@ public class Notification{
 
       str = context.getResources().getString(R.string.pref_key_vibrate);
       if (defaultSharedPreferences.getBoolean(str, true))
-        mBuilder.setVibrate(new long[]{500, 300, 500, 300});
+        mBuilder.setVibrate(new long[]{800, 500, 800, 500});
 
       str = context.getResources().getString(R.string.pref_key_led);
       if (defaultSharedPreferences.getBoolean(str, true))

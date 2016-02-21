@@ -39,6 +39,8 @@
     <string name="load_more_messages">Load more messages</string>
     <string name="wallpaper_changed">The wallpaper was successfully changed</string>
     <string name="wallpaper_not_changed">The wallpaper was not changed</string>
+    <string name="add_chat_title">Choose the user you wish to text</string>
+    <string name="create">Create</string>
 
     <!-- String array chatlist_options_array's values -->
     <string name="chatlist_option_1">Rename Chat</string>
