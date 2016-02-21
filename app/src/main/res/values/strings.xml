@@ -94,11 +94,18 @@
     <string name="pref_summary_enablepwd">Enable to activate the
         password protection</string>
 
-    <string name="pref_key_wallpaper" translatable="false">password_wallpaper
+    <string name="pref_key_wallpaper" translatable="false">wallpaper
     </string>
     <string name="pref_title_wallpaper">Wallpaper</string>
     <string name="pref_summary_wallpaper">Choose a wallpaper for the
         Chats</string>
+
+    <string name="pref_key_reset_wallpaper"
+            translatable="false">reset_wallpaper
+    </string>
+    <string name="pref_title_reset_wallpaper">Reset wallpaper</string>
+    <string name="pref_summary_reset_wallpaper">Reset the wallpaper to
+        the default image</string>
 
     <string name="title_activity_add_chat" translatable="false">AddChatActivity</string>
     <string name="large_text" translatable="false">

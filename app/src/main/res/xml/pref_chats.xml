@@ -4,8 +4,10 @@
     <Preference
         android:key="@string/pref_key_wallpaper"
         android:title="@string/pref_title_wallpaper"
-        android:summary="@string/pref_summary_wallpaper">
-
-    </Preference>
+        android:summary="@string/pref_summary_wallpaper"/>
+    <Preference
+        android:key="@string/pref_key_reset_wallpaper"
+        android:title="@string/pref_title_reset_wallpaper"
+        android:summary="@string/pref_summary_reset_wallpaper"/>
 
 </PreferenceScreen>

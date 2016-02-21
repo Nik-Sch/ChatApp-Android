@@ -8,4 +8,5 @@
     <color name="listview_transparent_bg">#90A0A0A0</color>
     <color name="selectedListView">#440000EE</color>
     <color name="incorrect">#BB0000</color>
+    <color name="lightBubble">#C4D5FB</color>
 </resources>

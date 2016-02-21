@@ -191,7 +191,7 @@ public class ChatActivity extends AppCompatActivity implements
                 messageHistory.addChat(rosterList[which].getUser(),
                         nameList[which]);
                 onChatOpened(rosterList[which].getUser(), messageHistory
-                        .getName(rosterList[which].getUser()swit));
+                        .getName(rosterList[which].getUser()));
               }
             }).show();
   }

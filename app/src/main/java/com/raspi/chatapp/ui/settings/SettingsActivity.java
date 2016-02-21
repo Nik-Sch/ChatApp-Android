@@ -3,6 +3,7 @@ package com.raspi.chatapp.ui.settings;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -326,6 +327,29 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
                   return true;
                 }
               });
+      findPreference(getResources().getString(R.string
+              .pref_key_reset_wallpaper)).setOnPreferenceClickListener(new Preference.OnPreferenceClickListener(){
+        @Override
+        public boolean onPreferenceClick(Preference preference){
+          try{
+            File file = new File(getActivity().getFilesDir(), ChatActivity
+                    .WALLPAPER_NAME);
+            Bitmap bm = BitmapFactory.decodeResource(getResources(), R
+                    .drawable.default_wallpaper);
+            OutputStream outputStream = new FileOutputStream(file);
+            bm.compress(Bitmap.CompressFormat.JPEG, 42, outputStream);
+            outputStream.flush();
+            outputStream.close();
+            Toast.makeText(getActivity(), R.string.wallpaper_changed, Toast
+                    .LENGTH_LONG).show();
+          }catch (Exception e){
+            e.printStackTrace();
+            Toast.makeText(getActivity(), R.string.wallpaper_not_changed, Toast
+                    .LENGTH_LONG).show();
+          }
+          return true;
+        }
+      });
     }
 
     @Override

@@ -48,7 +48,7 @@ public class MessageHistory{
             new String[]{
                     MessageHistoryContract.ChatEntry.COLUMN_NAME_BUDDY_ID,
                     MessageHistoryContract.ChatEntry.COLUMN_NAME_NAME},
-            null, null, null, null, null);
+            null, null, null, null, MessageHistoryContract.ChatEntry.COLUMN_NAME_NAME);
     int chatCount = chats.getCount();
     ChatEntry[] resultChats = new ChatEntry[chatCount];
     int i = 0;

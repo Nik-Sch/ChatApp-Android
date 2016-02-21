@@ -40,6 +40,7 @@ import android.widget.ListView;
 
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.util.WallpaperImageView;
 import com.raspi.chatapp.ui.util.message_array.Date;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.LoadMoreMessages;
@@ -607,8 +608,8 @@ public class ChatFragment extends Fragment{
     final File file = new File(getActivity().getFilesDir(), ChatActivity
             .WALLPAPER_NAME);
     if (file.exists()){
-      final ImageView imageView = (ImageView) getView().findViewById(R.id
-              .chat_wallpaper);
+      final WallpaperImageView imageView = (WallpaperImageView) getView()
+              .findViewById(R.id.chat_wallpaper);
       ViewTreeObserver vto = imageView.getViewTreeObserver();
       vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
         @Override
