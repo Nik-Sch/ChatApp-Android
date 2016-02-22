@@ -32,6 +32,8 @@ public class EmojiconTextView extends TextView{
   private int mEmojiconSize;
   private int mTextStart = 0;
   private int mTextLength = -1;
+  private boolean b = false;
+  private AttributeSet attributes = null;
 
   public EmojiconTextView(Context context){
     super(context);
@@ -41,11 +43,13 @@ public class EmojiconTextView extends TextView{
   public EmojiconTextView(Context context, AttributeSet attrs){
     super(context, attrs);
     init(attrs);
+    attributes = attrs;
   }
 
   public EmojiconTextView(Context context, AttributeSet attrs, int defStyle){
     super(context, attrs, defStyle);
     init(attrs);
+    attributes = attrs;
   }
 
   private void init(AttributeSet attrs){
@@ -53,7 +57,10 @@ public class EmojiconTextView extends TextView{
       mEmojiconSize = (int) getTextSize();
     }else{
       TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.Emojicon);
-      mEmojiconSize = (int) a.getDimension(R.styleable.Emojicon_emojiconSize, getTextSize());
+      float s = getTextSize();
+      if (b) s += 10;
+      mEmojiconSize = (int) a.getDimension(R.styleable.Emojicon_emojiconSize,
+              s);
       mTextStart = a.getInteger(R.styleable.Emojicon_emojiconTextStart, 0);
       mTextLength = a.getInteger(R.styleable.Emojicon_emojiconTextLength, -1);
       a.recycle();
@@ -64,8 +71,14 @@ public class EmojiconTextView extends TextView{
   @Override
   public void setText(CharSequence text, BufferType type){
     SpannableStringBuilder builder = new SpannableStringBuilder(text);
-    EmojiconHandler.addEmojis(getContext(), builder, mEmojiconSize, mTextStart, mTextLength);
+    EmojiconHandler.addEmojis(getContext(), builder, mEmojiconSize,
+            mTextStart, mTextLength);
     super.setText(builder, type);
+  }
+
+  public void setExpandedSize(boolean b){
+    this.b = b;
+    init(attributes);
   }
 
   /**

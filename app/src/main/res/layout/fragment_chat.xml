@@ -28,7 +28,7 @@
             android:scrollbars="vertical"
             android:background="@android:color/transparent"/>
 
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/chat_form"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -36,46 +36,42 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:background="@drawable/send_form_bg"
-            android:layout_margin="3dp">
+            android:layout_margin="3dp"
+            android:gravity="bottom"
+            android:baselineAligned="false">
 
             <ImageButton
                 android:id="@+id/emoti_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:src="@drawable/ic_insert_emoticon_black_24dp"/>
+                android:src="@drawable/ic_insert_emoticon_black_24dp"
+                android:background="@android:color/transparent"
+                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="13dp"/>
 
-            <EditText
+            <com.github.ankushsachdeva.emojicon.EmojiconEditText
                 android:id="@+id/chat_in"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@+id/emoti_switch"
-                android:layout_toRightOf="@+id/emoti_switch"
-                android:layout_toLeftOf="@+id/chat_sendBtn"
-                android:layout_toStartOf="@+id/chat_sendBtn"
+                android:layout_gravity="bottom"
+                android:lines="4"
                 android:ems="10"
                 android:inputType="textMultiLine"
                 android:maxLines="4"
                 android:minLines="1"
-                android:textSize="@dimen/font_size"
-                android:layout_marginLeft="7dp"
-                android:layout_marginStart="7dp"
-                android:layout_centerVertical="true"/>
+                android:textSize="@dimen/font_size"/>
 
 
             <Button
                 android:id="@+id/chat_sendBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignBottom="@+id/chat_in"
-                android:layout_alignTop="@+id/chat_in"
                 android:text="@string/send"
                 android:background="@drawable/send_button_bg"
                 android:textColor="@android:color/white"/>
-        </RelativeLayout>
+        </LinearLayout>
     </RelativeLayout>
 
 </FrameLayout>

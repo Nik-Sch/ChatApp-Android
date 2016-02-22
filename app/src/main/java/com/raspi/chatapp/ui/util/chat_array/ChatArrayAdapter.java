@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.github.ankushsachdeva.emojicon.EmojiconTextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
@@ -48,11 +49,14 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
     ((TextView) v.findViewById(R.id.chat_list_entry_name)).setText(chatObj.name);
     if (!chatObj.lastMessageStatus.equals("")){
       ((TextView) v.findViewById(R.id.chat_list_entry_time)).setText(chatObj.lastMessageDate);
-      TextView msg = ((TextView) v.findViewById(R.id.chat_list_entry_mess));
+      EmojiconTextView msg = ((EmojiconTextView) v.findViewById(R.id.chat_list_entry_mess));
+      msg.setExpandedSize(true);
       msg.setText(chatObj.lastMessageMessage);
       if (MessageHistory.TYPE_IMAGE.equals(chatObj.lastMessageType))
         msg.setCompoundDrawablesWithIntrinsicBounds(R.drawable
                 .ic_photo_camera_black_18dp, 0, 0, 0);
+      else
+        msg.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
       if (chatObj.sent)
         switch (chatObj.lastMessageStatus){
           case MessageHistory.STATUS_WAITING:

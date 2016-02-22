@@ -48,7 +48,8 @@ public class EmojiconEditText extends EditText{
 
   private void init(AttributeSet attrs){
     TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.Emojicon);
-    mEmojiconSize = (int) a.getDimension(R.styleable.Emojicon_emojiconSize, getTextSize());
+    mEmojiconSize = (int) a.getDimension(R.styleable.Emojicon_emojiconSize,
+            getTextSize()+10);
     a.recycle();
     setText(getText());
   }

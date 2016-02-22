@@ -18,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.github.ankushsachdeva.emojicon.EmojiconTextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
@@ -106,7 +107,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
               .message_text_inner);
       layoutInner.setBackgroundResource(msgObj.left ? R.drawable.bubble_a1 :
               R.drawable.bubble_b1);
-      TextView chatText = (TextView) v.findViewById(R.id.message_text_text);
+      EmojiconTextView chatText = (EmojiconTextView) v.findViewById(R.id.message_text_text);
+      chatText.setExpandedSize(true);
       chatText.setText(msgObj.message);
       TextView chatTime = (TextView) v.findViewById(R.id.message_text_timeStamp);
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
@@ -156,7 +158,9 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
               .message_image_inner);
       layoutInner.setBackgroundResource(msgObj.left ? R.drawable.bubble_a1 :
               R.drawable.bubble_b1);
-      TextView description = (TextView) v.findViewById(R.id.message_image_description);
+      EmojiconTextView description = (EmojiconTextView) v.findViewById(R.id
+              .message_image_description);
+      description.setExpandedSize(true);
       description.setText(msgObj.description);
 
       ImageView imageView = (ImageView) v.findViewById(R.id

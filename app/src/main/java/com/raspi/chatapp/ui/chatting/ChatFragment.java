@@ -23,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
 import android.view.ActionMode;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,10 +36,16 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
+import com.github.ankushsachdeva.emojicon.EmojiconEditText;
+import com.github.ankushsachdeva.emojicon.EmojiconGridView;
+import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
+import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.WallpaperImageView;
 import com.raspi.chatapp.ui.util.message_array.Date;
@@ -507,6 +514,8 @@ public class ChatFragment extends Fragment{
   private void initUI(){
     //load wallpaper
     loadWallPaper();
+    //enable the emojicon-keyboard
+    createEmoji();
     if (actionBar != null)
       actionBar.setTitle(chatName);
     maa = new MessageArrayAdapter(getContext(), R.layout.message_text);
@@ -602,6 +611,83 @@ public class ChatFragment extends Fragment{
     updateStatus(lastOnline);
     //scroll down for notification click
     listView.setSelection(maa.getCount() - 1);
+  }
+
+  private void createEmoji(){
+    final EmojiconEditText emojiconEditText = (EmojiconEditText) getActivity
+            ().findViewById(R.id.chat_in);
+    final View root = getActivity().findViewById(R.id.root_view);
+    final EmojiconsPopup popup = new EmojiconsPopup(root, getActivity());
+    final ImageButton emojiBtn = (ImageButton) getActivity().findViewById(R
+            .id.emoti_switch);
+    popup.setSizeForSoftKeyboard();
+    popup.setOnDismissListener(new PopupWindow.OnDismissListener(){
+      @Override
+      public void onDismiss(){
+//        changeKeyboardIcon();
+      }
+    });
+    popup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener(){
+      @Override
+      public void onKeyboardOpen(int keyBoardHeight){
+      }
+
+      @Override
+      public void onKeyboardClose(){
+        if (popup.isShowing())
+          popup.dismiss();
+      }
+    });
+    popup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener(){
+      @Override
+      public void onEmojiconClicked(Emojicon emojicon){
+        if (emojiconEditText == null || emojicon == null)
+          return;
+        int start = emojiconEditText.getSelectionStart();
+        int end = emojiconEditText.getSelectionEnd();
+        if (start < 0)
+          emojiconEditText.append(emojicon.getEmoji());
+        else
+          emojiconEditText.getText().replace(
+                  Math.min(start, end),
+                  Math.max(start, end),
+                  emojicon.getEmoji(),
+                  0,
+                  emojicon.getEmoji().length());
+      }
+    });
+    popup.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener(){
+      @Override
+      public void onEmojiconBackspaceClicked(View v){
+        KeyEvent event = new KeyEvent(
+                0, 0, 0,
+                KeyEvent.KEYCODE_DEL,
+                0, 0, 0, 0,
+                KeyEvent.KEYCODE_ENDCALL
+        );
+        emojiconEditText.dispatchKeyEvent(event);
+      }
+    });
+    emojiBtn.setOnClickListener(new View.OnClickListener(){
+      @Override
+      public void onClick(View v){
+        if (!popup.isShowing()){
+          if (popup.isKeyBoardOpen())
+            popup.showAtBottom();
+          else{
+            emojiconEditText.setFocusableInTouchMode(true);
+            emojiconEditText.requestFocus();
+            popup.showAtBottomPending();
+            InputMethodManager inputMethodManager = (InputMethodManager)
+                    getActivity().getSystemService(Context
+                            .INPUT_METHOD_SERVICE);
+            inputMethodManager.showSoftInput(emojiconEditText,
+                    InputMethodManager.SHOW_IMPLICIT);
+          }
+        }else
+          popup.dismiss();
+      }
+    });
   }
 
   private void loadWallPaper(){

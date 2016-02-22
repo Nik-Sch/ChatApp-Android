@@ -9,14 +9,22 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import com.github.ankushsachdeva.emojicon.EmojiconEditText;
+import com.github.ankushsachdeva.emojicon.EmojiconGridView;
+import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
+import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
@@ -122,6 +130,7 @@ public class SendImageFragment extends Fragment{
       actionBar.setTitle(R.string.send_image);
       actionBar.setSubtitle(name);
     }
+    createEmoji();
 
     EditText et = (EditText) getView().findViewById(R.id
             .send_image_description);
@@ -168,6 +177,84 @@ public class SendImageFragment extends Fragment{
               }
             });
   }
+
+  private void createEmoji(){
+    final EmojiconEditText emojiconEditText = (EmojiconEditText) getActivity
+            ().findViewById(R.id.send_image_description);
+    final View root = getActivity().findViewById(R.id.root_view);
+    final EmojiconsPopup popup = new EmojiconsPopup(root, getActivity());
+    final ImageButton emojiBtn = (ImageButton) getActivity().findViewById(R
+            .id.send_image_emoti_switch);
+    popup.setSizeForSoftKeyboard();
+    popup.setOnDismissListener(new PopupWindow.OnDismissListener(){
+      @Override
+      public void onDismiss(){
+//        changeKeyboardIcon();
+      }
+    });
+    popup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener(){
+      @Override
+      public void onKeyboardOpen(int keyBoardHeight){
+      }
+
+      @Override
+      public void onKeyboardClose(){
+        if (popup.isShowing())
+          popup.dismiss();
+      }
+    });
+    popup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener(){
+      @Override
+      public void onEmojiconClicked(Emojicon emojicon){
+        if (emojiconEditText == null || emojicon == null)
+          return;
+        int start = emojiconEditText.getSelectionStart();
+        int end = emojiconEditText.getSelectionEnd();
+        if (start < 0)
+          emojiconEditText.append(emojicon.getEmoji());
+        else
+          emojiconEditText.getText().replace(
+                  Math.min(start, end),
+                  Math.max(start, end),
+                  emojicon.getEmoji(),
+                  0,
+                  emojicon.getEmoji().length());
+      }
+    });
+    popup.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener(){
+      @Override
+      public void onEmojiconBackspaceClicked(View v){
+        KeyEvent event = new KeyEvent(
+                0, 0, 0,
+                KeyEvent.KEYCODE_DEL,
+                0, 0, 0, 0,
+                KeyEvent.KEYCODE_ENDCALL
+        );
+        emojiconEditText.dispatchKeyEvent(event);
+      }
+    });
+    emojiBtn.setOnClickListener(new View.OnClickListener(){
+      @Override
+      public void onClick(View v){
+        if (!popup.isShowing()){
+          if (popup.isKeyBoardOpen())
+            popup.showAtBottom();
+          else{
+            emojiconEditText.setFocusableInTouchMode(true);
+            emojiconEditText.requestFocus();
+            popup.showAtBottomPending();
+            InputMethodManager inputMethodManager = (InputMethodManager)
+                    getActivity().getSystemService(Context
+                            .INPUT_METHOD_SERVICE);
+            inputMethodManager.showSoftInput(emojiconEditText,
+                    InputMethodManager.SHOW_IMPLICIT);
+          }
+        }else
+          popup.dismiss();
+      }
+    });
+  }
+
 
   private void sendImage(){
     MyFileUtils mfu = new MyFileUtils();
