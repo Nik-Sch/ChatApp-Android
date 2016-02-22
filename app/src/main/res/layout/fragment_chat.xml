@@ -38,12 +38,20 @@
             android:background="@drawable/send_form_bg"
             android:layout_margin="3dp">
 
-            <EditText
-                android:id="@+id/chat_in"
+            <ImageButton
+                android:id="@+id/emoti_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentStart="true"
+                android:src="@drawable/ic_insert_emoticon_black_24dp"/>
+
+            <EditText
+                android:id="@+id/chat_in"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/emoti_switch"
+                android:layout_toRightOf="@+id/emoti_switch"
                 android:layout_toLeftOf="@+id/chat_sendBtn"
                 android:layout_toStartOf="@+id/chat_sendBtn"
                 android:ems="10"
