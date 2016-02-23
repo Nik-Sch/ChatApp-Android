@@ -168,7 +168,8 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
                     + " DESC", "1");
     c.moveToFirst();
-    updateMessageStatus(buddyId, c.getLong(0), MessageHistory.STATUS_READ);
+    if (markAsRead)
+      updateMessageStatus(buddyId, c.getLong(0), MessageHistory.STATUS_READ);
     db.close();
     return getLastMessage(buddyId);
   }
@@ -347,8 +348,8 @@ public class MessageHistory{
           case (MessageHistory.TYPE_TEXT):
             result[i] = new TextMessage(!me.equals(from), content, time,
                     status, _ID, othersId);
-            if (((TextMessage) result[i]).left)
-              updateMessageStatus(from, _ID, STATUS_READ);
+//            if (((TextMessage) result[i]).left)
+//              updateMessageStatus(from, _ID, STATUS_READ);
             break;
           case (MessageHistory.TYPE_IMAGE):
             try{

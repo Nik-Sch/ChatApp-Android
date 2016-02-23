@@ -2,12 +2,19 @@ package com.raspi.chatapp.util.internet.http;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.widget.Toast;
+
+import com.raspi.chatapp.util.internet.XmppManager;
+import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -36,10 +43,15 @@ public class DownloadService extends IntentService{
           ".http.DowloadService.PARAM_PROGRESS";
   public static String PARAM_MESSAGE_ID = "com.raspi.chatapp.util.internet" +
           ".http.DowloadService.PARAM_MESSAGE_ID";
+  public static String PARAM_OTHERS_MSG_ID = "com.raspi.chatapp.util.internet" +
+          ".http.DowloadService.PARAM_OTHERS_MSG_ID";
+  public static String PARAM_CHAT_ID = "com.raspi.chatapp.util.internet" +
+          ".http.DowloadService.PARAM_CHAT_ID";
 
 
   public static final String DELETE_URL = "http://raspi-server.ddns" +
           ".net/ChatApp/delete.php";
+
   public DownloadService(){
     super("DowloadService");
   }
@@ -51,7 +63,9 @@ public class DownloadService extends IntentService{
       String urlToDownload = extras.getString(PARAM_URL);
       String fileLocation = extras.getString(PARAM_FILE);
       Long messageId = extras.getLong(PARAM_MESSAGE_ID);
+      Long othersId = extras.getLong(PARAM_OTHERS_MSG_ID);
       ResultReceiver receiver = intent.getParcelableExtra(PARAM_RECEIVER);
+      String chatId = extras.getString(PARAM_CHAT_ID);
       try{
         URL url = new URL(urlToDownload);
         URLConnection connection = url.openConnection();
@@ -90,6 +104,19 @@ public class DownloadService extends IntentService{
         params.put("f", file);
         performPostCall(DELETE_URL, params);
 
+        //send the read acknowledgement
+        try{
+          new MessageHistory(getApplication()).updateMessageStatus(chatId,
+                  messageId, MessageHistory.STATUS_READ);
+          XmppManager.getInstance().sendAcknowledgement(chatId,
+                  othersId, MessageHistory.STATUS_READ);
+        }catch (Exception e){
+          e.printStackTrace();
+        }
+
+        //save a copy of the image in low quality for pre rendering in local storage
+        saveImageCopy(fileLocation, messageId, chatId);
+
       }catch (Exception e){
         e.printStackTrace();
       }
@@ -98,6 +125,26 @@ public class DownloadService extends IntentService{
       resultData.putInt(PARAM_PROGRESS, 100);
       resultData.putLong(PARAM_MESSAGE_ID, messageId);
       receiver.send(UPDATE_PROGRESS, resultData);
+    }
+  }
+
+  private void saveImageCopy(String fileLocation, Long id, String chatId){
+    try{
+      //old images bitmap
+      Bitmap oldImg = BitmapFactory.decodeFile(fileLocation);
+      float height = 50;
+      float x = oldImg.getHeight() / height;
+      float width = oldImg.getWidth() / x;
+
+      File destFile = new File(getApplication().getFilesDir(), chatId + "-" +
+              id + ".jpg");
+      OutputStream out = new FileOutputStream(destFile);
+      Bitmap image = Bitmap.createScaledBitmap(oldImg, (int) width, (int)
+              height, true);
+      image.compress(Bitmap.CompressFormat.JPEG, 20, out);
+      out.close();
+    }catch (Exception e){
+      e.printStackTrace();
     }
   }
 

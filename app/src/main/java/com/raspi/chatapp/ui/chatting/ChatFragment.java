@@ -159,14 +159,18 @@ public class ChatFragment extends Fragment{
         MessageArrayContent mac = messageHistory.getLastMessage(buddyId, true);
         if (mac instanceof ImageMessage)
           downloadImage((ImageMessage) mac);
+        else
+          //send the read acknowledgement
+          try{
+            long id = extras.getLong("id");
+            messageHistory.updateMessageStatus(buddyId, ((TextMessage) mac)._ID,
+                    MessageHistory.STATUS_READ);
+            XmppManager.getInstance().sendAcknowledgement(buddyId,
+                    id, MessageHistory.STATUS_READ);
+          }catch (Exception e){
+          }
         maa.add(mac);
         listView.setSelection(maa.getCount() - 1);
-        //also send the read acknowledgement
-        try{
-          XmppManager.getInstance(context).sendAcknowledgement(buddyId,
-                  extras.getLong("id"), MessageHistory.STATUS_READ);
-        }catch (Exception e){
-        }
         abortBroadcast();
       }
     }
@@ -768,6 +772,8 @@ public class ChatFragment extends Fragment{
               nm.status = getResources().getString(R.string.new_messages);
             //send the read acknowledgement
             try{
+              messageHistory.updateMessageStatus(buddyId, msg._ID,
+                      MessageHistory.STATUS_READ);
               XmppManager.getInstance().sendAcknowledgement(buddyId,
                       msg.othersId, MessageHistory.STATUS_READ);
             }catch (Exception e){
@@ -794,22 +800,14 @@ public class ChatFragment extends Fragment{
               nm.status = getResources().getString(R.string.new_messages);
           }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
             downloadImage(msg);
-          }else if (!MessageHistory.STATUS_RECEIVING.equals(msg.status))
-            messageHistory.updateMessageStatus(buddyId, msg._ID, MessageHistory
-                    .STATUS_READ);
+          }
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
           Upload.Task task = new Upload.Task(new File(msg.file), msg.chatId, msg
                   ._ID);
           new Upload().uploadFile(getContext(), task);
           msg.status = MessageHistory.STATUS_SENDING;
         }
-        maa.add(msg);//send the read acknowledgement
-        try{
-          XmppManager.getInstance().sendAcknowledgement(buddyId,
-                  msg.othersId, MessageHistory.STATUS_READ);
-        }catch (Exception e){
-          e.printStackTrace();
-        }
+        maa.add(msg);
       }
     }
     listView.setSelection(maa.getCount() - 1);
@@ -873,7 +871,7 @@ public class ChatFragment extends Fragment{
         if (!mfu.isExternalStorageWritable())
           throw new Exception("ext storage not writable. Cannot save " +
                   "image");
-        messageHistory.updateMessageStatus(chatName, msg._ID,
+        messageHistory.updateMessageStatus(buddyId, msg._ID,
                 MessageHistory.STATUS_RECEIVING);
         msg.status = MessageHistory.STATUS_RECEIVING;
         Intent intent = new Intent(getContext(), DownloadService.class);
@@ -883,6 +881,8 @@ public class ChatFragment extends Fragment{
                 DownloadReceiver(new Handler()));
         intent.putExtra(DownloadService.PARAM_FILE, msg.file);
         intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
+        intent.putExtra(DownloadService.PARAM_OTHERS_MSG_ID, msg.othersId);
+        intent.putExtra(DownloadService.PARAM_CHAT_ID, buddyId);
         getContext().startService(intent);
       }catch (Exception e){
         e.printStackTrace();
@@ -916,6 +916,8 @@ public class ChatFragment extends Fragment{
 
     @Override
     protected Bitmap doInBackground(File... params){
+      if (!params[0].isFile())
+        return null;
       data = params[0];
 
       // First decode with inJustDecodeBounds=true to check dimensions
@@ -930,6 +932,7 @@ public class ChatFragment extends Fragment{
       options.inJustDecodeBounds = false;
       return BitmapFactory.decodeFile(data.getAbsolutePath(), options);
     }
+
     @Override
     protected void onPostExecute(Bitmap bitmap){
       if (bitmap != null){
@@ -939,26 +942,27 @@ public class ChatFragment extends Fragment{
       }
     }
   }
+
   //see MAA
   private int calculateInSampleSize(
           BitmapFactory.Options options, int reqWidth, int reqHeight){
     if (reqHeight <= 0 && reqWidth <= 0)
       throw new IllegalArgumentException("reqWidth and reqHeigth must be " +
               "positive.");
-      final int height = options.outHeight;
-      final int width = options.outWidth;
-      int inSampleSize = 1;
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
 
-      if (height > reqHeight || width > reqWidth){
+    if (height > reqHeight || width > reqWidth){
 
-        final int halfHeight = height / 2;
-        final int halfWidth = width / 2;
-        while ((halfHeight / inSampleSize) > reqHeight
-                && (halfWidth / inSampleSize) > reqWidth){
-          inSampleSize *= 2;
-        }
+      final int halfHeight = height / 2;
+      final int halfWidth = width / 2;
+      while ((halfHeight / inSampleSize) > reqHeight
+              && (halfWidth / inSampleSize) > reqWidth){
+        inSampleSize *= 2;
       }
-      return inSampleSize;
+    }
+    return inSampleSize;
   }
 
   public class DownloadReceiver extends ResultReceiver{
@@ -988,7 +992,7 @@ public class ChatFragment extends Fragment{
               }else{
                 im.status = MessageHistory.STATUS_READ;
                 updateMessage(i);
-                messageHistory.updateMessageStatus(chatName, messageId,
+                messageHistory.updateMessageStatus(buddyId, messageId,
                         MessageHistory.STATUS_READ);
                 updateMessage(i, true);
               }

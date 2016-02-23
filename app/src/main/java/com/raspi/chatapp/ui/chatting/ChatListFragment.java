@@ -48,8 +48,9 @@ public class ChatListFragment extends Fragment{
       initUI();
       Bundle extras = intent.getExtras();
       try{
-        XmppManager.getInstance(context).sendAcknowledgement(extras.getString
-                        (ChatActivity.BUDDY_ID), extras.getLong("id"),
+        XmppManager.getInstance().sendAcknowledgement(
+                extras.getString(ChatActivity.BUDDY_ID),
+                extras.getLong("id"),
                 MessageHistory.STATUS_RECEIVED);
       }catch (Exception e){
       }

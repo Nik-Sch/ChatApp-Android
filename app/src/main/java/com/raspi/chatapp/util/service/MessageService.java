@@ -262,7 +262,9 @@ public class MessageService extends Service{
       new Notification(context).createNotification(buddyId, name, msg, type);
       //also send the received acknowledgement
       try{
-        XmppManager.getInstance(context).sendAcknowledgement(buddyId, id,
+        new MessageHistory(context).updateMessageStatus(buddyId, id,
+                MessageHistory.STATUS_RECEIVED);
+        XmppManager.getInstance().sendAcknowledgement(buddyId, id,
                 MessageHistory.STATUS_RECEIVED);
       }catch (Exception e){
         e.printStackTrace();

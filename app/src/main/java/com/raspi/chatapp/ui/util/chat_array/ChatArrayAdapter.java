@@ -57,7 +57,8 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
                 .ic_photo_camera_black_18dp, 0, 0, 0);
       else
         msg.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-      if (chatObj.sent)
+      if (chatObj.sent){
+        v.findViewById(R.id.chat_list_entry).setBackgroundColor(0xFFFFFF);
         switch (chatObj.lastMessageStatus){
           case MessageHistory.STATUS_WAITING:
             ((ImageView) v.findViewById(R.id.chat_list_entry_status))
@@ -73,7 +74,7 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
             ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageResource(R.drawable.two_blue_hook);
             break;
         }
-      else{
+      }else{
         ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageDrawable(null);
         if (!chatObj.sent && !chatObj.read)
           v.findViewById(R.id.chat_list_entry).setBackgroundColor(0xFF55AAFF);

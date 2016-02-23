@@ -125,7 +125,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
           case MessageHistory.STATUS_WAITING:
             ((ImageView) v.findViewById(R.id.message_text_status))
                     .setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
-            layoutInner.setAlpha(0.5f);
+            layoutInner.setAlpha(0.7f);
             break;
           case MessageHistory.STATUS_SENT:
             ((ImageView) v.findViewById(R.id.message_text_status))
@@ -171,26 +171,27 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
               (msgObj.time));
 
-
+      String tmpFileName = new File(getContext().getFilesDir(), msgObj.chatId
+              + "-" + msgObj._ID + ".jpg").getAbsolutePath();
       if (msgObj.left){
         layoutOuter.setGravity(Gravity.START);
         v.findViewById(R.id.message_image_status).setVisibility(View.GONE);
         if (MessageHistory.STATUS_RECEIVING.equals(msgObj.status)){
           v.findViewById(R.id.message_image_progress).setVisibility(View.VISIBLE);
-          layoutInner.setAlpha(0.5f);
+          layoutInner.setAlpha(0.7f);
         }else{
           v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
           layoutInner.setAlpha(1f);
           try{
             if (reloadImage)
-              loadBitmap(new File(msgObj.file), imageView);
+              loadBitmap(new File(msgObj.file), imageView, tmpFileName);
           }catch (Exception e){
           }
         }
       }else{
         try{
           if (reloadImage)
-            loadBitmap(new File(msgObj.file), imageView);
+            loadBitmap(new File(msgObj.file), imageView, tmpFileName);
         }catch (Exception e){
         }
         layoutOuter.setGravity(Gravity.END);
@@ -205,7 +206,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress(1);
-            layoutInner.setAlpha(0.5f);
+            layoutInner.setAlpha(0.7f);
             break;
           case MessageHistory.STATUS_SENDING:
             imageView = (ImageView) v.findViewById(R.id
@@ -215,7 +216,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
             progressBar.setProgress(msgObj.progress);
-            layoutInner.setAlpha(0.5f);
+            layoutInner.setAlpha(0.7f);
             break;
           case MessageHistory.STATUS_SENT:
             imageView = (ImageView) v.findViewById(R.id
@@ -265,28 +266,31 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
   /**
    * Removes the object at the specified location from this {@code List}.
    *
-   * @param position
-   *            the index of the object to remove.
+   * @param position the index of the object to remove.
    * @return the removed object.
-   * @throws UnsupportedOperationException
-   *                if removing from this {@code MessageArrayAdapter} is not
-   *                supported.
-   * @throws IndexOutOfBoundsException
-   *                if {@code location < 0 || location >= size()}
+   * @throws UnsupportedOperationException if removing from this {@code MessageArrayAdapter} is not
+   *                                       supported.
+   * @throws IndexOutOfBoundsException     if {@code location < 0 || location >= size()}
    */
   public MessageArrayContent remove(int position) throws UnsupportedOperationException,
           IndexOutOfBoundsException{
     return messageList.remove(position);
   }
 
-  private void loadBitmap(File file, ImageView imageView) throws Exception{
+  private void loadBitmap(File file, ImageView imageView, String tempFileName)
+          throws
+          Exception{
     if (cancelPotentialWork(file, imageView)){
       final BitmapWorkerTask task = new BitmapWorkerTask(imageView, imageView
               .getLayoutParams().width, imageView.getLayoutParams()
               .height);
-      imageView.setImageDrawable(new AsyncDrawable(getContext().getResources
-              (), BitmapFactory.decodeResource(getContext().getResources(),
-              R.drawable.placeholder), task));
+      imageView.setImageDrawable(new AsyncDrawable(
+              getContext().getResources(),
+              new File(tempFileName).isFile()
+                      ? BitmapFactory.decodeFile(tempFileName)
+                      : BitmapFactory.decodeResource(getContext().getResources(),
+                      R.drawable.placeholder),
+              task));
       task.execute(file);
 
     }
@@ -344,6 +348,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
 
     @Override
     protected Bitmap doInBackground(File... params){
+      if (!params[0].isFile())
+        return null;
       data = params[0];
 
       // First decode with inJustDecodeBounds=true to check dimensions
