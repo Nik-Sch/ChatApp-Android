@@ -25,6 +25,7 @@ import android.widget.ListView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
@@ -49,7 +50,7 @@ public class ChatListFragment extends Fragment{
       Bundle extras = intent.getExtras();
       try{
         XmppManager.getInstance().sendAcknowledgement(
-                extras.getString(ChatActivity.BUDDY_ID),
+                extras.getString(Constants.BUDDY_ID),
                 extras.getLong("id"),
                 MessageHistory.STATUS_RECEIVED);
       }catch (Exception e){
@@ -76,7 +77,7 @@ public class ChatListFragment extends Fragment{
   public void onResume(){
     super.onResume();
     initUI();
-    IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
+    IntentFilter filter = new IntentFilter(Constants.MESSAGE_RECEIVED);
     filter.setPriority(1);
     getContext().registerReceiver(MessageReceiver, filter);
   }

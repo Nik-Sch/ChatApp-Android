@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.raspi.chatapp.ui.chatting.ChatActivity;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -26,9 +26,6 @@ import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.ping.PingManager;
-import org.jivesoftware.smackx.search.ReportedData;
-import org.jivesoftware.smackx.search.UserSearchManager;
-import org.jivesoftware.smackx.xdata.Form;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -292,6 +289,13 @@ public class XmppManager{
     return false;
   }
 
+  /**
+   *
+   * @param buddyId
+   * @param id
+   * @param type
+   * @return
+   */
   public boolean sendAcknowledgement(String buddyId, long id, String type){
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
     if (connection != null && connection.isConnected() && chatManager != null){
@@ -409,7 +413,7 @@ public class XmppManager{
     @Override
     public void reconnectionSuccessful(){
       Log.d("XMPP_MANAGER", "reconnected successfully");
-      LBMgr.sendBroadcast(new Intent(ChatActivity.RECONNECTED));
+      LBMgr.sendBroadcast(new Intent(Constants.RECONNECTED));
 
     }
 

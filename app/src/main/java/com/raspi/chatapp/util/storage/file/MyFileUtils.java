@@ -2,7 +2,7 @@ package com.raspi.chatapp.util.storage.file;
 
 import android.os.Environment;
 
-import com.raspi.chatapp.ui.chatting.ChatActivity;
+import com.raspi.chatapp.util.Constants;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ public class MyFileUtils{
   public File getFileName() throws IOException{
     String root = Environment.getExternalStoragePublicDirectory(Environment
             .DIRECTORY_PICTURES).getAbsolutePath();
-    File myDir = new File(root + "/" + ChatActivity.IMAGE_DIR);
+    File myDir = new File(root + "/" + Constants.IMAGE_DIR);
     myDir.mkdirs();
     String filePath = new File(myDir, "IMG_" + new SimpleDateFormat
             ("yyyy-MM-dd_HH-mm-ss").format(new Date())).getAbsolutePath();

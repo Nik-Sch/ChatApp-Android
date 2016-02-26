@@ -68,8 +68,8 @@ public class Notification{
         setOldBuddyId(buddyId);
       }
       if (oldBuddyId.equals(buddyId)){
-        resultIntent.putExtra(ChatActivity.BUDDY_ID, buddyId);
-        resultIntent.putExtra(ChatActivity.CHAT_NAME, name);
+        resultIntent.putExtra(Constants.BUDDY_ID, buddyId);
+        resultIntent.putExtra(Constants.CHAT_NAME, name);
       }
 
       TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
@@ -216,7 +216,7 @@ public class Notification{
   }
 
   public void reset(){
-    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFERENCES, 0);
     preferences.edit().putString(NOTIFICATION_OLD_BUDDY, "").putString(CURRENT_NOTIFICATIONS,
             "").apply();
     ((NotificationManager) context.getSystemService(Context
@@ -224,17 +224,17 @@ public class Notification{
   }
 
   private String getOldBuddyId(){
-    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFERENCES, 0);
     return preferences.getString(NOTIFICATION_OLD_BUDDY, null);
   }
 
   private void setOldBuddyId(String buddyId){
-    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFERENCES, 0);
     preferences.edit().putString(NOTIFICATION_OLD_BUDDY, buddyId).apply();
   }
 
   private void writeJSONArray(String[] arr, String arr_name){
-    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFERENCES, 0);
     JSONArray jsonArray = new JSONArray();
     for (String s : arr)
       jsonArray.put(s);
@@ -242,7 +242,7 @@ public class Notification{
   }
 
   private String[] readJSONArray(String arr_name){
-    SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
+    SharedPreferences preferences = context.getSharedPreferences(Constants.PREFERENCES, 0);
     try{
       JSONArray jsonArray = new JSONArray(preferences.getString(arr_name, ""));
       String[] result = new String[jsonArray.length()];

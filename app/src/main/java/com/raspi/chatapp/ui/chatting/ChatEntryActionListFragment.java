@@ -8,6 +8,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 /**
@@ -21,8 +22,8 @@ public class ChatEntryActionListFragment extends DialogFragment{
   public ChatEntryActionListFragment(){
     super();
     Bundle arguments = getArguments();
-    if (arguments != null && arguments.containsKey(ChatActivity.BUDDY_ID))
-      buddyId = arguments.getString(ChatActivity.BUDDY_ID);
+    if (arguments != null && arguments.containsKey(Constants.BUDDY_ID))
+      buddyId = arguments.getString(Constants.BUDDY_ID);
   }
 
   private final DialogInterface.OnClickListener onClickListener = new

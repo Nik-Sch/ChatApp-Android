@@ -9,11 +9,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
+import com.raspi.chatapp.util.Constants;
 
 import org.json.JSONArray;
 
@@ -196,8 +196,8 @@ public class MessageHistory{
       lastMessage.moveToFirst();
       if (lastMessage.getCount() != 0 && lastMessage.moveToFirst()){
         String type = lastMessage.getString(1);
-        SharedPreferences preferences = context.getSharedPreferences(ChatActivity.PREFERENCES, 0);
-        String me = preferences.getString(ChatActivity.USERNAME, "");
+        SharedPreferences preferences = context.getSharedPreferences(Constants.PREFERENCES, 0);
+        String me = preferences.getString(Constants.USERNAME, "");
         boolean sent = me.equals(lastMessage.getString(0));
 
         if (TYPE_TEXT.equals(type)){
@@ -333,9 +333,9 @@ public class MessageHistory{
     if (messages.getCount() > 0)
       do{
         String from = messages.getString(0);
-        SharedPreferences preferences = context.getSharedPreferences(ChatActivity
+        SharedPreferences preferences = context.getSharedPreferences(Constants
                 .PREFERENCES, 0);
-        String me = preferences.getString(ChatActivity.USERNAME, "");
+        String me = preferences.getString(Constants.USERNAME, "");
         String type = messages.getString(1);
         String content = messages.getString(2);
         String url = messages.getString(3);
@@ -414,9 +414,9 @@ public class MessageHistory{
 
     message.moveToFirst();
     String from = message.getString(0);
-    SharedPreferences preferences = context.getSharedPreferences(ChatActivity
+    SharedPreferences preferences = context.getSharedPreferences(Constants
             .PREFERENCES, 0);
-    String me = preferences.getString(ChatActivity.USERNAME, "");
+    String me = preferences.getString(Constants.USERNAME, "");
     String type = message.getString(1);
     String content = message.getString(2);
     String url = message.getString(3);

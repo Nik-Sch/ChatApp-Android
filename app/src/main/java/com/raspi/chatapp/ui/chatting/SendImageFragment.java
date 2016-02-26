@@ -26,6 +26,7 @@ import com.github.ankushsachdeva.emojicon.EmojiconGridView;
 import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
 import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
@@ -70,9 +71,9 @@ public class SendImageFragment extends Fragment{
           buddyId, String name){
     SendImageFragment fragment = new SendImageFragment();
     Bundle args = new Bundle();
-    args.putString(ChatActivity.IMAGE_URI, imageUri);
-    args.putString(ChatActivity.BUDDY_ID, buddyId);
-    args.putString(ChatActivity.CHAT_NAME, name);
+    args.putString(Constants.IMAGE_URI, imageUri);
+    args.putString(Constants.BUDDY_ID, buddyId);
+    args.putString(Constants.CHAT_NAME, name);
     fragment.setArguments(args);
     return fragment;
   }
@@ -95,9 +96,9 @@ public class SendImageFragment extends Fragment{
   public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
     if (getArguments() != null){
-      imageUri = Uri.parse(getArguments().getString(ChatActivity.IMAGE_URI));
-      buddyId = getArguments().getString(ChatActivity.BUDDY_ID);
-      name = getArguments().getString(ChatActivity.CHAT_NAME);
+      imageUri = Uri.parse(getArguments().getString(Constants.IMAGE_URI));
+      buddyId = getArguments().getString(Constants.BUDDY_ID);
+      name = getArguments().getString(Constants.CHAT_NAME);
     }
   }
 
@@ -273,8 +274,8 @@ public class SendImageFragment extends Fragment{
         MessageHistory messageHistory = new MessageHistory(getContext());
         messageHistory.addMessage(
                 buddyId,
-                getActivity().getSharedPreferences(ChatActivity.PREFERENCES, 0)
-                        .getString(ChatActivity.USERNAME, ""),
+                getActivity().getSharedPreferences(Constants.PREFERENCES, 0)
+                        .getString(Constants.USERNAME, ""),
                 MessageHistory.TYPE_IMAGE,
                 contentJSON.toString(),
                 MessageHistory.STATUS_WAITING,

@@ -3,7 +3,6 @@ package com.raspi.chatapp.ui.settings;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -29,9 +28,9 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.password.PasswordActivity;
 import com.raspi.chatapp.ui.util.AppCompatPreferenceActivity;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.file.FileUtils;
 
 import java.io.File;
@@ -332,7 +331,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
         @Override
         public boolean onPreferenceClick(Preference preference){
           try{
-            File file = new File(getActivity().getFilesDir(), ChatActivity
+            File file = new File(getActivity().getFilesDir(), Constants
                     .WALLPAPER_NAME);
             Bitmap bm = BitmapFactory.decodeResource(getResources(), R
                     .drawable.default_wallpaper);
@@ -358,7 +357,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
       if (requestCode == WALLPAPER_CHOSEN){
         if (resultCode == Activity.RESULT_OK){
           String imageUriPath = FileUtils.getPath(getActivity(), data.getData());
-          File file = new File(getActivity().getFilesDir(), ChatActivity
+          File file = new File(getActivity().getFilesDir(), Constants
                   .WALLPAPER_NAME);
           try{
             copyImage(imageUriPath, file);

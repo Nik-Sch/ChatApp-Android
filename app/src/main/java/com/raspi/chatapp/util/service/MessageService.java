@@ -11,11 +11,11 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.ui.chatting.ChatActivity;
 import com.raspi.chatapp.ui.chatting.SendImageFragment;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.MessageXmlParser;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.internet.XmppManager;
@@ -132,8 +132,8 @@ public class MessageService extends Service{
       ChatManager chatManager = ChatManager.getInstanceFor(xmppManager
               .getConnection());
       chatManager.addChatListener(new MyChatManagerListener());
-      xmppManager.setStatus(true, String.valueOf(getSharedPreferences(ChatActivity
-              .PREFERENCES, 0).getLong(ChatActivity.LAST_SENT_PRESENCE, 0)));
+      xmppManager.setStatus(true, String.valueOf(getSharedPreferences(Constants
+              .PREFERENCES, 0).getLong(Constants.LAST_PRESENCE_SENT, 0)));
     }catch (Exception e){
       Log.e("SERVICE_ERROR", "An error while initializing the MessageService " +
               "occurred.");
@@ -150,9 +150,9 @@ public class MessageService extends Service{
         from = from.substring(0, index);
       }
       String status = presence.getStatus();
-      Intent intent = new Intent(ChatActivity.PRESENCE_CHANGED);
-      intent.putExtra(ChatActivity.BUDDY_ID, from);
-      intent.putExtra(ChatActivity.PRESENCE_STATUS, status);
+      Intent intent = new Intent(Constants.PRESENCE_CHANGED);
+      intent.putExtra(Constants.BUDDY_ID, from);
+      intent.putExtra(Constants.PRESENCE_STATUS, status);
       LocalBroadcastManager.getInstance(getApplicationContext())
               .sendBroadcast(intent);
       messageHistory.setOnline(from, status);
@@ -177,15 +177,15 @@ public class MessageService extends Service{
         String name = messageHistory.getName(buddyId);
 
         messageHistory.addChat(buddyId, buddyId);
-        Intent msgIntent = new Intent(ChatActivity.RECEIVE_MESSAGE)
-                .putExtra(ChatActivity.BUDDY_ID, buddyId)
-                .putExtra(ChatActivity.CHAT_NAME, name);
+        Intent msgIntent = new Intent(Constants.MESSAGE_RECEIVED)
+                .putExtra(Constants.BUDDY_ID, buddyId)
+                .putExtra(Constants.CHAT_NAME, name);
         if (MessageHistory.TYPE_TEXT.equals(msg.type)){
           messageHistory.addMessage(buddyId, buddyId, MessageHistory
                   .TYPE_TEXT, msg.content, MessageHistory
                   .STATUS_RECEIVED, id);
-          msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.content);
-          msgIntent.putExtra(ChatActivity.MESSAGE_TYPE, MessageHistory
+          msgIntent.putExtra(Constants.MESSAGE_BODY, msg.content);
+          msgIntent.putExtra(Constants.MESSAGE_TYPE, MessageHistory
                   .TYPE_TEXT);
         }else if (MessageHistory.TYPE_IMAGE.equals(msg.type)){
           try{
@@ -200,9 +200,9 @@ public class MessageService extends Service{
                     "http://" + XmppManager.SERVER + "/ChatApp/" + msg.url,
                     "0",
                     MessageHistory.STATUS_WAITING, id);
-            msgIntent.putExtra(ChatActivity.MESSAGE_TYPE, MessageHistory
+            msgIntent.putExtra(Constants.MESSAGE_TYPE, MessageHistory
                     .TYPE_IMAGE);
-            msgIntent.putExtra(ChatActivity.MESSAGE_BODY, msg.description
+            msgIntent.putExtra(Constants.MESSAGE_BODY, msg.description
                     .isEmpty()?getResources().getString(R.string.image):msg
                     .description);
           }catch (Exception e){
@@ -218,10 +218,10 @@ public class MessageService extends Service{
                 msgToUpdate).status : ((ImageMessage)msgToUpdate).status;
         if (!MessageHistory.STATUS_READ.equals(oldStatus)){
           messageHistory.updateMessageStatus(buddyId, msg.id, msg.content);
-          Intent intent = new Intent(ChatActivity.MESSAGE_STATUS_CHANGED);
+          Intent intent = new Intent(Constants.MESSAGE_STATUS_CHANGED);
           intent.putExtra("id", msg.id);
           intent.putExtra("status", msg.content);
-          intent.putExtra(ChatActivity.BUDDY_ID, buddyId);
+          intent.putExtra(Constants.BUDDY_ID, buddyId);
           LocalBroadcastManager.getInstance(getApplicationContext())
                   .sendBroadcast(intent);
         }
@@ -230,11 +230,11 @@ public class MessageService extends Service{
   }
 
   private String getUserName(){
-    return getSharedPreferences(ChatActivity.PREFERENCES, 0).getString(ChatActivity.USERNAME, "");
+    return getSharedPreferences(Constants.PREFERENCES, 0).getString(Constants.USERNAME, "");
   }
 
   private String getPassword(){
-    return getSharedPreferences(ChatActivity.PREFERENCES, 0).getString(ChatActivity.PASSWORD, "");
+    return getSharedPreferences(Constants.PREFERENCES, 0).getString(Constants.PASSWORD, "");
   }
 
   @Override
@@ -254,10 +254,10 @@ public class MessageService extends Service{
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
-      String buddyId = extras.getString(ChatActivity.BUDDY_ID);
-      String name = extras.getString(ChatActivity.CHAT_NAME);
-      String msg = extras.getString(ChatActivity.MESSAGE_BODY);
-      String type = extras.getString(ChatActivity.MESSAGE_TYPE);
+      String buddyId = extras.getString(Constants.BUDDY_ID);
+      String name = extras.getString(Constants.CHAT_NAME);
+      String msg = extras.getString(Constants.MESSAGE_BODY);
+      String type = extras.getString(Constants.MESSAGE_TYPE);
       long id = extras.getLong("id");
       new Notification(context).createNotification(buddyId, name, msg, type);
       //also send the received acknowledgement

@@ -55,6 +55,7 @@ import com.raspi.chatapp.ui.util.message_array.MessageArrayAdapter;
 import com.raspi.chatapp.ui.util.message_array.MessageArrayContent;
 import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.internet.http.DownloadService;
 import com.raspi.chatapp.util.internet.http.Upload;
@@ -145,7 +146,7 @@ public class ChatFragment extends Fragment{
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
-      String intentBuddyId = extras.getString(ChatActivity.BUDDY_ID);
+      String intentBuddyId = extras.getString(Constants.BUDDY_ID);
       int index = intentBuddyId.indexOf('@');
       if (index >= 0)
         intentBuddyId = intentBuddyId.substring(0, index);
@@ -179,9 +180,9 @@ public class ChatFragment extends Fragment{
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
-      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) && extras.containsKey(ChatActivity.PRESENCE_STATUS)){
-        if (buddyId.equals(extras.getString(ChatActivity.BUDDY_ID))){
-          updateStatus(extras.getString(ChatActivity.PRESENCE_STATUS));
+      if (extras != null && extras.containsKey(Constants.BUDDY_ID) && extras.containsKey(Constants.PRESENCE_STATUS)){
+        if (buddyId.equals(extras.getString(Constants.BUDDY_ID))){
+          updateStatus(extras.getString(Constants.PRESENCE_STATUS));
         }
       }
     }
@@ -190,9 +191,9 @@ public class ChatFragment extends Fragment{
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
-      if (extras != null && extras.containsKey(ChatActivity.BUDDY_ID) &&
+      if (extras != null && extras.containsKey(Constants.BUDDY_ID) &&
               extras.containsKey("id") && extras.containsKey("status")){
-        String bId = extras.getString(ChatActivity.BUDDY_ID);
+        String bId = extras.getString(Constants.BUDDY_ID);
         int index = bId.indexOf('@');
         if (index >= 0){
           bId = bId.substring(0, index);
@@ -383,8 +384,8 @@ public class ChatFragment extends Fragment{
   public static ChatFragment newInstance(String buddyId, String chatName){
     ChatFragment fragment = new ChatFragment();
     Bundle args = new Bundle();
-    args.putString(ChatActivity.BUDDY_ID, buddyId);
-    args.putString(ChatActivity.CHAT_NAME, chatName);
+    args.putString(Constants.BUDDY_ID, buddyId);
+    args.putString(Constants.CHAT_NAME, chatName);
     fragment.setArguments(args);
     return fragment;
   }
@@ -400,8 +401,8 @@ public class ChatFragment extends Fragment{
     super.onCreate(savedInstanceState);
     messageAmount = MESSAGE_LIMIT;
     if (getArguments() != null){
-      buddyId = getArguments().getString(ChatActivity.BUDDY_ID);
-      chatName = getArguments().getString(ChatActivity.CHAT_NAME);
+      buddyId = getArguments().getString(Constants.BUDDY_ID);
+      chatName = getArguments().getString(Constants.CHAT_NAME);
     }else
       return;
     messageHistory = new MessageHistory(getContext());
@@ -410,17 +411,17 @@ public class ChatFragment extends Fragment{
   @Override
   public void onResume(){
     super.onResume();
-    IntentFilter filter = new IntentFilter(ChatActivity.RECEIVE_MESSAGE);
+    IntentFilter filter = new IntentFilter(Constants.MESSAGE_RECEIVED);
     filter.setPriority(1);
     getContext().registerReceiver(messageReceiver, filter);
     LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance
             (getContext());
     LBmgr.registerReceiver(reconnectedReceiver, new IntentFilter
-            (ChatActivity.RECONNECTED));
+            (Constants.RECONNECTED));
     LBmgr.registerReceiver(presenceChangeReceiver, new IntentFilter
-            (ChatActivity.PRESENCE_CHANGED));
+            (Constants.PRESENCE_CHANGED));
     LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
-            (ChatActivity.MESSAGE_STATUS_CHANGED));
+            (Constants.MESSAGE_STATUS_CHANGED));
     uploadReceiver.register(getContext());
     initUI();
   }
@@ -436,7 +437,7 @@ public class ChatFragment extends Fragment{
     LBmgr.unregisterReceiver(presenceChangeReceiver);
     LBmgr.unregisterReceiver(reconnectedReceiver);
     LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
-            (ChatActivity.MESSAGE_STATUS_CHANGED));
+            (Constants.MESSAGE_STATUS_CHANGED));
     uploadReceiver.unregister(getContext());
     super.onPause();
   }
@@ -534,8 +535,8 @@ public class ChatFragment extends Fragment{
         String message = textIn.getText().toString().trim();
         if (!message.isEmpty()){
           long id = messageHistory.addMessage(buddyId, getContext()
-                  .getSharedPreferences(ChatActivity.PREFERENCES, 0).getString
-                          (ChatActivity.USERNAME, ""), MessageHistory
+                  .getSharedPreferences(Constants.PREFERENCES, 0).getString
+                          (Constants.USERNAME, ""), MessageHistory
                   .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
           maa.add(new TextMessage(false, message, new GregorianCalendar()
                   .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
@@ -695,7 +696,7 @@ public class ChatFragment extends Fragment{
   }
 
   private void loadWallPaper(){
-    final File file = new File(getActivity().getFilesDir(), ChatActivity
+    final File file = new File(getActivity().getFilesDir(), Constants
             .WALLPAPER_NAME);
     if (file.exists()){
       final WallpaperImageView imageView = (WallpaperImageView) getView()
