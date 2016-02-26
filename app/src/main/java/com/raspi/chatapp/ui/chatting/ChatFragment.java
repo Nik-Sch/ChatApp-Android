@@ -73,40 +73,71 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * A simple {@link Fragment} subclass.
+ * A {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link ChatFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ChatFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * {@link OnChatFragmentInteractionListener} interface
+ * to handle interaction events.<br/>
+ * This fragment contains the basic chat. It manages everything that has to
+ * do with the ui of one single chat.
  */
 public class ChatFragment extends Fragment{
+  /**
+   * the messageLimit describes how many messages are loaded at creating and
+   * also how many more messages are loaded when clicking "loadMoreMessages".
+   */
   private static final int MESSAGE_LIMIT = 30;
 
+  /**
+   * the current amount of loaded messages.
+   */
   private int messageAmount = MESSAGE_LIMIT;
 
+  /**
+   * the buddyId of this instance of ChatFragment.
+   */
   private String buddyId;
+  /**
+   * the chatName of this instance of ChatFragment.
+   */
   private String chatName;
 
+  /**
+   * the array adapter for the listView containing the messages
+   */
   private MessageArrayAdapter maa;
-  private MessageHistory messageHistory;
+  /**
+   * the listView containing the messages.
+   */
   private ListView listView;
+  /**
+   * an instance of the messageHistory for saving/reading data to/from the db.
+   */
+  private MessageHistory messageHistory;
+  /**
+   * the uploadReceiver receives status updates from uploading. This includes
+   * onCompleted and onError.
+   */
   private final UploadServiceBroadcastReceiver uploadReceiver =
           new UploadServiceBroadcastReceiver(){
             @Override
             public void onProgress(String uploadId, int progress){
+              //received a progress update
               Log.d("UPLOAD_DEBUG", "progress: " + progress);
               int index = uploadId.indexOf('|');
               String buddyID = uploadId.substring(0, index);
               String messageId = uploadId.substring(index + 1);
+              //check if this is the correct chat
               if (buddyID.equals(buddyId)){
                 int size = listView.getLastVisiblePosition();
                 MessageArrayContent mac;
+                //check for all visible messages
                 for (int i = listView.getFirstVisiblePosition(); i <= size;
                      i++){
                   mac = maa.getItem(i);
+                  //atm, only ImageMessages are able to receive a uploadEvent
                   if (mac instanceof ImageMessage){
                     ImageMessage im = (ImageMessage) mac;
+                    //if the id fits the messageId update the messageView
                     if (im._ID == Long.parseLong(messageId)){
                       Log.d("UPLOAD_DEBUG", "progress: " + progress);
                       im.progress = progress;
@@ -119,17 +150,21 @@ public class ChatFragment extends Fragment{
 
             @Override
             public void onCompleted(String uploadId, int serverResponseCode, String serverResponseMessage){
+              //received a completed update
               int index = uploadId.indexOf('|');
               String buddyID = uploadId.substring(0, index);
               String messageId = uploadId.substring(index + 1);
+              //check if this is the correct chat
               if (buddyID.equals(buddyId)){
-                int size = listView.getLastVisiblePosition();
+                int size = maa.getCount();
                 MessageArrayContent mac;
-                for (int i = listView.getFirstVisiblePosition(); i <= size;
-                     i++){
+                //check for all loaded messages
+                for (int i = 0; i < size; i++){
                   mac = maa.getItem(i);
+                  //atm, only ImageMessages are able to receive a uploadEvent
                   if (mac instanceof ImageMessage){
                     ImageMessage im = (ImageMessage) mac;
+                    //if the id fits the messageId update the messageView
                     if (im._ID == Long.parseLong(messageId)){
                       im.status = MessageHistory.STATUS_SENT;
                       updateMessage(i);
@@ -138,10 +173,49 @@ public class ChatFragment extends Fragment{
                 }
               }
             }
+
+            @Override
+            public void onError(String uploadId, Exception exception){
+              //received an error update
+              int index = uploadId.indexOf('|');
+              String buddyID = uploadId.substring(0, index);
+              String messageId = uploadId.substring(index + 1);
+              //check if this is the correct chat
+              if (buddyID.equals(buddyId)){
+                int size = maa.getCount();
+                MessageArrayContent mac;
+                //check for all loaded messages
+                for (int i = 0; i <= size; i++){
+                  mac = maa.getItem(i);
+                  //atm, only ImageMessages are able to receive a uploadEvent
+                  if (mac instanceof ImageMessage){
+                    ImageMessage im = (ImageMessage) mac;
+                    //if the id fits the messageId update the messageView
+                    if (im._ID == Long.parseLong(messageId)){
+                      im.status = MessageHistory.STATUS_WAITING;
+                      updateMessage(i);
+                    }
+                  }
+                }
+              }
+            }
           };
-  private EditText textIn;
+  /**
+   * the editText where the message is typed. You are able to use emojicon.
+   */
+  private EmojiconEditText textIn;
+  /**
+   * this is the actionBar visible at the top.
+   */
   private ActionBar actionBar;
-  private OnFragmentInteractionListener mListener;
+  /**
+   * the listener that is implemented by the ChatActivity.
+   */
+  private OnChatFragmentInteractionListener mListener;
+  /**
+   * this receiver should be called if we received a new message and we need
+   * to load this
+   */
   private BroadcastReceiver messageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
@@ -150,47 +224,74 @@ public class ChatFragment extends Fragment{
       int index = intentBuddyId.indexOf('@');
       if (index >= 0)
         intentBuddyId = intentBuddyId.substring(0, index);
+      // check whether this is the correct chat
       if (buddyId.equals(intentBuddyId)){
         int i = 0;
+        // if there was the NewMessage item anywhere in the maa, delete it
         for (MessageArrayContent mac : maa){
           if (mac instanceof NewMessage)
             maa.remove(i);
           i++;
         }
+        // I retrieve the lastMessage as I suppose there is only one message
+        // added.
+        // TODO: pass a messageId to this receiver and get the specific message
         MessageArrayContent mac = messageHistory.getLastMessage(buddyId, true);
+        // if this is an image download it. the download task will take care
+        // of message status and acknowledgements
         if (mac instanceof ImageMessage)
           downloadImage((ImageMessage) mac);
         else
-          //send the read acknowledgement
+          // this is a TextMessage -> directly send the read acknowledgement
+          // and update the messageStatus
           try{
-            long id = extras.getLong("id");
+            // careful with my id and the others id as they may differ
             messageHistory.updateMessageStatus(buddyId, ((TextMessage) mac)._ID,
                     MessageHistory.STATUS_READ);
+            long othersId = extras.getLong("id");
             XmppManager.getInstance().sendAcknowledgement(buddyId,
-                    id, MessageHistory.STATUS_READ);
+                    othersId, MessageHistory.STATUS_READ);
           }catch (Exception e){
+            e.printStackTrace();
           }
+        // finally add the message to the listView and select it in order to
+        // scroll down
         maa.add(mac);
         listView.setSelection(maa.getCount() - 1);
+        // in case this was an orderedBroadcast abort it.
         abortBroadcast();
       }
     }
   };
+
+  /**
+   * this receiver receives an event if the presence of anyone in my roster
+   * changed.
+   */
   private BroadcastReceiver presenceChangeReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
+      // if the intent is correct
       if (extras != null && extras.containsKey(Constants.BUDDY_ID) && extras.containsKey(Constants.PRESENCE_STATUS)){
+        // if this is the correct chat
         if (buddyId.equals(extras.getString(Constants.BUDDY_ID))){
+          //update the status to the new one.
           updateStatus(extras.getString(Constants.PRESENCE_STATUS));
         }
       }
     }
   };
+
+  /**
+   * this receiver receives an event if a messageStatus changed (e.g.
+   * received an acknowledgement.
+   */
   private BroadcastReceiver messageStatusChangedReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
+      // if the intent is correct
       if (extras != null && extras.containsKey(Constants.BUDDY_ID) &&
               extras.containsKey("id") && extras.containsKey("status")){
         String bId = extras.getString(Constants.BUDDY_ID);
@@ -198,12 +299,18 @@ public class ChatFragment extends Fragment{
         if (index >= 0){
           bId = bId.substring(0, index);
         }
+        // if this is the correct chat
         if (buddyId.equals(bId)){
           long id = extras.getLong("id");
           int i = 0;
+          // loop through all messages
           for (MessageArrayContent mac : maa){
+            // need to separate into imageMessage and textMessage because of
+            // casting
             if (mac instanceof ImageMessage){
               ImageMessage msg = (ImageMessage) mac;
+              // if the id is correct update the status and get the view in
+              // order to update the view.. makes sense so far...
               if (msg._ID == id){
                 msg.status = extras.getString("status");
                 maa.getView(i, listView.getChildAt(i - listView
@@ -211,6 +318,7 @@ public class ChatFragment extends Fragment{
               }
             }else if (mac instanceof TextMessage){
               TextMessage msg = (TextMessage) mac;
+              // do the same with TextMessage
               if (msg._ID == id){
                 msg.status = extras.getString("status");
                 maa.getView(i, listView.getChildAt(i - listView
@@ -223,11 +331,18 @@ public class ChatFragment extends Fragment{
       }
     }
   };
+
+  /**
+   * this receiver receives an event if the xmppManager reconnected to the
+   * server.
+   */
   private BroadcastReceiver reconnectedReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
+      // make the status visible
       updateStatus(messageHistory.getOnline(buddyId));
 
+      // resend all messages that have not been sent.
       int size = listView.getCount();
       for (int i = 0; i < size; i++){
         MessageArrayContent mac = maa.getItem(i);
@@ -239,21 +354,29 @@ public class ChatFragment extends Fragment{
       }
     }
   };
+
+  /**
+   * this listener manages the selection of messages
+   */
   private AbsListView.MultiChoiceModeListener
           multiChoiceModeListener = new AbsListView.MultiChoiceModeListener(){
     Menu menu;
+    // this is the set over all selected messages. This will also include
+    // "unselectable" items like DateMessage as I am filtering these when
+    // executing an action.
     Set<MessageArrayContent> selected;
-    //as I am only using unsigned integer I add a sign in front of it, so the
-    // treeset sorts it reverse. Because I am going to remove the items from
-    // the arrayadapter I need the positions to be sorted reversed, because
-    // fi removing one item all indices larger than the removed ones are
-    // decremented
+    // This Set saves all positions in the maa of the selected items.
+    // Due to the way removing multiple elements of an ArrayAdapter works I
+    // need to remove the elements in reversed order (from bottom to top).
+    // Also, as the treeSet sorts integers from low to high, I want to
+    // reverse the indices.
     Set<Integer> selectedPositions;
 
     @Override
     public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked){
-      //TODO update number in CAB
+      // TODO update number in CAB
       MessageArrayContent mac = maa.getItem(position);
+      // if the selection is invalid try to select the item below it.
       if (mac instanceof Date || mac instanceof NewMessage || mac instanceof
               LoadMoreMessages){
         try{
@@ -262,25 +385,43 @@ public class ChatFragment extends Fragment{
           e.printStackTrace();
         }
       }
+      // if I checked it add this mac to the selected Set and if it really
+      // was added, also add it the selectedPositions Set (with a negative
+      // sign, see above)
       if (checked){
         if (selected.add(mac))
           selectedPositions.add(-position);
+        // otherwise remove it
       }else{
         if (selected.remove(mac)){
+          // yep casting an int into an Integer is necessary because the
+          // remove function is overloaded: it may take the object to remove
+          // OR the index (int) of the item to remove.
           Integer x = -position;
           selectedPositions.remove(x);
         }
       }
 
+      // if there is exactly one item selected show the copy actionItem.
       MenuItem itemCopy = menu.findItem(R.id.action_copy);
+      // be careful, use the count function and not the count of one of the
+      // Sets because the sets may also include invalid selections.
       itemCopy.setVisible((count()) == 1);
 
+      // if I deselected the last valid item finish the actionMode
       if (count() == 0)
         mode.finish();
     }
 
+    /**
+     * calculates the amount of valid selections. That means every selected
+     * TextMessage or ImageMessage
+     * @return the count of valid selections made
+     */
     private int count(){
       int result = 0;
+      // loop through the selected Set and increment the result if it is a
+      // Text- or ImageMessage
       for (MessageArrayContent mac : selected)
         if (mac instanceof TextMessage || mac instanceof ImageMessage)
           result++;
@@ -289,10 +430,15 @@ public class ChatFragment extends Fragment{
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu){
+      // inflate the menu
       MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.menu_message_select, menu);
       this.menu = menu;
+      // if I am over LOLLIPOP also set the color of the statusBar to the
+      // primary color as it would, otherwise, be black or something like that.
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+        // yeah getColor is deprecated but I am actually targeting API 16 not
+        // 23...
         getActivity().getWindow().setStatusBarColor(getResources().getColor
                 (R.color.colorPrimaryDark));
       }
@@ -301,51 +447,75 @@ public class ChatFragment extends Fragment{
 
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu){
+      // initialize the Sets
       selected = new HashSet<>();
+      // this is a tree set because a treeSet sorts the element (binary
+      // search tree implementation I suppose)
       selectedPositions = new TreeSet<>();
       return true;
     }
 
     @Override
     public boolean onActionItemClicked(final ActionMode mode, MenuItem item){
+      //the result is only true if I really caught the event ( I should always)
       boolean result = false;
       switch (item.getItemId()){
+        // if the user want to copy the content
         case R.id.action_copy:
+          // the selected Set should only contain one item, so just get it
+          // via array conversion
           MessageArrayContent mac = selected.toArray(new
                   MessageArrayContent[1])[0];
           String text = null;
+          // if it is a textMessage, obviously, select the text.
           if (mac instanceof TextMessage)
             text = ((TextMessage) mac).message;
+            // if it is an imageMessage, however, select the description.
           else if (mac instanceof ImageMessage)
             text = ((ImageMessage) mac).description;
 
           if (text != null){
+            // if I selected something (should always happen) copy it as
+            // simple text to the clipboard
             ClipboardManager clipboard = (ClipboardManager) getContext()
                     .getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clipData = ClipData.newPlainText("simple text", text);
             clipboard.setPrimaryClip(clipData);
           }
+          // finish the action mode
           mode.finish();
           result = true;
           break;
         case R.id.action_delete:
+          // the delete action is not that straight forward. I will ask the
+          // user if he is sure to delete the items.
           new AlertDialog.Builder(getActivity())
+                  // delete message vs. delete messages...
                   .setMessage(listView.getCheckedItemCount() > 1 ? R.string
                           .delete_messages : R.string.delete_message)
                   .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick(DialogInterface dialog, int which){
+                      // if he agreed loop through all selected messages and
+                      // delete them
                       for (MessageArrayContent mac : selected){
+                        // remember to only use the text and imageMessages
                         if (mac instanceof TextMessage || mac instanceof ImageMessage){
+                          // typecasting ftw
                           long _ID = (mac instanceof TextMessage)
                                   ? ((TextMessage) mac)._ID
                                   : ((ImageMessage) mac)._ID;
+                          // remove them from the db
                           messageHistory.removeMessages(buddyId, _ID);
                         }
                       }
+                      // remove them from the ui
                       for (int i : selectedPositions){
+                        // remember the minus I added for the treeSet to
+                        // order in the correct order.
                         maa.remove(-i);
                       }
+                      // also finish the action mode and dismiss the dialog
                       mode.finish();
                       dialog.dismiss();
                     }
@@ -353,6 +523,7 @@ public class ChatFragment extends Fragment{
                   .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick(DialogInterface dialog, int which){
+                      // only dismiss the dialog but don't finish the actionMode
                       dialog.dismiss();
                     }
                   }).create().show();
@@ -364,6 +535,8 @@ public class ChatFragment extends Fragment{
 
     @Override
     public void onDestroyActionMode(ActionMode mode){
+      // if the actionMode gets destroyed (back click or similar) set the
+      // Sets to null to be sure that there are no selections from the last time
       selected = null;
       selectedPositions = null;
     }
@@ -393,41 +566,55 @@ public class ChatFragment extends Fragment{
   @Override
   public void onActivityCreated(Bundle savedInstanceState){
     super.onActivityCreated(savedInstanceState);
+    // get the actionBar
     actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
   }
 
   @Override
   public void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
+    // just making sure
     messageAmount = MESSAGE_LIMIT;
-    if (getArguments() != null){
+    // if the arguments are correct set the buddyId and chatName, otherwise,
+    // throw an error
+    try{
       buddyId = getArguments().getString(Constants.BUDDY_ID);
       chatName = getArguments().getString(Constants.CHAT_NAME);
-    }else
-      return;
+    }catch (Exception e){
+      throw new IllegalArgumentException("There must be a buddyId and " +
+              "chatName provided in order to create this fragment.");
+    }
+    // create the instance of messageHistory
     messageHistory = new MessageHistory(getContext());
   }
 
   @Override
   public void onResume(){
     super.onResume();
+    // start the different receiver and init the ui
     IntentFilter filter = new IntentFilter(Constants.MESSAGE_RECEIVED);
     filter.setPriority(1);
+    // messageReceiver. this is for reasons not on the localBroadcastManager...
     getContext().registerReceiver(messageReceiver, filter);
     LocalBroadcastManager LBmgr = LocalBroadcastManager.getInstance
             (getContext());
+    // the reconnected receiver
     LBmgr.registerReceiver(reconnectedReceiver, new IntentFilter
             (Constants.RECONNECTED));
+    // the presence changed receiver
     LBmgr.registerReceiver(presenceChangeReceiver, new IntentFilter
             (Constants.PRESENCE_CHANGED));
+    // the messageStatus changed receiver
     LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
             (Constants.MESSAGE_STATUS_CHANGED));
     uploadReceiver.register(getContext());
+    // also init the ui
     initUI();
   }
 
   @Override
   public void onPause(){
+    // unregister the different reciever (see onResume)
     InputMethodManager mgr = (InputMethodManager) getContext()
             .getSystemService(Context.INPUT_METHOD_SERVICE);
     mgr.hideSoftInputFromWindow(getView().findViewById(R.id.chat_in)
@@ -445,26 +632,36 @@ public class ChatFragment extends Fragment{
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState){
-    // Inflate the layout for this fragment
+    // Inflate the layout for this fragment and make sure that there is an
+    // optionsMenu showing
     setHasOptionsMenu(true);
     return inflater.inflate(R.layout.fragment_chat, container, false);
   }
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater menuInflater){
+    // clear the menu to make sure the old entries are no longer contained
     menu.clear();
+    // inflate the menu for this fragment
     menuInflater.inflate(R.menu.menu_chat, menu);
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item){
     switch (item.getItemId()){
+      // if clicked attach perform the onAttackClicked. Easy.
       case R.id.action_attach:
         mListener.onAttachClicked();
         return true;
+      // if clicked rename open the dialog where the user can rename this chat
       case R.id.action_rename:
+        // this will be the shown editText (without emojicons, I might wanna
+        // change this in the future, let's see)
         final EditText newName = new EditText(getActivity());
+        // prefix the EditText with the current name
         newName.setText(chatName);
+        // the title comes from the resources and will include the current
+        // chatName
         String title = getResources().getString(R.string.change_name_title) +
                 " " + chatName;
         new AlertDialog.Builder(getContext())
@@ -474,10 +671,13 @@ public class ChatFragment extends Fragment{
                 .setPositiveButton(R.string.rename, new DialogInterface.OnClickListener(){
                   @Override
                   public void onClick(DialogInterface dialog, int which){
+                    // when clicking rename retrieve the messageHistory
                     MessageHistory messageHistory = new MessageHistory
                             (getContext());
                     String name = newName.getText().toString();
+                    // update the db
                     messageHistory.renameChat(buddyId, name);
+                    // set the current chatName
                     chatName = name;
                     actionBar.setTitle(chatName);
                   }
@@ -485,28 +685,25 @@ public class ChatFragment extends Fragment{
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
                   @Override
                   public void onClick(DialogInterface dialog, int which){
-
+                    // yeah there also is a negative button...
                   }
                 }).show();
         return true;
-      case R.id.action_settings:
-        break;
-      case R.id.home:
-        break;
-      default:
-        break;
     }
+    // otherwise return false, I have not caught the event
     return false;
   }
 
   @Override
   public void onAttach(Context context){
+    // not to be confused with onAttackClicked. This a method overridden from
+    // the Fragment to signal that this fragment is somehow active
     super.onAttach(context);
-    if (context instanceof OnFragmentInteractionListener){
-      mListener = (OnFragmentInteractionListener) context;
+    if (context instanceof OnChatFragmentInteractionListener){
+      mListener = (OnChatFragmentInteractionListener) context;
     }else{
       throw new RuntimeException(context.toString()
-              + " must implement OnFragmentInteractionListener");
+              + " must implement OnChatFragmentInteractionListener");
     }
   }
 
@@ -517,69 +714,113 @@ public class ChatFragment extends Fragment{
   }
 
   private void initUI(){
-    //load wallpaper
+    // load wallpaper
     loadWallPaper();
-    //enable the emojicon-keyboard
+    // enable the emojicon-keyboard
     createEmoji();
+    // set the actionBar title
     if (actionBar != null)
       actionBar.setTitle(chatName);
+    // create the messageArrayAdapter
     maa = new MessageArrayAdapter(getContext(), R.layout.message_text);
 
     listView = (ListView) getView().findViewById(R.id.chat_listview);
-    textIn = (EditText) getView().findViewById(R.id.chat_in);
+    textIn = (EmojiconEditText) getView().findViewById(R.id.chat_in);
     Button sendBtn = (Button) getView().findViewById(R.id.chat_sendBtn);
 
     sendBtn.setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){
+        // clicking the sendButton will send the message, uhh.
+        // trim the message. Spaces are a waste of resources!
         String message = textIn.getText().toString().trim();
+        // and ofc only send if the message has something in it.
         if (!message.isEmpty()){
-          long id = messageHistory.addMessage(buddyId, getContext()
-                  .getSharedPreferences(Constants.PREFERENCES, 0).getString
-                          (Constants.USERNAME, ""), MessageHistory
-                  .TYPE_TEXT, message, MessageHistory.STATUS_WAITING, -1);
+          // add the message to the messageHistory
+          long id = messageHistory.addMessage(buddyId,
+                  getContext().getSharedPreferences(Constants.PREFERENCES, 0)
+                          .getString(Constants.USERNAME, ""),
+                  // this will be a textMessage for sure
+                  MessageHistory.TYPE_TEXT,
+                  message,
+                  MessageHistory.STATUS_WAITING,
+                  -1);
+          // also add the message to the ui
           maa.add(new TextMessage(false, message, new GregorianCalendar()
                   .getTimeInMillis(), MessageHistory.STATUS_WAITING, id, -1));
+          // and probably the buddy also wants the message, so send it
           sendTextMessage(message, id);
+          // revert the editText
           textIn.setText("");
           int i = 0;
+          // remove the NewMessage mac if it exists.
           for (MessageArrayContent mac : maa){
             if (mac instanceof NewMessage)
               maa.remove(i);
             i++;
           }
+          // select the last item to scroll down.
           listView.setSelection(maa.getCount() - 1);
         }
       }
     });
 
+    // this fucking bitch cost me a lot of time. Yep normal seems quite good,
+    // doesn't it. Then why the actual fuck is "NORMAL" not the default?
+    // Android?
     listView.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
+    // set the corresponding adapter
     listView.setAdapter(maa);
+    // also clicking on items will do sometimes something.
     listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id){
         MessageArrayContent mac = maa.getItem(position);
+        // if it is an imageMessage show the image
         if (mac instanceof ImageMessage){
           ImageMessage im = (ImageMessage) mac;
-          Intent pickIntent = new Intent(Intent.ACTION_VIEW);
-          pickIntent.setDataAndType(Uri.fromFile(new File(im.file)),
+          // yeah pretty straight forward, just view the image with the
+          // default application. I probably should make my own imageViewer
+          // which is able to scroll through the images of one chat etc.
+          Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+          viewIntent.setDataAndType(Uri.fromFile(new File(im.file)),
                   "image/*");
-          startActivity(pickIntent);
+          startActivity(viewIntent);
+
+          // don't ask for a pwd as I am just viewing an image
+          getContext().getSharedPreferences(Constants.PREFERENCES, 0).edit()
+                  .putBoolean(Constants.PWD_REQUEST, false).apply();
         }else if (mac instanceof LoadMoreMessages){
+          // clicking on loadMoreMessage should load more messages shouldn't it?
+          // FIXME: fix bugs xD
+          // 1. need further investigation, sometimes if there is only one more
+          // message to be loaded it is not loaded but only the dateMessage
+          // 2. sometimes the recycling doesn't quite work as I need to
+          // scroll down and up again to view the correct messages.
+
+          // retrieve the messages from db
           MessageArrayContent[] macs = messageHistory.getMessages(buddyId,
                   MESSAGE_LIMIT, messageAmount, true);
-          messageAmount += MESSAGE_LIMIT;
-          //save position to not scroll
+          messageAmount += macs.length;
+          //save position in order not to scroll
           int index = listView.getFirstVisiblePosition() + 2;
           View v = listView.getChildAt(2);
           int top = (v == null) ? 0 : v.getTop();
           //remove the date
           maa.remove(1);
+          // calculating whether we need a new DatMessage works with
+          // converting the time in millis in days and the compare the days.
+          // Therefore, I need this constant.
           final long c = 24 * 60 * 60 * 1000;
+          // get the oldDate which is the date of the first message that is
+          // currently loaded, so the oldest currently loaded message
           MessageArrayContent macT = maa.getItem(1);
           long oldDate = (macT instanceof TextMessage) ? ((TextMessage) macT)
                   .time : ((ImageMessage) macT).time;
+          // this is needed for restoring the position after adding messages
           int count = macs.length;
+          // loop through all new messages and add them, increase the count
+          // and eventually insert a DateMessage
           for (MessageArrayContent macTemp : macs){
             if (macTemp instanceof TextMessage){
               TextMessage msg = (TextMessage) macTemp;
@@ -587,6 +828,7 @@ public class ChatFragment extends Fragment{
                 maa.insert(new Date(msg.time), 1);
                 count++;
               }
+              // reset the old date
               oldDate = msg.time;
             }else if (macTemp instanceof ImageMessage){
               ImageMessage msg = (ImageMessage) macTemp;
@@ -598,27 +840,40 @@ public class ChatFragment extends Fragment{
             }
             maa.insert(macTemp, 1);
           }
+          // insert the date at the end
           maa.insert(new Date(oldDate), 1);
+          // reset the selection (aka scroll height
           listView.setSelectionFromTop(index + count, top);
+          // if there are no more messages to be loaded than I currently have
+          // loaded remove the loadMoreMessages item
           if (messageAmount >= messageHistory.getMessageAmount(buddyId)){
             maa.remove(0);
             count--;
           }
+          // hmh reselect the new scrollHeight?! why not
           listView.setSelectionFromTop(index + count, top);
         }
       }
     });
 
+    // activate the multiSelectionOption
     listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
     listView.setMultiChoiceModeListener(multiChoiceModeListener);
-    reloadMessages();
+
+    // yeah loading messages, seems to be a good idea
+    loadAllMessages();
+    // set the status in the actionBar
     String lastOnline = messageHistory.getOnline(buddyId);
     updateStatus(lastOnline);
-    //scroll down for notification click
+    //scroll down. Due to "I don't know why" clicking a notification is
+    // different from clicking a chat in the ChatListFragment and therefore I
+    // need to select the last message.
     listView.setSelection(maa.getCount() - 1);
   }
 
   private void createEmoji(){
+    // this method is based on the example for the emojicons I use
+    // (https://github.com/ankushsachdeva/emojicon)
     final EmojiconEditText emojiconEditText = (EmojiconEditText) getActivity
             ().findViewById(R.id.chat_in);
     final View root = getActivity().findViewById(R.id.root_view);
@@ -742,7 +997,7 @@ public class ChatFragment extends Fragment{
     sendTextMessage(msg.message, msg._ID);
   }
 
-  private void reloadMessages(){
+  private void loadAllMessages(){
     maa.clear();
     MessageArrayContent[] messages;
     try{
@@ -890,6 +1145,9 @@ public class ChatFragment extends Fragment{
       }
   }
 
+  //TODO: this is kinda unnecessary isn't it? I should either to everything
+  // with this listener or nothing...
+
   /**
    * This interface must be implemented by ui that contain this
    * fragment to allow an interaction in this fragment to be communicated
@@ -900,7 +1158,7 @@ public class ChatFragment extends Fragment{
    * "http://developer.android.com/training/basics/fragments/communicating.html"
    * >Communicating with Other Fragments</a> for more information.
    */
-  public interface OnFragmentInteractionListener{
+  public interface OnChatFragmentInteractionListener{
     void onAttachClicked();
   }
 

@@ -62,4 +62,8 @@
     <string name="pref_title_wallpaper">Hintergrundbild</string>
     <string name="wallpaper_changed">Das Hintergrundbild wurde erfolgreich geändert</string>
     <string name="wallpaper_not_changed">Das Hintergrundbild wurde nicht geändert</string>
+    <string name="add_chat_title">Wähle den Benutzer, mit dem du schreiben willst</string>
+    <string name="create">Erstellen</string>
+    <string name="pref_summary_reset_wallpaper">Setze das Hintergrundbild zurück</string>
+    <string name="pref_title_reset_wallpaper">Hintergrund zurücksetzen</string>
 </resources>

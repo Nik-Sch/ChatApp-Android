@@ -198,5 +198,5 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
 
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="agb" translatable="false">hey</string>
 </resources>

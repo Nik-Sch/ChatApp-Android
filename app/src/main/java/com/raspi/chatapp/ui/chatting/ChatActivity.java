@@ -42,8 +42,7 @@ import java.util.Date;
  */
 public class ChatActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener, ChatListFragment
-        .OnFragmentInteractionListener, ChatFragment
-        .OnFragmentInteractionListener, SendImageFragment.OnFragmentInteractionListener{
+        .OnFragmentInteractionListener, ChatFragment.OnChatFragmentInteractionListener, SendImageFragment.OnFragmentInteractionListener{
 
   /**
    * This constant references to the requestCode with which the activity is
@@ -255,10 +254,10 @@ public class ChatActivity extends AppCompatActivity implements
     //this is straight forward.
     SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, 0);
     if (!preferences.contains(Constants.USERNAME))
-      preferences.edit().putString(Constants.USERNAME, "niklas").apply();
+      preferences.edit().putString(Constants.USERNAME, "dummy").apply();
 
     if (!preferences.contains(Constants.PASSWORD))
-      preferences.edit().putString(Constants.PASSWORD, "passwdNiklas").apply();
+      preferences.edit().putString(Constants.PASSWORD, "passwdDummy").apply();
   }
 
   @Override
