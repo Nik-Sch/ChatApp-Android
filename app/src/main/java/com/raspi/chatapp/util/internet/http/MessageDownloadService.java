@@ -29,31 +29,31 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DownloadService extends IntentService{
+public class MessageDownloadService extends IntentService{
   public static int UPDATE_PROGRESS = 54242;
   public static String DOWNLOAD_ACTION = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.DOWNLOAD_ACTION";
+          ".http.MessageDownloadService.DOWNLOAD_ACTION";
   public static String PARAM_URL = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.PARAM_URL";
+          ".http.MessageDownloadService.PARAM_URL";
   public static String PARAM_FILE = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.PARAM_FILE";
+          ".http.MessageDownloadService.PARAM_FILE";
   public static String PARAM_RECEIVER = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.PARAM_RECEIVER";
+          ".http.MessageDownloadService.PARAM_RECEIVER";
   public static String PARAM_PROGRESS = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.PARAM_PROGRESS";
+          ".http.MessageDownloadService.PARAM_PROGRESS";
   public static String PARAM_MESSAGE_ID = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.PARAM_MESSAGE_ID";
+          ".http.MessageDownloadService.PARAM_MESSAGE_ID";
   public static String PARAM_OTHERS_MSG_ID = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.PARAM_OTHERS_MSG_ID";
+          ".http.MessageDownloadService.PARAM_OTHERS_MSG_ID";
   public static String PARAM_CHAT_ID = "com.raspi.chatapp.util.internet" +
-          ".http.DowloadService.PARAM_CHAT_ID";
+          ".http.MessageDownloadService.PARAM_CHAT_ID";
 
 
   public static final String DELETE_URL = "http://raspi-server.ddns" +
           ".net/ChatApp/delete.php";
 
-  public DownloadService(){
-    super("DowloadService");
+  public MessageDownloadService(){
+    super("MessageDownloadService");
   }
 
   @Override

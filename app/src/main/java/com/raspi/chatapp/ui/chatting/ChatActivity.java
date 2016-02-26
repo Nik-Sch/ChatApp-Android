@@ -2,22 +2,30 @@ package com.raspi.chatapp.ui.chatting;
 
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.alexbbb.uploadservice.UploadService;
+import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.BuildConfig;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.password.PasswordActivity;
@@ -28,9 +36,20 @@ import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.AndroidDatabaseManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
+import com.raspi.chatapp.util.storage.file.FileUtils;
+import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import org.jivesoftware.smack.roster.RosterEntry;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Date;
 
 /**
@@ -64,6 +83,9 @@ public class ChatActivity extends AppCompatActivity implements
    * Constants#CHAT_NAME}.
    */
   public String currentChatName = Constants.CHAT_NAME;
+
+  private Handler mHandler;
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState){
@@ -234,6 +256,224 @@ public class ChatActivity extends AppCompatActivity implements
             }).show();
   }
 
+  public void onUpdateClick(MenuItem menuItem){
+    mHandler = new Handler();
+    new Thread(new updateRunnable()).start();
+  }
+
+  public void onAboutClick(MenuItem menuItem){
+    try{
+      String versionName = getPackageManager().getPackageInfo(getPackageName(),
+              0).versionName;
+      new AlertDialog.Builder(this)
+              .setTitle(R.string.action_about)
+              .setMessage(versionName)
+              .setNegativeButton(R.string.ok, new DialogInterface.OnClickListener(){
+                @Override
+                public void onClick(DialogInterface dialog, int which){
+                  dialog.dismiss();
+                }
+              })
+              .create().show();
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+  }
+
+  private class updateRunnable implements Runnable{
+    @Override
+    public void run(){
+      final String getCurrentUrl = "http://raspi-server.ddns" +
+              ".net/ChatApp/current.php";
+      HttpURLConnection connection = null;
+      try{
+        URL url = new URL(getCurrentUrl);
+        connection = (HttpURLConnection) url.openConnection();
+        InputStream is = connection.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        int data = isr.read();
+        String temp = "";
+        while (data != -1){
+          char current = (char) data;
+          temp += current;
+          data = isr.read();
+        }
+        final String result = temp.substring(0, temp.length() - 4);
+        int version = getPackageManager().getPackageInfo(getPackageName(),
+                0).versionCode;
+        int targetVersion = Integer.valueOf(result);
+        if (targetVersion > version){
+          mHandler.post(new Runnable(){
+            @Override
+            public void run(){
+              new AlertDialog.Builder(ChatActivity.this)
+                      .setTitle(R.string.update_available)
+                      .setMessage(R.string.load_update)
+                      .setPositiveButton(R.string.download, new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialog, int which){
+                          downloadUpdate(result);
+                          dialog.dismiss();
+                        }
+                      })
+                      .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialog, int which){
+                          dialog.dismiss();
+                        }
+                      }).create().show();
+            }
+          });
+        }else{
+          mHandler.post(new Runnable(){
+            @Override
+            public void run(){
+              new AlertDialog.Builder(ChatActivity.this)
+                      .setTitle(R.string.up_to_date)
+                      .setNegativeButton(R.string.ok, new DialogInterface
+                              .OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dialog, int which){
+                          dialog.dismiss();
+                        }
+                      }).create().show();
+            }
+          });
+        }
+      }catch (Exception e){
+        e.printStackTrace();
+        mHandler.post(new Runnable(){
+          @Override
+          public void run(){
+            new AlertDialog.Builder(ChatActivity.this)
+                    .setMessage(R.string.check_update_error)
+                    .setNegativeButton(R.string.ok, new DialogInterface
+                            .OnClickListener(){
+                      @Override
+                      public void onClick(DialogInterface dialog, int which){
+                        dialog.dismiss();
+                      }
+                    }).create().show();
+          }
+        });
+      }finally{
+        if (connection != null)
+          connection.disconnect();
+      }
+    }
+  }
+
+  private void downloadUpdate(String version){
+    MyFileUtils mfu = new MyFileUtils();
+    if (mfu.isExternalStorageWritable()){
+      UpdateAppAsyncTask asyncTask = new UpdateAppAsyncTask();
+      File file = new File(Environment.getExternalStoragePublicDirectory
+              (Environment.DIRECTORY_DOWNLOADS), version + ".apk");
+      asyncTask.execute(new String[]{version + ".apk", file.getAbsolutePath()});
+    }else{
+      new AlertDialog.Builder(ChatActivity.this)
+              .setTitle(R.string.download_failed)
+              .setNegativeButton(R.string.ok, new DialogInterface.OnClickListener(){
+                @Override
+                public void onClick(DialogInterface dialog, int which){
+                  dialog.dismiss();
+                }
+              }).show();
+    }
+  }
+
+  private class UpdateAppAsyncTask extends AsyncTask<String[], Integer,
+          Boolean>{
+    private ProgressDialog updateDownloadProgressDialog;
+    private String fileLocation = "";
+
+    @Override
+    protected void onPreExecute(){
+      super.onPreExecute();
+      updateDownloadProgressDialog = new ProgressDialog(ChatActivity.this);
+      updateDownloadProgressDialog.setMessage(getResources().getString(R.string
+              .downloading_update));
+      updateDownloadProgressDialog.setCancelable(false);
+      updateDownloadProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+      updateDownloadProgressDialog.setProgress(0);
+      updateDownloadProgressDialog.setButton(
+              DialogInterface.BUTTON_NEGATIVE,
+              getResources().getString(R.string.cancel),
+              new DialogInterface.OnClickListener(){
+                @Override
+                public void onClick(DialogInterface dialog, int which){
+                  UpdateAppAsyncTask.this.cancel(true);
+                  updateDownloadProgressDialog.dismiss();
+                }
+              });
+      updateDownloadProgressDialog.show();
+    }
+
+    @Override
+    protected Boolean doInBackground(String[]... params){
+      String urlToDownload = "http://raspi-server.ddns.net/ChatApp/binary/" +
+              params[0][0];
+      String fileLocation = params[0][1];
+      this.fileLocation = fileLocation;
+      try{
+        URL url = new URL(urlToDownload);
+        URLConnection connection = url.openConnection();
+        int fileLength = connection.getContentLength();
+        InputStream input = new BufferedInputStream(connection.getInputStream());
+        OutputStream output = new FileOutputStream(fileLocation);
+
+        byte data[] = new byte[4096];
+        long total = 0;
+        int count;
+        long start = new Date().getTime();
+        while (!isCancelled() && (count = input.read(data)) != -1){
+          total += count;
+          output.write(data, 0, count);
+          if ((new Date().getTime() - start) % 20 == 0){
+            publishProgress((int) (total * 100 / fileLength));
+          }
+        }
+        output.flush();
+        output.close();
+        input.close();
+        return true;
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+      return false;
+    }
+
+    @Override
+    protected void onProgressUpdate(Integer... values){
+      super.onProgressUpdate(values);
+      Log.d("UPDATE PROGRESS", "Progress: " + values[0]);
+      updateDownloadProgressDialog.setProgress(values[0]);
+    }
+
+
+    @Override
+    protected void onPostExecute(Boolean aBoolean){
+      super.onPostExecute(aBoolean);
+      updateDownloadProgressDialog.dismiss();
+      if (aBoolean){
+        Intent installIntent = new Intent(Intent.ACTION_VIEW);
+        installIntent.setDataAndType(Uri.fromFile(new File(fileLocation)),
+                "application/vnd.android.package-archive");
+        installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(installIntent);
+      }else{
+        new AlertDialog.Builder(ChatActivity.this)
+                .setTitle(R.string.download_failed)
+                .setNegativeButton(R.string.ok, new DialogInterface.OnClickListener(){
+                  @Override
+                  public void onClick(DialogInterface dialog, int which){
+                    dialog.dismiss();
+                  }
+                }).show();
+      }
+    }
+  }
+
   public void onDatabaseDebug(MenuItem menuItem){
     //this opens the debug option to look and manage the databases. and of
     // course I don't want a pwd request
@@ -246,18 +486,18 @@ public class ChatActivity extends AppCompatActivity implements
   /**
    * Sets myt username and password used to log into the XMPP server if they
    * aren't already set.<br>
-   *   The reason I am not hard coding these or making them constants is for
-   *   further improvements to be made easier. Probably I want the user to
-   *   choose his buddyId, so I can make a login from within the app possible.
+   * The reason I am not hard coding these or making them constants is for
+   * further improvements to be made easier. Probably I want the user to
+   * choose his buddyId, so I can make a login from within the app possible.
    */
   private void setUserPwd(){
     //this is straight forward.
     SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, 0);
     if (!preferences.contains(Constants.USERNAME))
-      preferences.edit().putString(Constants.USERNAME, "dummy").apply();
+      preferences.edit().putString(Constants.USERNAME, "niklas").apply();
 
     if (!preferences.contains(Constants.PASSWORD))
-      preferences.edit().putString(Constants.PASSWORD, "passwdDummy").apply();
+      preferences.edit().putString(Constants.PASSWORD, "passwdNiklas").apply();
   }
 
   @Override
@@ -302,8 +542,8 @@ public class ChatActivity extends AppCompatActivity implements
       getSupportFragmentManager().beginTransaction().replace(R.id
               .fragment_container, fragment).addToBackStack(SendImageFragment
               .class.getName()).commit();
-    // if the user has entered a password or exited the passwordActivity
-    // otherwise.
+      // if the user has entered a password or exited the passwordActivity
+      // otherwise.
     }else if (requestCode == PasswordActivity.ASK_PWD_REQUEST){
       if (resultCode == Activity.RESULT_OK){
         // if the pwd was correct do not request a new pwd. Yep this function

@@ -61,10 +61,10 @@ public class Constants{
    * This string references to everything related to the type of a message
    * which, at the moment, are the following.
    * <ul>
-   *   <li>{@link com.raspi.chatapp.util.storage.MessageHistory#TYPE_TEXT
-   *   TEXT}</li>
-   *   <li>{@link com.raspi.chatapp.util.storage.MessageHistory#TYPE_IMAGE IMAGE
-   *   }</li>
+   * <li>{@link com.raspi.chatapp.util.storage.MessageHistory#TYPE_TEXT
+   * TEXT}</li>
+   * <li>{@link com.raspi.chatapp.util.storage.MessageHistory#TYPE_IMAGE IMAGE
+   * }</li>
    * </ul>
    */
   public static final String MESSAGE_TYPE = "com.raspi.chatapp.util.Constants.MESSAGE_TYPE";
@@ -80,9 +80,9 @@ public class Constants{
    * {@link com.raspi.chatapp.util.internet.XmppManager#sendAcknowledgement(String, long, String) acknowledgements}
    * supported:
    * <ul>
-   *   <li>{@link com.raspi.chatapp.util.storage.MessageHistory#STATUS_RECEIVED RECEIVED}</li>
-   *   <li>{@link com.raspi.chatapp.util.storage.MessageHistory#STATUS_READ READ
-   *   }</li>
+   * <li>{@link com.raspi.chatapp.util.storage.MessageHistory#STATUS_RECEIVED RECEIVED}</li>
+   * <li>{@link com.raspi.chatapp.util.storage.MessageHistory#STATUS_READ READ
+   * }</li>
    * </ul>
    */
   public static final String MESSAGE_STATUS_CHANGED = "com.raspi.chatapp.util.Constants.MESSAGE_STATUS_CHANGED";
@@ -99,6 +99,11 @@ public class Constants{
    */
   public static final String LAST_PRESENCE_SENT = "com.raspi.chatapp.util.Constants.LAST_PRESENCE_SENT";
   /**
+   * This string reference to the preference containing the currently
+   * installed version.
+   */
+  public static final String CURRENT_VERSION = "com.raspi.chatapp.util.Constants.CURRENT_VERSION";
+  /**
    * This string references to the file name of the wallpaper image.
    */
   public static final String WALLPAPER_NAME = "wallpaper.jpg";
@@ -107,4 +112,5 @@ public class Constants{
    * stored. (Not the full path, only the directory!)
    */
   public static final String IMAGE_DIR = "ChatApp Images";
+
 }

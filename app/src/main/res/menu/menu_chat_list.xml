@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_settings"
         android:onClick="onSettingsClick"
-        android:orderInCategory="3"
+        android:orderInCategory="42"
         android:title="@string/action_settings"
         app:showAsAction="never"/>
     <item
@@ -13,6 +13,18 @@
         android:onClick="onAddChatClick"
         android:orderInCategory="2"
         android:title="@string/action_add_chat"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_update"
+        android:onClick="onUpdateClick"
+        android:orderInCategory="3"
+        android:title="@string/action_update"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_about"
+        android:onClick="onAboutClick"
+        android:orderInCategory="4"
+        android:title="@string/action_about"
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_db_manager"

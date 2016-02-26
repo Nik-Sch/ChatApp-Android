@@ -57,7 +57,7 @@ import com.raspi.chatapp.ui.util.message_array.NewMessage;
 import com.raspi.chatapp.ui.util.message_array.TextMessage;
 import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.internet.XmppManager;
-import com.raspi.chatapp.util.internet.http.DownloadService;
+import com.raspi.chatapp.util.internet.http.MessageDownloadService;
 import com.raspi.chatapp.util.internet.http.Upload;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
@@ -1130,15 +1130,15 @@ public class ChatFragment extends Fragment{
         messageHistory.updateMessageStatus(buddyId, msg._ID,
                 MessageHistory.STATUS_RECEIVING);
         msg.status = MessageHistory.STATUS_RECEIVING;
-        Intent intent = new Intent(getContext(), DownloadService.class);
-        intent.setAction(DownloadService.DOWNLOAD_ACTION);
-        intent.putExtra(DownloadService.PARAM_URL, msg.url);
-        intent.putExtra(DownloadService.PARAM_RECEIVER, new
+        Intent intent = new Intent(getContext(), MessageDownloadService.class);
+        intent.setAction(MessageDownloadService.DOWNLOAD_ACTION);
+        intent.putExtra(MessageDownloadService.PARAM_URL, msg.url);
+        intent.putExtra(MessageDownloadService.PARAM_RECEIVER, new
                 DownloadReceiver(new Handler()));
-        intent.putExtra(DownloadService.PARAM_FILE, msg.file);
-        intent.putExtra(DownloadService.PARAM_MESSAGE_ID, msg._ID);
-        intent.putExtra(DownloadService.PARAM_OTHERS_MSG_ID, msg.othersId);
-        intent.putExtra(DownloadService.PARAM_CHAT_ID, buddyId);
+        intent.putExtra(MessageDownloadService.PARAM_FILE, msg.file);
+        intent.putExtra(MessageDownloadService.PARAM_MESSAGE_ID, msg._ID);
+        intent.putExtra(MessageDownloadService.PARAM_OTHERS_MSG_ID, msg.othersId);
+        intent.putExtra(MessageDownloadService.PARAM_CHAT_ID, buddyId);
         getContext().startService(intent);
       }catch (Exception e){
         e.printStackTrace();
@@ -1233,9 +1233,9 @@ public class ChatFragment extends Fragment{
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData){
       super.onReceiveResult(resultCode, resultData);
-      if (resultCode == DownloadService.UPDATE_PROGRESS){
-        Long messageId = resultData.getLong(DownloadService.PARAM_MESSAGE_ID);
-        int progress = resultData.getInt(DownloadService.PARAM_PROGRESS);
+      if (resultCode == MessageDownloadService.UPDATE_PROGRESS){
+        Long messageId = resultData.getLong(MessageDownloadService.PARAM_MESSAGE_ID);
+        int progress = resultData.getInt(MessageDownloadService.PARAM_PROGRESS);
         int size = listView.getLastVisiblePosition();
         MessageArrayContent mac;
         for (int i = listView.getFirstVisiblePosition(); i <= size; i++){

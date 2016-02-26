@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     package="com.raspi.chatapp"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="3"
+    android:versionName="MusicToGo 1.1 by MusicToGo-Coop">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -22,7 +24,7 @@
         <receiver android:name=".util.service.MessageService$RaiseMessageNotification">
             <intent-filter>
                 <action
-                    android:name="com.raspi.chatapp.ui.chatting.ChatActivity.RECEIVE_MESSAGE"/>
+                    android:name="com.raspi.chatapp.util.Constants.MESSAGE_RECEIVED"/>
             </intent-filter>
         </receiver>
 
@@ -66,7 +68,7 @@
 
 
         <service android:name=".util.service.MessageService"/>
-        <service android:name=".util.internet.http.DownloadService"/>
+        <service android:name=".util.internet.http.MessageDownloadService"/>
     </application>
 
 </manifest>

@@ -108,4 +108,17 @@
         the default image</string>
 
     <string name="title_activity_add_chat" translatable="false">AddChatActivity</string>
+    <string name="action_update">Check for updates</string>
+    <string name="update_available">A new update is available</string>
+    <string name="load_update">Do you want to download the update now?</string>
+    <string name="download">download</string>
+    <string name="downloading_update">Downloading the update</string>
+    <string name="download_failed">Downloading failed, probably due to a
+        connection loss.</string>
+    <string name="up_to_date">Your app is up-to-date.</string>
+    <string name="ok">OK</string>
+    <string name="check_update_error">There was an error checking for
+        new updates. Make sure you are connected to the internet and try
+        again.</string>
+    <string name="action_about">About this app</string>
 </resources>

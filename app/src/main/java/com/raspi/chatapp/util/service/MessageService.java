@@ -184,6 +184,8 @@ public class MessageService extends Service{
           messageHistory.addMessage(buddyId, buddyId, MessageHistory
                   .TYPE_TEXT, msg.content, MessageHistory
                   .STATUS_RECEIVED, id);
+          xmppManager.sendAcknowledgement(buddyId, msg.id, MessageHistory
+                  .STATUS_RECEIVED);
           msgIntent.putExtra(Constants.MESSAGE_BODY, msg.content);
           msgIntent.putExtra(Constants.MESSAGE_TYPE, MessageHistory
                   .TYPE_TEXT);
@@ -258,17 +260,7 @@ public class MessageService extends Service{
       String name = extras.getString(Constants.CHAT_NAME);
       String msg = extras.getString(Constants.MESSAGE_BODY);
       String type = extras.getString(Constants.MESSAGE_TYPE);
-      long id = extras.getLong("id");
       new Notification(context).createNotification(buddyId, name, msg, type);
-      //also send the received acknowledgement
-      try{
-        new MessageHistory(context).updateMessageStatus(buddyId, id,
-                MessageHistory.STATUS_RECEIVED);
-        XmppManager.getInstance().sendAcknowledgement(buddyId, id,
-                MessageHistory.STATUS_RECEIVED);
-      }catch (Exception e){
-        e.printStackTrace();
-      }
     }
   }
 
