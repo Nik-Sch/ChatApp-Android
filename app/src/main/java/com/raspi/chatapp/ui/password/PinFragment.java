@@ -8,6 +8,8 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.raspi.chatapp.R;
@@ -52,6 +54,11 @@ public class PinFragment extends Fragment{
     super.onResume();
 
     EditText pin = (EditText) getView().findViewById(R.id.pin);
+    pin.setFocusableInTouchMode(true);
+    pin.requestFocus();
+    InputMethodManager inputMethodManager = (InputMethodManager)
+            getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+    inputMethodManager.showSoftInput(pin, InputMethodManager.SHOW_IMPLICIT);
     pin.addTextChangedListener(new TextWatcher(){
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after){

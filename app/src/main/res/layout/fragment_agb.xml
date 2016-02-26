@@ -4,12 +4,18 @@
              android:layout_height="match_parent"
              tools:context="com.raspi.chatapp.ui.password.AGBFragment">
 
-    <TextView
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/agb"/>
-
+        android:layout_height="match_parent">
+    <TextView
+        android:padding="5dp"
+        android:id="@+id/agb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"/>
+    </ScrollView>
     <ImageButton
+        android:id="@+id/agb_accept"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_arrow_forward_black_48dp"
