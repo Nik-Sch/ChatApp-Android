@@ -292,11 +292,11 @@ public class XmppManager{
   /**
    *
    * @param buddyId
-   * @param id
+   * @param othersId
    * @param type
    * @return
    */
-  public boolean sendAcknowledgement(String buddyId, long id, String type){
+  public boolean sendAcknowledgement(String buddyId, long othersId, String type){
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
     if (connection != null && connection.isConnected() && chatManager != null){
       if (buddyId.indexOf('@') == -1)
@@ -307,7 +307,7 @@ public class XmppManager{
                 .newDocumentBuilder().newDocument();
         Element ack = doc.createElement("acknowledgement");
         doc.appendChild(ack);
-        ack.setAttribute("id", String.valueOf(id));
+        ack.setAttribute("id", String.valueOf(othersId));
         ack.setAttribute("type", type);
 
         Transformer t = TransformerFactory.newInstance().newTransformer();

@@ -159,20 +159,20 @@ public class MessageHistory{
     return (res > 0);
   }
 
-  public MessageArrayContent getLastMessage(String buddyId, boolean markAsRead){
-    SQLiteDatabase db = mDbHelper.getReadableDatabase();
-    Cursor c = db.query(
-            buddyId,
-            new String[]{MessageHistoryContract.MessageEntry._ID},
-            null, null, null, null,
-            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
-                    + " DESC", "1");
-    c.moveToFirst();
-    if (markAsRead)
-      updateMessageStatus(buddyId, c.getLong(0), MessageHistory.STATUS_READ);
-    db.close();
-    return getLastMessage(buddyId);
-  }
+//  public MessageArrayContent getLastMessage(String buddyId, boolean markAsRead){
+//    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+//    Cursor c = db.query(
+//            buddyId,
+//            new String[]{MessageHistoryContract.MessageEntry._ID},
+//            null, null, null, null,
+//            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP
+//                    + " DESC", "1");
+//    c.moveToFirst();
+//    if (markAsRead)
+//      updateMessageStatus(buddyId, c.getLong(0), MessageHistory.STATUS_READ);
+//    db.close();
+//    return getLastMessage(buddyId);
+//  }
 
   public MessageArrayContent getLastMessage(String buddyId){
     MessageArrayContent mac = null;
@@ -390,7 +390,7 @@ public class MessageHistory{
     }
   }
 
-  public MessageArrayContent getMessage(String buddyId, String messageId){
+  public MessageArrayContent getMessage(String buddyId, long messageId){
     int index = buddyId.indexOf('@');
     if (index >= 0){
       buddyId = buddyId.substring(0, index);
@@ -410,7 +410,7 @@ public class MessageHistory{
     };
     String sel = MessageHistoryContract.MessageEntry._ID + "=?";
     Cursor message = db.query(buddyId, columns, sel, new
-            String[]{messageId}, null, null, null);
+            String[]{String.valueOf(messageId)}, null, null, null);
 
     message.moveToFirst();
     String from = message.getString(0);

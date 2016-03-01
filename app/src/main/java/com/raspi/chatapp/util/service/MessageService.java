@@ -173,17 +173,18 @@ public class MessageService extends Service{
       }
       MessageXmlParser.Message msg = MessageXmlParser.parse(message.getBody());
       if (!"acknowledgement".equals(msg.type)){
-        long id = msg.id;
+        long othersId = msg.id;
         String name = messageHistory.getName(buddyId);
 
         messageHistory.addChat(buddyId, buddyId);
         Intent msgIntent = new Intent(Constants.MESSAGE_RECEIVED)
                 .putExtra(Constants.BUDDY_ID, buddyId)
                 .putExtra(Constants.CHAT_NAME, name);
+        long messageId = -1;
         if (MessageHistory.TYPE_TEXT.equals(msg.type)){
-          messageHistory.addMessage(buddyId, buddyId, MessageHistory
+          messageId = messageHistory.addMessage(buddyId, buddyId, MessageHistory
                   .TYPE_TEXT, msg.content, MessageHistory
-                  .STATUS_RECEIVED, id);
+                  .STATUS_RECEIVED, othersId);
           xmppManager.sendAcknowledgement(buddyId, msg.id, MessageHistory
                   .STATUS_RECEIVED);
           msgIntent.putExtra(Constants.MESSAGE_BODY, msg.content);
@@ -192,7 +193,7 @@ public class MessageService extends Service{
         }else if (MessageHistory.TYPE_IMAGE.equals(msg.type)){
           try{
             MyFileUtils mfu = new MyFileUtils();
-            messageHistory.addMessage(
+            messageId = messageHistory.addMessage(
                     buddyId,
                     buddyId,
                     msg.type,
@@ -201,21 +202,24 @@ public class MessageService extends Service{
                             msg.description).toString(),
                     "http://" + XmppManager.SERVER + "/ChatApp/" + msg.url,
                     "0",
-                    MessageHistory.STATUS_WAITING, id);
+                    MessageHistory.STATUS_WAITING,
+                    othersId);
+            xmppManager.sendAcknowledgement(buddyId, msg.id, MessageHistory
+                    .STATUS_RECEIVED);
             msgIntent.putExtra(Constants.MESSAGE_TYPE, MessageHistory
                     .TYPE_IMAGE);
             msgIntent.putExtra(Constants.MESSAGE_BODY, msg.description
-                    .isEmpty()?getResources().getString(R.string.image):msg
-                    .description);
+                    .isEmpty()?getResources().getString(R.string.image):msg.description);
           }catch (Exception e){
             e.printStackTrace();
           }
         }
-        msgIntent.putExtra("id", id);
+        msgIntent.putExtra(Constants.MESSAGE_OTHERS_ID, othersId);
+        msgIntent.putExtra(Constants.MESSAGE_ID, messageId);
         getApplicationContext().sendOrderedBroadcast(msgIntent, null);
       }else{
         MessageArrayContent msgToUpdate = messageHistory.getMessage(buddyId,
-                String.valueOf(msg.id));
+                msg.id);
         String oldStatus = msgToUpdate instanceof TextMessage?((TextMessage)
                 msgToUpdate).status : ((ImageMessage)msgToUpdate).status;
         if (!MessageHistory.STATUS_READ.equals(oldStatus)){
@@ -260,6 +264,11 @@ public class MessageService extends Service{
       String name = extras.getString(Constants.CHAT_NAME);
       String msg = extras.getString(Constants.MESSAGE_BODY);
       String type = extras.getString(Constants.MESSAGE_TYPE);
+      long othersId = extras.getLong(Constants.MESSAGE_OTHERS_ID);
+      XmppManager.getInstance().sendAcknowledgement(
+              buddyId,
+              othersId,
+              type);
       new Notification(context).createNotification(buddyId, name, msg, type);
     }
   }

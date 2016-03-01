@@ -221,6 +221,7 @@ public class ChatFragment extends Fragment{
     public void onReceive(Context context, Intent intent){
       Bundle extras = intent.getExtras();
       String intentBuddyId = extras.getString(Constants.BUDDY_ID);
+      long messageId = extras.getLong(Constants.MESSAGE_ID);
       int index = intentBuddyId.indexOf('@');
       if (index >= 0)
         intentBuddyId = intentBuddyId.substring(0, index);
@@ -235,8 +236,7 @@ public class ChatFragment extends Fragment{
         }
         // I retrieve the lastMessage as I suppose there is only one message
         // added.
-        // TODO: pass a messageId to this receiver and get the specific message
-        MessageArrayContent mac = messageHistory.getLastMessage(buddyId, true);
+        MessageArrayContent mac = messageHistory.getMessage(buddyId, messageId);
         // if this is an image download it. the download task will take care
         // of message status and acknowledgements
         if (mac instanceof ImageMessage)
@@ -248,7 +248,7 @@ public class ChatFragment extends Fragment{
             // careful with my id and the others id as they may differ
             messageHistory.updateMessageStatus(buddyId, ((TextMessage) mac)._ID,
                     MessageHistory.STATUS_READ);
-            long othersId = extras.getLong("id");
+            long othersId = extras.getLong(Constants.MESSAGE_OTHERS_ID);
             XmppManager.getInstance().sendAcknowledgement(buddyId,
                     othersId, MessageHistory.STATUS_READ);
           }catch (Exception e){
@@ -349,7 +349,7 @@ public class ChatFragment extends Fragment{
         if (mac instanceof TextMessage){
           TextMessage msg = (TextMessage) mac;
           if (MessageHistory.STATUS_WAITING.equals(msg.status))
-            resendTextMessage(msg);
+            sendTextMessage(msg);
         }
       }
     }
@@ -717,7 +717,7 @@ public class ChatFragment extends Fragment{
     // load wallpaper
     loadWallPaper();
     // enable the emojicon-keyboard
-    createEmoji();
+    initEmoji();
     // set the actionBar title
     if (actionBar != null)
       actionBar.setTitle(chatName);
@@ -871,22 +871,30 @@ public class ChatFragment extends Fragment{
     listView.setSelection(maa.getCount() - 1);
   }
 
-  private void createEmoji(){
+  /**
+   * initilize the emojiconKeyboard
+   */
+  private void initEmoji(){
     // this method is based on the example for the emojicons I use
     // (https://github.com/ankushsachdeva/emojicon)
+
+    // save the views I will use
     final EmojiconEditText emojiconEditText = (EmojiconEditText) getActivity
             ().findViewById(R.id.chat_in);
     final View root = getActivity().findViewById(R.id.root_view);
     final EmojiconsPopup popup = new EmojiconsPopup(root, getActivity());
     final ImageButton emojiBtn = (ImageButton) getActivity().findViewById(R
             .id.emoti_switch);
+    // resize correspondingly
     popup.setSizeForSoftKeyboard();
+    // if you want to do anything when closing the popup
     popup.setOnDismissListener(new PopupWindow.OnDismissListener(){
       @Override
       public void onDismiss(){
 //        changeKeyboardIcon();
       }
     });
+    // do anything on opening or closing the keyboard
     popup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener(){
       @Override
       public void onKeyboardOpen(int keyBoardHeight){
@@ -894,19 +902,25 @@ public class ChatFragment extends Fragment{
 
       @Override
       public void onKeyboardClose(){
+        // if it is showing, close it
         if (popup.isShowing())
           popup.dismiss();
       }
     });
+    // when clicking an emojicon
     popup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener(){
       @Override
       public void onEmojiconClicked(Emojicon emojicon){
+        // only if there is a emojicon and an editText
         if (emojiconEditText == null || emojicon == null)
           return;
+        // get the currently selected text
         int start = emojiconEditText.getSelectionStart();
         int end = emojiconEditText.getSelectionEnd();
+        // if there is nothing selected just append the emojicon
         if (start < 0)
           emojiconEditText.append(emojicon.getEmoji());
+          // otherwise replace the currently selected text with the emojicon
         else
           emojiconEditText.getText().replace(
                   Math.min(start, end),
@@ -916,6 +930,8 @@ public class ChatFragment extends Fragment{
                   emojicon.getEmoji().length());
       }
     });
+    // when clicking the backspace on the emojicon keyboard simulate a
+    // backspace press
     popup.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener(){
       @Override
       public void onEmojiconBackspaceClicked(View v){
@@ -928,12 +944,17 @@ public class ChatFragment extends Fragment{
         emojiconEditText.dispatchKeyEvent(event);
       }
     });
+    // open/close the emojicon keyboard when pressing the button
     emojiBtn.setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){
+        // if it is showing
         if (!popup.isShowing()){
+          // if the keyboard is active just show the popup
           if (popup.isKeyBoardOpen())
             popup.showAtBottom();
+            // otherwise request focus on the editText, show the softInput and
+            // show the popup
           else{
             emojiconEditText.setFocusableInTouchMode(true);
             emojiconEditText.requestFocus();
@@ -950,19 +971,28 @@ public class ChatFragment extends Fragment{
     });
   }
 
+  /**
+   * will load the background image
+   */
   private void loadWallPaper(){
+    // retrieve the wallpaper file
     final File file = new File(getActivity().getFilesDir(), Constants
             .WALLPAPER_NAME);
     if (file.exists()){
+      // if it exists retrieve the wallpaperImageView and load the image
       final WallpaperImageView imageView = (WallpaperImageView) getView()
               .findViewById(R.id.chat_wallpaper);
       ViewTreeObserver vto = imageView.getViewTreeObserver();
+      // load the image onPreDraw because I need to measuredWidth and height
+      // that would be zero if retrieving them onResume or anything else...
       vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
         @Override
         public boolean onPreDraw(){
+          // only call this function once after resuming
           imageView.getViewTreeObserver().removeOnPreDrawListener(this);
           int width = imageView.getMeasuredWidth();
           int height = imageView.getMeasuredHeight();
+          // start the backgroundImageLoaderTask
           new WallpaperWorkerTask(imageView, width, height).execute(file);
           return true;
         }
@@ -970,12 +1000,23 @@ public class ChatFragment extends Fragment{
     }
   }
 
+  /**
+   * send the message to the current buddy. The message needs to be added to
+   * the messageHistory and then will be sent with this method. If successful
+   * this method will update the status of the message in the messageHistory
+   *
+   * @param message the string to be sent as a textMessage
+   * @param id      the messageId under which it is stored in the messageHistory
+   */
   private void sendTextMessage(String message, long id){
     try{
       XmppManager xmppManager = XmppManager.getInstance(getContext());
       if (xmppManager.sendTextMessage(message, buddyId, id)){
+        // if successful update the messageStatus
         messageHistory.updateMessageStatus(buddyId, id, MessageHistory.STATUS_SENT);
         int i = 0;
+        // check for all messages currently loaded and update the
+        // corresponding one
         for (MessageArrayContent mac : maa){
           if (mac instanceof TextMessage){
             TextMessage msg = (TextMessage) mac;
@@ -993,40 +1034,65 @@ public class ChatFragment extends Fragment{
     }
   }
 
-  private void resendTextMessage(TextMessage msg){
+  /**
+   * send the message to the current buddy. The message needs to be added to
+   * the messageHistory and then will be sent with this method. If successful
+   * this method will update the status of the message in the messageHistory
+   *
+   * @param msg the message to be sent
+   */
+  private void sendTextMessage(TextMessage msg){
     sendTextMessage(msg.message, msg._ID);
   }
 
+  /**
+   * load the amount of messages specified by messageAmount
+   */
   private void loadAllMessages(){
+    // clear the list
     maa.clear();
+    // retrieve the messages from the messageHistory
     MessageArrayContent[] messages;
     try{
       messages = messageHistory.getMessages(buddyId, messageAmount);
     }catch (Exception e){
       messages = new MessageArrayContent[0];
     }
+    // the date is to be saved for adding the DateMessages
     long oldDate = 0;
+    // this constants is needed for calculating from ms to days
     final long c = 24 * 60 * 60 * 1000;
     NewMessage nm = null;
 
+    // if there are more messages stored than currently visible add the
+    // LoadMoreMessages entry
     if (messageAmount < messageHistory.getMessageAmount(buddyId))
       maa.add(new LoadMoreMessages());
 
+    // now loop through every message and add it
     for (MessageArrayContent message : messages){
+      // for typecasting I need to differentiate between Text and ImageMessages
       if (message instanceof TextMessage){
         TextMessage msg = (TextMessage) message;
+        // if necessary add a DateMessage
         if (msg.time / c > oldDate / c)
           maa.add(new Date(msg.time));
         oldDate = msg.time;
         if (msg.left){
+          // if we received and have not opened it until now, show / update
+          // the NewMessage
           if (MessageHistory.STATUS_RECEIVED.equals(msg.status)){
+            // if we have none, create it and add it
             if (nm == null){
               nm = new NewMessage(getResources().getString(R.string
                       .new_message));
               maa.add(nm);
+              // if we have one just update it to make sure it shows the
+              // correct message (plural because there are at least 2 new
+              // messages)
             }else
               nm.status = getResources().getString(R.string.new_messages);
-            //send the read acknowledgement
+            //send the read acknowledgement and update the messageHistory
             try{
               messageHistory.updateMessageStatus(buddyId, msg._ID,
                       MessageHistory.STATUS_READ);
@@ -1036,12 +1102,13 @@ public class ChatFragment extends Fragment{
               e.printStackTrace();
             }
           }
-          messageHistory.updateMessageStatus(buddyId, 2, MessageHistory
-                  .STATUS_READ);
+          // if it is not on the left side but we have not sent it, send it
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status))
-          resendTextMessage(msg);
+          sendTextMessage(msg);
+        // finally add it
         maa.add(msg);
       }else if (message instanceof ImageMessage){
+        // this basically the same as above
         ImageMessage msg = (ImageMessage) message;
         if (msg.time / c > oldDate / c)
           maa.add(new Date(msg.time));
@@ -1054,10 +1121,13 @@ public class ChatFragment extends Fragment{
               maa.add(nm);
             }else
               nm.status = getResources().getString(R.string.new_messages);
+            // ImageMessage may also be in waiting status when they are on
+            // the left side, they need to be downloaded.
           }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
             downloadImage(msg);
           }
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
+          // don't send them but upload them
           Upload.Task task = new Upload.Task(new File(msg.file), msg.chatId, msg
                   ._ID);
           new Upload().uploadFile(getContext(), task);
@@ -1066,34 +1136,51 @@ public class ChatFragment extends Fragment{
         maa.add(msg);
       }
     }
+    // select the most bottom message for scrolling
     listView.setSelection(maa.getCount() - 1);
   }
 
+  /**
+   * update the status of the buddy
+   *
+   * @param lastOnline
+   */
   private void updateStatus(String lastOnline){
     try{
       if (lastOnline != null){
         long time = Long.valueOf(lastOnline);
+        // 0 means currently online
         if (time > 0){
+          // convert the long value into a human readable format
           Calendar startOfDay = Calendar.getInstance();
           startOfDay.set(Calendar.HOUR_OF_DAY, 0);
           startOfDay.set(Calendar.MINUTE, 0);
           startOfDay.set(Calendar.SECOND, 0);
           startOfDay.set(Calendar.MILLISECOND, 0);
           long diff = startOfDay.getTimeInMillis() - time;
+          // diff between start of the day and lastOnline means buddy was
+          // online today
           if (diff <= 0)
             lastOnline = getResources().getString(R.string.last_online_today) + " ";
+            // if the diff is greater than 'c' than it was beyond yesterday and
+            // I will show the date
           else if (diff > 1000 * 60 * 60 * 24)
             lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
                     (time) + " " + getResources().getString(R.string
                     .last_online_at) + " ";
+            // if it wasn't today and also wasn't beyond yesterday it probably
+            // was yesterday.
           else
             lastOnline = getResources().getString(R.string.last_online_yesterday)
                     + " ";
+          // now just add the exact time
           lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
                   .format(time);
+          // and set the subtitle of the action bar
           if (actionBar != null)
             actionBar.setSubtitle(lastOnline);
         }else{
+          // set the subtitle but make it !blue! xD
           if (actionBar != null)
             actionBar.setSubtitle(Html
                     .fromHtml("<font " +
@@ -1106,33 +1193,61 @@ public class ChatFragment extends Fragment{
     }
   }
 
+  /**
+   * update the message at the given index
+   *
+   * @param index the index where to update the image
+   */
   private void updateMessage(int index){
     updateMessage(index, false);
   }
 
+  /**
+   * update the message at the given index
+   *
+   * @param index       the index where to update the image
+   * @param reloadImage if true and the message contains an image it will be
+   *                    reloaded. this should always be true if this is the
+   *                    case because due to recycling the imageView,
+   *                    otherwise, might contain a wrong image.
+   */
   private void updateMessage(int index, boolean reloadImage){
     try{
+      // get the current view
       View v = listView.getChildAt(index - listView.getFirstVisiblePosition());
       if (v != null){
+        // and call the getView function for reloading the view
         maa.getView(index, v, listView, reloadImage);
       }
     }catch (Exception e){
     }
   }
 
+  /**
+   * download the image, update the ui while and after downloading, update
+   * the messageHistory and send an readAcknowledgement
+   *
+   * @param msg the message where the image should be downloaded
+   */
   private void downloadImage(ImageMessage msg){
+    // don't download messages I sent by myself
     if (msg.left)
       try{
+        // I need access to the external storage to do so
         MyFileUtils mfu = new MyFileUtils();
         if (!mfu.isExternalStorageWritable())
           throw new Exception("ext storage not writable. Cannot save " +
                   "image");
+        // signal that the message is currently downloading
         messageHistory.updateMessageStatus(buddyId, msg._ID,
                 MessageHistory.STATUS_RECEIVING);
         msg.status = MessageHistory.STATUS_RECEIVING;
+        // start the download service with all necessary extras
         Intent intent = new Intent(getContext(), MessageDownloadService.class);
         intent.setAction(MessageDownloadService.DOWNLOAD_ACTION);
         intent.putExtra(MessageDownloadService.PARAM_URL, msg.url);
+        // this receiver will receive updates for the download that can be
+        // posted to the ui
         intent.putExtra(MessageDownloadService.PARAM_RECEIVER, new
                 DownloadReceiver(new Handler()));
         intent.putExtra(MessageDownloadService.PARAM_FILE, msg.file);
@@ -1144,9 +1259,6 @@ public class ChatFragment extends Fragment{
         e.printStackTrace();
       }
   }
-
-  //TODO: this is kinda unnecessary isn't it? I should either to everything
-  // with this listener or nothing...
 
   /**
    * This interface must be implemented by ui that contain this
@@ -1162,12 +1274,16 @@ public class ChatFragment extends Fragment{
     void onAttachClicked();
   }
 
+  /**
+   * this will load the wallpaper from the storage
+   */
   class WallpaperWorkerTask extends AsyncTask<File, Void, Bitmap>{
     private final WeakReference<ImageView> imageViewWeakReference;
     private File data;
     private int width, height;
 
     public WallpaperWorkerTask(ImageView imageView, int width, int height){
+      // store the weakReference and the width, height
       imageViewWeakReference = new WeakReference<>(imageView);
       this.width = width;
       this.height = height;
@@ -1175,6 +1291,7 @@ public class ChatFragment extends Fragment{
 
     @Override
     protected Bitmap doInBackground(File... params){
+      // only if the file exists
       if (!params[0].isFile())
         return null;
       data = params[0];
@@ -1194,6 +1311,8 @@ public class ChatFragment extends Fragment{
 
     @Override
     protected void onPostExecute(Bitmap bitmap){
+      // if I really decoded a bitmap and if the imageView still exists set
+      // the bitmap
       if (bitmap != null){
         final ImageView imageView = imageViewWeakReference.get();
         if (imageView != null)
@@ -1224,6 +1343,11 @@ public class ChatFragment extends Fragment{
     return inSampleSize;
   }
 
+  /**
+   * this receiver will receive results from the imageDownloadTask
+   */
+  // I don't know what androidStudios problem with this is and as it works
+  // perfectly fine I won't fix this shit
   public class DownloadReceiver extends ResultReceiver{
 
     public DownloadReceiver(Handler handler){
@@ -1233,27 +1357,43 @@ public class ChatFragment extends Fragment{
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData){
       super.onReceiveResult(resultCode, resultData);
+      // if I want to receive this
       if (resultCode == MessageDownloadService.UPDATE_PROGRESS){
+        // get all necessary data
         Long messageId = resultData.getLong(MessageDownloadService.PARAM_MESSAGE_ID);
         int progress = resultData.getInt(MessageDownloadService.PARAM_PROGRESS);
         int size = listView.getLastVisiblePosition();
         MessageArrayContent mac;
-        for (int i = listView.getFirstVisiblePosition(); i <= size; i++){
-          mac = maa.getItem(i);
-          if (mac instanceof ImageMessage){
-            ImageMessage im = (ImageMessage) mac;
-            if (im._ID == messageId){
-              Log.d("DEBUG DOWNLOAD", "progress: " + progress);
-              if (progress < 100){
+        // if we are not finished loop through all visible messages and
+        // update the correct
+        if (progress < 100){
+          for (int i = listView.getFirstVisiblePosition(); i <= size; i++){
+            mac = maa.getItem(i);
+            if (mac instanceof ImageMessage){
+              ImageMessage im = (ImageMessage) mac;
+              if (im._ID == messageId){
+                Log.d("DEBUG DOWNLOAD", "progress: " + progress);
                 ((ImageMessage) mac).progress = progress;
-//                updateProgressBar(i, progress);
                 updateMessage(i);
-              }else{
+              }
+            }
+          }
+        }else{
+          // otherwise, loop through all messages and update the correct. I
+          // do this just to make sure the message is at least in the end
+          // correctly displayed
+          for (int i = listView.getFirstVisiblePosition(); i <= size; i++){
+            mac = maa.getItem(i);
+            if (mac instanceof ImageMessage){
+              ImageMessage im = (ImageMessage) mac;
+              if (im._ID == messageId){
+                Log.d("DEBUG DOWNLOAD", "progress: " + progress);
                 im.status = MessageHistory.STATUS_READ;
                 updateMessage(i);
                 messageHistory.updateMessageStatus(buddyId, messageId,
                         MessageHistory.STATUS_READ);
                 updateMessage(i, true);
+
               }
             }
           }

@@ -3,12 +3,6 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context=".ui.chatting.ChatActivity">
     <item
-        android:id="@+id/action_settings"
-        android:onClick="onSettingsClick"
-        android:orderInCategory="42"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
-    <item
         android:id="@+id/action_add_chat"
         android:onClick="onAddChatClick"
         android:orderInCategory="2"
@@ -26,10 +20,16 @@
         android:orderInCategory="4"
         android:title="@string/action_about"
         app:showAsAction="never"/>
+    <!--<item-->
+        <!--android:id="@+id/action_db_manager"-->
+        <!--android:onClick="onDatabaseDebug"-->
+        <!--android:orderInCategory="1"-->
+        <!--android:title="@string/action_database_debug"-->
+        <!--app:showAsAction="never"/>-->
     <item
-        android:id="@+id/action_db_manager"
-        android:onClick="onDatabaseDebug"
-        android:orderInCategory="1"
-        android:title="@string/action_database_debug"
+        android:id="@+id/action_settings"
+        android:onClick="onSettingsClick"
+        android:orderInCategory="42"
+        android:title="@string/action_settings"
         app:showAsAction="never"/>
 </menu>

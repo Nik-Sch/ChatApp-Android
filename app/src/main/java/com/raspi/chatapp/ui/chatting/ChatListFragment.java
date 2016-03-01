@@ -43,7 +43,7 @@ public class ChatListFragment extends Fragment{
   private OnFragmentInteractionListener mListener;
   private ChatArrayAdapter caa;
   private ListView lv;
-  private BroadcastReceiver MessageReceiver = new BroadcastReceiver(){
+  private BroadcastReceiver messageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
       initUI();
@@ -51,7 +51,7 @@ public class ChatListFragment extends Fragment{
       try{
         XmppManager.getInstance().sendAcknowledgement(
                 extras.getString(Constants.BUDDY_ID),
-                extras.getLong("id"),
+                extras.getLong(Constants.MESSAGE_OTHERS_ID),
                 MessageHistory.STATUS_RECEIVED);
       }catch (Exception e){
       }
@@ -79,13 +79,13 @@ public class ChatListFragment extends Fragment{
     initUI();
     IntentFilter filter = new IntentFilter(Constants.MESSAGE_RECEIVED);
     filter.setPriority(1);
-    getContext().registerReceiver(MessageReceiver, filter);
+    getContext().registerReceiver(messageReceiver, filter);
   }
 
   @Override
   public void onPause(){
     super.onPause();
-    getContext().unregisterReceiver(MessageReceiver);
+    getContext().unregisterReceiver(messageReceiver);
   }
 
   @Override

@@ -70,6 +70,11 @@ public class MessageXmlParser{
     public String content = null;
     public String url = null;
     public String description = null;
+    /**
+     * if used as an received acknowledgement this refers to the id I got
+     * sent by the other buddy, that means, my messageId. If used as a
+     * message I received, this refers to the othersId.
+     */
     public long id = -1;
 
     public Message(String type){

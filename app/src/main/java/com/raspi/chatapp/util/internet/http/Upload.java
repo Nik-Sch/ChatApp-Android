@@ -103,7 +103,7 @@ public class Upload{
             public void onCompleted(String uploadId, int serverResponseCode, String serverResponseMessage){
               int index = uploadId.indexOf('|');
               String buddyId = uploadId.substring(0, index);
-              String messageId = uploadId.substring(index + 1);
+              long messageId = Long.parseLong(uploadId.substring(index + 1));
               //apparently the message was already sent by another thread,
               // e.g. if we switched connection while the image was sending
               // and this service restarted
@@ -119,16 +119,15 @@ public class Upload{
                   ImageMessage msg = (ImageMessage) mac;
                   if (xmppManager.sendImageMessage(serverResponseMessage, msg.description,
                           buddyId, msg._ID))
-                    messageHistory.updateMessageStatus(buddyId, Long
-                            .parseLong(messageId), MessageHistory
-                            .STATUS_SENT);
+                    messageHistory.updateMessageStatus(buddyId, messageId,
+                            MessageHistory.STATUS_SENT);
                 }catch (ClassCastException e){
                   Log.e("UPLOAD", "Sending the uploaded image failed");
                   e.printStackTrace();
                 }
               }else{
-                messageHistory.updateMessageStatus(buddyId, Long.parseLong
-                        (messageId), MessageHistory.STATUS_WAITING);
+                messageHistory.updateMessageStatus(buddyId, messageId,
+                        MessageHistory.STATUS_WAITING);
               }
               this.unregister(context);
             }

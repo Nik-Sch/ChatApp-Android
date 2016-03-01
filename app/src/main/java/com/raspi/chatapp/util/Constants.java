@@ -74,6 +74,14 @@ public class Constants{
    */
   public static final String IMAGE_URI = "com.raspi.chatapp.util.Constants.IMAGE_URI";
   /**
+   * This string references to everything related to the id of a message
+   */
+  public static final String MESSAGE_ID = "com.raspi.chatapp.util.Constants.MESSAGE_ID";
+  /**
+   * This string references to everything related to the id of a message
+   */
+  public static final String MESSAGE_OTHERS_ID = "com.raspi.chatapp.util.Constants.MESSAGE_OTHERS_ID";
+  /**
    * This string references to everything related to the event
    * "messageStatusChanged" which is fired when the buddy sent a acknowledge
    * message. Currently are the following
@@ -98,11 +106,6 @@ public class Constants{
    * this should be necessary but it is...
    */
   public static final String LAST_PRESENCE_SENT = "com.raspi.chatapp.util.Constants.LAST_PRESENCE_SENT";
-  /**
-   * This string reference to the preference containing the currently
-   * installed version.
-   */
-  public static final String CURRENT_VERSION = "com.raspi.chatapp.util.Constants.CURRENT_VERSION";
   /**
    * This string references to the file name of the wallpaper image.
    */

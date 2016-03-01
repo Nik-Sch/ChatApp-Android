@@ -257,11 +257,14 @@ public class ChatActivity extends AppCompatActivity implements
   }
 
   public void onUpdateClick(MenuItem menuItem){
+    // save a handler for the background thread be able to do ui operations
     mHandler = new Handler();
+    // start the update process
     new Thread(new updateRunnable()).start();
   }
 
   public void onAboutClick(MenuItem menuItem){
+    // will show the user the versionName with a button to dismiss the dialog
     try{
       String versionName = getPackageManager().getPackageInfo(getPackageName(),
               0).versionName;
@@ -280,29 +283,41 @@ public class ChatActivity extends AppCompatActivity implements
     }
   }
 
+  /**
+   * this runnable will check for an update and if there is an update
+   * available ask the user to download it and then start the download
+   */
   private class updateRunnable implements Runnable{
     @Override
     public void run(){
+      // this site will post the most current apk of the app
       final String getCurrentUrl = "http://raspi-server.ddns" +
               ".net/ChatApp/current.php";
       HttpURLConnection connection = null;
       try{
+        // init the connection to the server
         URL url = new URL(getCurrentUrl);
         connection = (HttpURLConnection) url.openConnection();
         InputStream is = connection.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
         int data = isr.read();
         String temp = "";
+        // get the data char by char
         while (data != -1){
           char current = (char) data;
           temp += current;
           data = isr.read();
         }
+        // extract the versionCode (delete the '.apk' at the end)
         final String result = temp.substring(0, temp.length() - 4);
+        // check whether the version is more current than the one currently
+        // installed one
         int version = getPackageManager().getPackageInfo(getPackageName(),
                 0).versionCode;
         int targetVersion = Integer.valueOf(result);
         if (targetVersion > version){
+          // if that is the case post a dialog to the ui thread to be shown
+          // to ask the user whether he want's to download the app now
           mHandler.post(new Runnable(){
             @Override
             public void run(){
@@ -312,6 +327,7 @@ public class ChatActivity extends AppCompatActivity implements
                       .setPositiveButton(R.string.download, new DialogInterface.OnClickListener(){
                         @Override
                         public void onClick(DialogInterface dialog, int which){
+                          // if he clicks yes start the download
                           downloadUpdate(result);
                           dialog.dismiss();
                         }
@@ -319,6 +335,7 @@ public class ChatActivity extends AppCompatActivity implements
                       .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
                         @Override
                         public void onClick(DialogInterface dialog, int which){
+                          // otherwise just dismiss the dialog
                           dialog.dismiss();
                         }
                       }).create().show();
@@ -328,6 +345,8 @@ public class ChatActivity extends AppCompatActivity implements
           mHandler.post(new Runnable(){
             @Override
             public void run(){
+              // just post a dialog to the ui to indicate that the app is
+              // up-to-date
               new AlertDialog.Builder(ChatActivity.this)
                       .setTitle(R.string.up_to_date)
                       .setNegativeButton(R.string.ok, new DialogInterface
@@ -345,6 +364,7 @@ public class ChatActivity extends AppCompatActivity implements
         mHandler.post(new Runnable(){
           @Override
           public void run(){
+            // if there was an error signal so.
             new AlertDialog.Builder(ChatActivity.this)
                     .setMessage(R.string.check_update_error)
                     .setNegativeButton(R.string.ok, new DialogInterface
@@ -357,15 +377,22 @@ public class ChatActivity extends AppCompatActivity implements
           }
         });
       }finally{
+        // make sure to disconnect
         if (connection != null)
           connection.disconnect();
       }
     }
   }
 
+  /**
+   * will start the asyncTask to download the update
+   * @param version the version to download
+   */
   private void downloadUpdate(String version){
     MyFileUtils mfu = new MyFileUtils();
+    // if we have access to the external storage
     if (mfu.isExternalStorageWritable()){
+      // get the default download location and execute the asyncTask
       UpdateAppAsyncTask asyncTask = new UpdateAppAsyncTask();
       File file = new File(Environment.getExternalStoragePublicDirectory
               (Environment.DIRECTORY_DOWNLOADS), version + ".apk");
@@ -382,6 +409,11 @@ public class ChatActivity extends AppCompatActivity implements
     }
   }
 
+  /**
+   * this AsyncTask will download the most current version of the app in the
+   * background while displaying a ProgressDialog and after finishing
+   * downloading it will install the app.
+   */
   private class UpdateAppAsyncTask extends AsyncTask<String[], Integer,
           Boolean>{
     private ProgressDialog updateDownloadProgressDialog;
@@ -390,6 +422,7 @@ public class ChatActivity extends AppCompatActivity implements
     @Override
     protected void onPreExecute(){
       super.onPreExecute();
+      // initialize the progressDialog
       updateDownloadProgressDialog = new ProgressDialog(ChatActivity.this);
       updateDownloadProgressDialog.setMessage(getResources().getString(R.string
               .downloading_update));
@@ -402,6 +435,8 @@ public class ChatActivity extends AppCompatActivity implements
               new DialogInterface.OnClickListener(){
                 @Override
                 public void onClick(DialogInterface dialog, int which){
+                  // the cancel button will cancel the asyncTask and dismiss
+                  // the progressDialog
                   UpdateAppAsyncTask.this.cancel(true);
                   updateDownloadProgressDialog.dismiss();
                 }
@@ -411,17 +446,21 @@ public class ChatActivity extends AppCompatActivity implements
 
     @Override
     protected Boolean doInBackground(String[]... params){
+      // the params contains the fileName to be downloaded and the location
+      // where the file should be downloaded to.
       String urlToDownload = "http://raspi-server.ddns.net/ChatApp/binary/" +
               params[0][0];
       String fileLocation = params[0][1];
       this.fileLocation = fileLocation;
       try{
+        // initialize the connection and input/outputStreams
         URL url = new URL(urlToDownload);
         URLConnection connection = url.openConnection();
         int fileLength = connection.getContentLength();
         InputStream input = new BufferedInputStream(connection.getInputStream());
         OutputStream output = new FileOutputStream(fileLocation);
 
+        // start the download and every 20 ms publish a progress
         byte data[] = new byte[4096];
         long total = 0;
         int count;
@@ -433,6 +472,7 @@ public class ChatActivity extends AppCompatActivity implements
             publishProgress((int) (total * 100 / fileLength));
           }
         }
+        // close everything
         output.flush();
         output.close();
         input.close();
@@ -447,6 +487,7 @@ public class ChatActivity extends AppCompatActivity implements
     protected void onProgressUpdate(Integer... values){
       super.onProgressUpdate(values);
       Log.d("UPDATE PROGRESS", "Progress: " + values[0]);
+      // just set the progress of the progressDialog
       updateDownloadProgressDialog.setProgress(values[0]);
     }
 
@@ -454,6 +495,8 @@ public class ChatActivity extends AppCompatActivity implements
     @Override
     protected void onPostExecute(Boolean aBoolean){
       super.onPostExecute(aBoolean);
+      // dismiss the dialog and if successful, start the install Activity,
+      // otherwise, show an alert that downloading failed.
       updateDownloadProgressDialog.dismiss();
       if (aBoolean){
         Intent installIntent = new Intent(Intent.ACTION_VIEW);
@@ -494,10 +537,10 @@ public class ChatActivity extends AppCompatActivity implements
     //this is straight forward.
     SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, 0);
     if (!preferences.contains(Constants.USERNAME))
-      preferences.edit().putString(Constants.USERNAME, "niklas").apply();
+      preferences.edit().putString(Constants.USERNAME, "aylin").apply();
 
     if (!preferences.contains(Constants.PASSWORD))
-      preferences.edit().putString(Constants.PASSWORD, "passwdNiklas").apply();
+      preferences.edit().putString(Constants.PASSWORD, "passwdAylin").apply();
   }
 
   @Override
