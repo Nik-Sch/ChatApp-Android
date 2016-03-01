@@ -39,34 +39,10 @@ public class Upload{
               .setMaxRetries(2)
               .startUpload();
       uploadReceiver.register(context);
-      saveImageCopy(context, task.file.getAbsolutePath(), task.messageID, task
-              .chatId);
+//      saveImageCopy(context, task.file.getAbsolutePath(), task.messageID, task
+//              .chatId);
     }catch (Exception e){
       Log.e("AndroidUploadService", e.getMessage(), e);
-    }
-  }
-
-  private void saveImageCopy(Context context, String fileLocation, Long id,
-                             String chatId){
-    try{
-      //old images bitmap
-      Bitmap oldImg = BitmapFactory.decodeFile(fileLocation);
-      float height = 50;
-      float x = oldImg.getHeight() / height;
-      float width = oldImg.getWidth() / x;
-
-      File destFile = new File(context.getFilesDir(), chatId + "-" +
-              id + ".jpg");
-      OutputStream out = new FileOutputStream(destFile);
-      Bitmap image = Bitmap.createScaledBitmap(oldImg, (int) width, (int)
-              height, true);
-      image.compress(Bitmap.CompressFormat.JPEG, 20, out);
-      out.close();
-      Log.d("FILE_SIZE LOG", "The size of the saved image " +
-              "is: " + new File(fileLocation).length() + ".\nThe size of the " +
-              "compressed image is: " + destFile.length());
-    }catch (Exception e){
-      e.printStackTrace();
     }
   }
 

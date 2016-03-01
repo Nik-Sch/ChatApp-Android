@@ -264,11 +264,6 @@ public class MessageService extends Service{
       String name = extras.getString(Constants.CHAT_NAME);
       String msg = extras.getString(Constants.MESSAGE_BODY);
       String type = extras.getString(Constants.MESSAGE_TYPE);
-      long othersId = extras.getLong(Constants.MESSAGE_OTHERS_ID);
-      XmppManager.getInstance().sendAcknowledgement(
-              buddyId,
-              othersId,
-              type);
       new Notification(context).createNotification(buddyId, name, msg, type);
     }
   }

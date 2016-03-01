@@ -121,4 +121,5 @@
         new updates. Make sure you are connected to the internet and try
         again.</string>
     <string name="action_about">About this app</string>
+    <string name="sending_image">Sending the image</string>
 </resources>

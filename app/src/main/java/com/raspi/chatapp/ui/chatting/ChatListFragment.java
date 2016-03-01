@@ -5,13 +5,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,7 +24,6 @@ import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
 import com.raspi.chatapp.util.Constants;
-import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 /**
@@ -42,19 +39,11 @@ public class ChatListFragment extends Fragment{
 
   private OnFragmentInteractionListener mListener;
   private ChatArrayAdapter caa;
-  private ListView lv;
   private BroadcastReceiver messageReceiver = new BroadcastReceiver(){
     @Override
     public void onReceive(Context context, Intent intent){
+      // receiving a message will result in reinitializing the ui
       initUI();
-      Bundle extras = intent.getExtras();
-      try{
-        XmppManager.getInstance().sendAcknowledgement(
-                extras.getString(Constants.BUDDY_ID),
-                extras.getLong(Constants.MESSAGE_OTHERS_ID),
-                MessageHistory.STATUS_RECEIVED);
-      }catch (Exception e){
-      }
 
       abortBroadcast();
     }
@@ -76,6 +65,7 @@ public class ChatListFragment extends Fragment{
   @Override
   public void onResume(){
     super.onResume();
+    // init ui and register the receiver
     initUI();
     IntentFilter filter = new IntentFilter(Constants.MESSAGE_RECEIVED);
     filter.setPriority(1);
@@ -85,11 +75,13 @@ public class ChatListFragment extends Fragment{
   @Override
   public void onPause(){
     super.onPause();
+    // unregister the receiver
     getContext().unregisterReceiver(messageReceiver);
   }
 
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+    // clear the old and inflate the new optionsMenu
     menu.clear();
     inflater.inflate(R.menu.menu_chat_list, menu);
   }
@@ -97,12 +89,8 @@ public class ChatListFragment extends Fragment{
   @Override
   public void onActivityCreated(Bundle savedInstanceState){
     super.onActivityCreated(savedInstanceState);
+    // retrieve the actionBar
     actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-  }
-
-  @Override
-  public void onCreate(Bundle savedInstanceState){
-    super.onCreate(savedInstanceState);
   }
 
   @Override
@@ -125,23 +113,27 @@ public class ChatListFragment extends Fragment{
     }
   }
 
-  /*
-      USER SPECIFIC FUNCTIONS
-   */
-
   @Override
   public void onDetach(){
     super.onDetach();
     mListener = null;
   }
 
+  /**
+   * this function will make sure the ui looks right and reload everything.
+   * Yeah, it is inefficient calling it every time a little detail has
+   * changed but atm I don't care as this won't be as loaded as the
+   * ChatFragment.
+   */
   private void initUI(){
+    // create the chatArrayAdapter
     caa = new ChatArrayAdapter(getContext(), R.layout.chat_list_entry);
-    lv = (ListView) getView().findViewById(R.id.main_listview);
-    lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+    ListView lv = (ListView) getView().findViewById(R.id.main_listview);
+    lv.setTranscriptMode(AbsListView.TRANSCRIPT_MODE_NORMAL);
     lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+        // on click open the corresponding chat
         ChatEntry chatEntry = caa.getItem(position);
         mListener.onChatOpened(chatEntry.buddyId, chatEntry.name);
       }
@@ -149,10 +141,13 @@ public class ChatListFragment extends Fragment{
     lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
       @Override
       public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id){
+        // on long click rename the chat --> look ChatFragment
         final EditText newName = new EditText(getActivity());
         newName.setText(caa.getItem(position).name);
         String title = getResources().getString(R.string.change_name_title) +
                 " " + caa.getItem(position).name;
+        // the dialog with corresponding title and message and with the
+        // pre filled editText
         new AlertDialog.Builder(getContext())
                 .setTitle(title)
                 .setMessage(R.string.change_name)
@@ -160,6 +155,7 @@ public class ChatListFragment extends Fragment{
                 .setPositiveButton(R.string.rename, new DialogInterface.OnClickListener(){
                   @Override
                   public void onClick(DialogInterface dialog, int which){
+                    // rename the chat and reinitialize the ui
                     MessageHistory messageHistory = new MessageHistory
                             (getContext());
                     String buddyId = caa.getItem(position).buddyId;
@@ -171,31 +167,24 @@ public class ChatListFragment extends Fragment{
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener(){
                   @Override
                   public void onClick(DialogInterface dialog, int which){
-
+                    // there is a cancel button too...
                   }
                 }).show();
         return true;
       }
     });
+    // set the data
     lv.setAdapter(caa);
     MessageHistory messageHistory = new MessageHistory(getContext());
+    // retrieve the chats and add them to the listView
     ChatEntry[] entries = messageHistory.getChats();
     for (ChatEntry entry : entries){
-      if (entry != null){
-        Log.d("DEBUG", "adding entry to view: " + entry);
+      if (entry != null)
         caa.add(entry);
-      }else{
-        Log.d("DEBUG", "a null entry");
-      }
     }
-    caa.registerDataSetObserver(new DataSetObserver(){
-      @Override
-      public void onChanged(){
-        super.onChanged();
-        lv.setSelection(caa.getCount() - 1);
-      }
-    });
-    actionBar.setTitle(R.string.app_name);
+    // set the title
+    actionBar.setTitle("ChatApp");
+    // make sure that there is no subtitle
     actionBar.setSubtitle(null);
   }
 

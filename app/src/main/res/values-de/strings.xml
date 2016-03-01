@@ -45,7 +45,7 @@
     <string name="image">Bild</string>
     <string name="invalid_pwd">Das Passwort ist falsch</string>
     <string name="logging_in">Einloggen</string>
-    <string name="chatlist_option_1">Chat umbennen</string>
+    <string name="chatlist_option_1">Chat umbenennen</string>
     <string name="chatlist_option_2">Chat löschen</string>
     <string name="delete_message">Lösche die Nachricht vom Chat?</string>
     <string name="delete_messages">Lösche die Nachrichten vom Chat?</string>
@@ -54,7 +54,7 @@
     <string name="pref_summary_enablepwd">Aktivieren um den Passwortschutz zu aktivieren</string>
     <string name="change_name">Wähle den neuen Namen für diesen Chat:</string>
     <string name="change_name_title">Ändere den Namen von</string>
-    <string name="rename">Umbennen</string>
+    <string name="rename">Umbenennen</string>
     <string name="online">Online</string>
     <string name="load_more_messages">Zeige ältere Nachrichten</string>
     <string name="pref_header_chats">Chats</string>
@@ -66,4 +66,5 @@
     <string name="create">Erstellen</string>
     <string name="pref_summary_reset_wallpaper">Setze das Hintergrundbild zurück</string>
     <string name="pref_title_reset_wallpaper">Hintergrund zurücksetzen</string>
+    <string name="sending_image">Sende das Bild</string>
 </resources>
