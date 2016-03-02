@@ -12,7 +12,7 @@
         android:id="@+id/message_image_inner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/bubble_a1"
+        android:background="@drawable/bubble_left"
         android:padding="1dp">
 
         <RelativeLayout
