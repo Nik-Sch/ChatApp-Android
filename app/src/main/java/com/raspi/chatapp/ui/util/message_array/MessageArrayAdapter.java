@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.github.ankushsachdeva.emojicon.EmojiconTextView;
@@ -102,7 +103,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
         v = inflater.inflate(R.layout.message_text, parent, false);
       }
 
-      RelativeLayout layoutOuter = (RelativeLayout) v.findViewById(R.id.message_text);
+      LinearLayout layoutOuter = (LinearLayout) v.findViewById(R.id.message_text);
       LinearLayout layoutInner = (LinearLayout) v.findViewById(R.id
               .message_text_inner);
       layoutInner.setBackgroundResource(msgObj.left ? R.drawable.bubble_a1 :
@@ -117,8 +118,24 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
         layoutOuter.setGravity(Gravity.START);
         v.findViewById(R.id.message_text_status).setVisibility(View.GONE);
         layoutInner.setAlpha(1f);
-        //I don't really care about the status, obviously read is right...
+        v.findViewById(R.id.message_margin_right).setLayoutParams(
+                new TableRow.LayoutParams(
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        TableRow.LayoutParams.WRAP_CONTENT, 0.2f));
+        v.findViewById(R.id.message_margin_left).setLayoutParams(
+                new TableRow.LayoutParams(
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        TableRow.LayoutParams.WRAP_CONTENT, 0f));
+//        I don't really care about the status, obviously read is right...
       }else{
+        v.findViewById(R.id.message_margin_right).setLayoutParams(
+                new TableRow.LayoutParams(
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        TableRow.LayoutParams.WRAP_CONTENT, 0f));
+        v.findViewById(R.id.message_margin_left).setLayoutParams(
+                new TableRow.LayoutParams(
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        TableRow.LayoutParams.WRAP_CONTENT, 0.2f));
         layoutOuter.setGravity(Gravity.END);
         v.findViewById(R.id.message_text_status).setVisibility(View.VISIBLE);
         switch (msgObj.status){

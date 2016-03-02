@@ -1,60 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    android:id="@+id/message_text"
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?android:attr/activatedBackgroundIndicator"
-    android:padding="4dp">
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/message_margin_left"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"/>
 
     <LinearLayout
-        android:id="@+id/message_text_inner"
-        android:layout_width="wrap_content"
+        android:id="@+id/message_text"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/bubble_a1"
-        android:padding="1dp">
+        android:layout_weight="1"
+        android:background="?android:attr/activatedBackgroundIndicator"
+        android:padding="4dp">
 
-        <com.github.ankushsachdeva.emojicon.EmojiconTextView
-            android:id="@+id/message_text_text"
+        <LinearLayout
+            android:id="@+id/message_text_inner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="5dp"
-            android:layout_weight="1"
-            android:autoLink="web"
-            android:text="Hello World"
-            android:textColor="@android:color/black"
-            android:textColorLink="@color/colorLink"
-            android:textSize="@dimen/font_size"/>
+            android:background="@drawable/bubble_a1"
+            android:padding="1dp">
 
-        <RelativeLayout
-            android:id="@+id/message_text_info"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="3dp"
-            android:layout_marginRight="3dp"
-            android:layout_weight="0"
-            android:padding="3dp">
-
-            <TextView
-                android:id="@+id/message_text_timeStamp"
+            <com.github.ankushsachdeva.emojicon.EmojiconTextView
+                android:id="@+id/message_text_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/message_text_status"
-                android:text="00:00"
-                android:textColor="@color/colorTimeStamp"/>
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:autoLink="web"
+                android:text="Hello World Hello World Hello World Hello World Hello World"
+                android:textColor="@android:color/black"
+                android:textColorLink="@color/colorLink"
+                android:textSize="@dimen/font_size"/>
 
-            <ImageView
-                android:id="@+id/message_text_status"
-                android:layout_width="19dp"
-                android:layout_height="13dp"
-                android:layout_alignEnd="@+id/message_text_timeStamp"
-                android:layout_alignRight="@+id/message_text_timeStamp"
-                android:layout_marginEnd="2dp"
-                android:layout_marginRight="2dp"
-                android:layout_marginTop="6dp"
-                android:src="@drawable/two_grey_hook"/>
-        </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/message_text_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="3dp"
+                android:layout_marginRight="3dp"
+                android:layout_weight="0"
+                android:padding="3dp">
+
+                <TextView
+                    android:id="@+id/message_text_timeStamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/message_text_status"
+                    android:text="00:00"
+                    android:textColor="@color/colorTimeStamp"/>
+
+                <ImageView
+                    android:id="@+id/message_text_status"
+                    android:layout_width="19dp"
+                    android:layout_height="13dp"
+                    android:layout_alignEnd="@+id/message_text_timeStamp"
+                    android:layout_alignRight="@+id/message_text_timeStamp"
+                    android:layout_marginEnd="2dp"
+                    android:layout_marginRight="2dp"
+                    android:layout_marginTop="6dp"
+                    android:src="@drawable/two_grey_hook"/>
+            </RelativeLayout>
+        </LinearLayout>
+
     </LinearLayout>
 
-</RelativeLayout>
+    <TextView
+        android:id="@+id/message_margin_right"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.2"/>
+</LinearLayout>
