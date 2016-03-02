@@ -167,6 +167,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
         v = inflater.inflate(R.layout.message_text, parent, false);
       }
 
+      LinearLayout layoutOuter = (LinearLayout) v.findViewById(R.id
+              .message_text);
       // the inner layout contains everything that is really visible
       LinearLayout layoutInner = (LinearLayout) v.findViewById(R.id
               .message_text_inner);
@@ -186,6 +188,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       // everything else differs on whether the message is on the left or
       // right side
       if (msgObj.left){
+        // set the gravity
+        layoutOuter.setGravity(Gravity.START);
         // we received the message, therefore, disable the status
         v.findViewById(R.id.message_text_status).setVisibility(View.GONE);
         // and make sure that the message is not half transparent because it
@@ -201,6 +205,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
                         TableRow.LayoutParams.WRAP_CONTENT,
                         TableRow.LayoutParams.WRAP_CONTENT, 0f));
       }else{
+        // set the gravity
+        layoutOuter.setGravity(Gravity.END);
         // set the correct values for the left and right margins
         v.findViewById(R.id.message_margin_right).setLayoutParams(
                 new TableRow.LayoutParams(
@@ -248,10 +254,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       // if the view is null, the view has not been inflated or has been
       // inflated wrong or if the descriptions do not match inflate a new layout
       if (v == null ||
-              v.findViewById(R.id.message_image) == null ||
-              ((TextView) v.findViewById(R.id.message_image_description))
-                      .getText().toString()
-                      .equals(msgObj.description)){
+              v.findViewById(R.id.message_image) == null){
         LayoutInflater inflater = (LayoutInflater) getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         v = inflater.inflate(R.layout.message_image, parent, false);
@@ -333,8 +336,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
           case MessageHistory.STATUS_WAITING:
             // if the image is waiting to be sent, show the hourglass and
             // make the progressbar with a progress of 1 visible
-            ((ImageView) v.findViewById(R.id.message_image_status))
-                    .setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
+            imageView = (ImageView) v.findViewById(R.id.message_image_status);
+            imageView.setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
             progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
             progressBar.setVisibility(View.VISIBLE);
@@ -346,6 +349,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
             // if sending there will also be the hourglass and the
             // progressBar but the progressBar will now show the progress of
             // the msgObj
+            imageView = (ImageView) v.findViewById(R.id.message_image_status);
             imageView.setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
             progressBar = (ProgressBar) v.findViewById(R.id
                     .message_image_progress);
@@ -356,6 +360,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
             break;
           case MessageHistory.STATUS_SENT:
             // show one grey hook
+            imageView = (ImageView) v.findViewById(R.id.message_image_status);
             imageView.setImageResource(R.drawable.single_grey_hook);
             // disable the progress bar and make the message opaque
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
@@ -363,6 +368,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
             break;
           case MessageHistory.STATUS_RECEIVED:
             // show two grey hooks
+            imageView = (ImageView) v.findViewById(R.id.message_image_status);
             imageView.setImageResource(R.drawable.two_grey_hook);
             // disable the progress bar and make the message opaque
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);
@@ -370,6 +376,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
             break;
           case MessageHistory.STATUS_READ:
             // show two blue hooks
+            imageView = (ImageView) v.findViewById(R.id.message_image_status);
             imageView.setImageResource(R.drawable.two_blue_hook);
             // disable the progress bar and make the message opaque
             v.findViewById(R.id.message_image_progress).setVisibility(View.GONE);

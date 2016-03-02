@@ -542,6 +542,11 @@ public class ChatFragment extends Fragment{
     }
   };
 
+  /**
+   * if init is false do not initialize the fragment this time
+   */
+  private boolean init = true;
+
   public ChatFragment(){
     // Required empty public constructor
   }
@@ -577,12 +582,21 @@ public class ChatFragment extends Fragment{
     messageAmount = MESSAGE_LIMIT;
     // if the arguments are correct set the buddyId and chatName, otherwise,
     // throw an error
+    Bundle arguments = getArguments();
     try{
-      buddyId = getArguments().getString(Constants.BUDDY_ID);
-      chatName = getArguments().getString(Constants.CHAT_NAME);
+      buddyId = arguments.getString(Constants.BUDDY_ID);
+      chatName = arguments.getString(Constants.CHAT_NAME);
     }catch (Exception e){
       throw new IllegalArgumentException("There must be a buddyId and " +
               "chatName provided in order to create this fragment.");
+    }
+    // if the user shares an image with this app he selects a chat and,
+    // therefore, an imageUri will be attached to the intent that opens the
+    // chat. Then I directly want to open the sendImageFragment.
+    if (arguments.containsKey(Constants.IMAGE_URI)){
+      mListener.sendImage((Uri) arguments.getParcelable(Constants.IMAGE_URI));
+      init = false;
+
     }
     // create the instance of messageHistory
     messageHistory = new MessageHistory(getContext());
@@ -609,7 +623,9 @@ public class ChatFragment extends Fragment{
             (Constants.MESSAGE_STATUS_CHANGED));
     uploadReceiver.register(getContext());
     // also init the ui
-    initUI();
+    if (init)
+      initUI();
+    init = true;
   }
 
   @Override
@@ -1143,7 +1159,7 @@ public class ChatFragment extends Fragment{
   /**
    * update the status of the buddy
    *
-   * @param lastOnline
+   * @param lastOnline the string representing the last online status
    */
   private void updateStatus(String lastOnline){
     try{
@@ -1220,6 +1236,7 @@ public class ChatFragment extends Fragment{
         maa.getView(index, v, listView, reloadImage);
       }
     }catch (Exception e){
+      e.printStackTrace();
     }
   }
 
@@ -1272,6 +1289,7 @@ public class ChatFragment extends Fragment{
    */
   public interface OnChatFragmentInteractionListener{
     void onAttachClicked();
+    void sendImage(Uri imageUri);
   }
 
   /**

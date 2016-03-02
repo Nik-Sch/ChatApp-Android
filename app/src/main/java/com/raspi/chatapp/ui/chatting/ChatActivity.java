@@ -13,7 +13,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentManager;
@@ -25,7 +24,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.alexbbb.uploadservice.UploadService;
-import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.BuildConfig;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.password.PasswordActivity;
@@ -36,7 +34,6 @@ import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.AndroidDatabaseManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
-import com.raspi.chatapp.util.storage.file.FileUtils;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import org.jivesoftware.smack.roster.RosterEntry;
@@ -67,7 +64,7 @@ public class ChatActivity extends AppCompatActivity implements
    * This constant references to the requestCode with which the activity is
    * started to return the image I want to send.
    */
-  public static final int PHOTO_ATTACH_SELECTED = 42;
+  private static final int PHOTO_ATTACH_SELECTED = 42;
 
   /**
    * Here should the current buddy be stored. That means the buddyId of the
@@ -75,15 +72,24 @@ public class ChatActivity extends AppCompatActivity implements
    * the {@link ChatListFragment}) this should contain {@link
    * Constants#BUDDY_ID}.
    */
-  public String currentBuddyId = Constants.BUDDY_ID;
+  private String currentBuddyId = Constants.BUDDY_ID;
   /**
    * Here should the current chatName be stored. That means the name of the
    * chat that is currently opened. If there is no open chat (e.g. I am in
    * the {@link ChatListFragment}) this should contain {@link
    * Constants#CHAT_NAME}.
    */
-  public String currentChatName = Constants.CHAT_NAME;
+  private String currentChatName = Constants.CHAT_NAME;
 
+  /**
+   * if the user wants to share an image this imageUri is set in the onCreate.
+   */
+  private Uri imageUri = null;
+
+  /**
+   * this is a handler that might be assigned if needed. It may be used for
+   * doing ui related tasks from a background thread
+   */
   private Handler mHandler;
 
 
@@ -115,13 +121,17 @@ public class ChatActivity extends AppCompatActivity implements
     // variables in order to be able to ask for a password if necessary, see
     // onResume.
     Intent callingIntent = getIntent();
-    if (callingIntent != null){
-      Bundle extras = callingIntent.getExtras();
-      if (extras != null && extras.containsKey(Constants.BUDDY_ID) && extras
-              .containsKey(Constants.CHAT_NAME)){
-        currentBuddyId = extras.getString(Constants.BUDDY_ID);
-        currentChatName = extras.getString(Constants.CHAT_NAME);
+    Bundle extras = callingIntent.getExtras();
+    String type = callingIntent.getType();
+    if (Intent.ACTION_SEND.equals(callingIntent.getAction()) && type != null){
+      if (type.startsWith("image/")){
+        imageUri = callingIntent.getParcelableExtra(Intent.EXTRA_STREAM);
       }
+    }
+    if (extras != null && extras.containsKey(Constants.BUDDY_ID) && extras
+            .containsKey(Constants.CHAT_NAME)){
+      currentBuddyId = extras.getString(Constants.BUDDY_ID);
+      currentChatName = extras.getString(Constants.CHAT_NAME);
     }
   }
 
@@ -386,6 +396,7 @@ public class ChatActivity extends AppCompatActivity implements
 
   /**
    * will start the asyncTask to download the update
+   *
    * @param version the version to download
    */
   private void downloadUpdate(String version){
@@ -552,6 +563,8 @@ public class ChatActivity extends AppCompatActivity implements
     Bundle extras = new Bundle();
     extras.putString(Constants.BUDDY_ID, buddyId);
     extras.putString(Constants.CHAT_NAME, name);
+    if (imageUri != null)
+      extras.putParcelable(Constants.IMAGE_URI, imageUri);
     fragment.setArguments(extras);
     getSupportFragmentManager().beginTransaction().replace(R.id
             .fragment_container, fragment).addToBackStack(ChatFragment.class
@@ -566,28 +579,10 @@ public class ChatActivity extends AppCompatActivity implements
     // if the user chose a image to be sent to the current buddy
     if (requestCode == ChatActivity.PHOTO_ATTACH_SELECTED && resultCode ==
             Activity.RESULT_OK){
-      // open the sendImageFragment for the user to add a description and
-      // probably scale the image or whatever I wanna add there.
-      SendImageFragment fragment = new SendImageFragment();
-      Bundle extras = new Bundle();
-      // the image uri is for obvious reasons.
-      extras.putString(Constants.IMAGE_URI, data.getData().toString());
-      // the buddyId is needed due to the flow of sending images: The
-      // sendImageFragment just copies the image and adds it to the message
-      // db of the chat and notifies the chatFragment that there is a new
-      // message. Therefore the chatFragment loads this message and sends it.
-      extras.putString(Constants.BUDDY_ID, currentBuddyId);
-      // the chat name is because the sendImageFragment shows it as subtitle
-      // for the actionBar
-      extras.putString(Constants.CHAT_NAME, currentChatName);
-      fragment.setArguments(extras);
-      // replace the fragment and also add it to the backstack by its name.
-      getSupportFragmentManager().beginTransaction().replace(R.id
-              .fragment_container, fragment).addToBackStack(SendImageFragment
-              .class.getName()).commit();
+      sendImage(data.getData());
+    }else if (requestCode == PasswordActivity.ASK_PWD_REQUEST){
       // if the user has entered a password or exited the passwordActivity
       // otherwise.
-    }else if (requestCode == PasswordActivity.ASK_PWD_REQUEST){
       if (resultCode == Activity.RESULT_OK){
         // if the pwd was correct do not request a new pwd. Yep this function
         // is called before onResume, therefore, this would end in an
@@ -610,6 +605,29 @@ public class ChatActivity extends AppCompatActivity implements
         finish();
       }
     }
+  }
+
+  @Override
+  public void sendImage(Uri imageUri){
+    // open the sendImageFragment for the user to add a description and
+    // probably scale the image or whatever I wanna add there.
+    SendImageFragment fragment = new SendImageFragment();
+    Bundle extras = new Bundle();
+    // the image uri is for obvious reasons.
+    extras.putString(Constants.IMAGE_URI, imageUri.toString());
+    // the buddyId is needed due to the flow of sending images: The
+    // sendImageFragment just copies the image and adds it to the message
+    // db of the chat and notifies the chatFragment that there is a new
+    // message. Therefore the chatFragment loads this message and sends it.
+    extras.putString(Constants.BUDDY_ID, currentBuddyId);
+    // the chat name is because the sendImageFragment shows it as subtitle
+    // for the actionBar
+    extras.putString(Constants.CHAT_NAME, currentChatName);
+    fragment.setArguments(extras);
+    // replace the fragment and also add it to the backstack by its name.
+    getSupportFragmentManager().beginTransaction().replace(R.id
+            .fragment_container, fragment).addToBackStack(SendImageFragment
+            .class.getName()).commit();
   }
 
   @Override
