@@ -67,4 +67,14 @@
     <string name="pref_summary_reset_wallpaper">Setze das Hintergrundbild zurück</string>
     <string name="pref_title_reset_wallpaper">Hintergrund zurücksetzen</string>
     <string name="sending_image">Sende das Bild</string>
+    <string name="action_about">Über die App</string>
+    <string name="action_update">Suche nach Updates</string>
+    <string name="check_update_error">Es gab einen Fehler bei der Suche nach Updates. Überprüfe die Internetverbindung und versuche es erneut.</string>
+    <string name="download">Herunterladen</string>
+    <string name="download_failed">Das Herunterladen ist fehlgeschlagen. Möglicherweise aufgrund eines Verbindungsfehlers.</string>
+    <string name="downloading_update">Lade das Update herunter</string>
+    <string name="load_update">Willst du das Update jetzt herunterladen?</string>
+    <string name="no_internet">Keine Internetverbindung</string>
+    <string name="up_to_date">Die App ist auf dem neuesten Stand.</string>
+    <string name="update_available">Es  ist ein Update verfügbar.</string>
 </resources>

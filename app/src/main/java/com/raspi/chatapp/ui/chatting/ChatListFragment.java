@@ -6,24 +6,31 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
 import com.raspi.chatapp.util.Constants;
+import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 /**
@@ -182,6 +189,18 @@ public class ChatListFragment extends Fragment{
       if (entry != null)
         caa.add(entry);
     }
+
+    // the swipe refresh layout
+    final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) getActivity()
+            .findViewById(R.id.swipe_refresh);
+    swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener(){
+      @Override
+      public void onRefresh(){
+        // make everything related to refreshing in a background thread
+        new Thread(new RefreshRunnable(new Handler(), swipeRefreshLayout)).start();
+      }
+    });
+
     // set the title
     actionBar.setTitle("ChatApp");
     // make sure that there is no subtitle
@@ -200,5 +219,115 @@ public class ChatListFragment extends Fragment{
    */
   public interface OnFragmentInteractionListener{
     void onChatOpened(String buddyId, String name);
+  }
+
+  /**
+   * this runnable does the refresh work
+   */
+  private class RefreshRunnable implements Runnable{
+    Handler mHandler;
+    SwipeRefreshLayout refreshLayout;
+
+    /**
+     * create the refreshRunnable.
+     *
+     * @param handler       an handler created in the ui thread for executing ui
+     *                      operations.
+     * @param refreshLayout the layout that is being refreshed.
+     */
+    public RefreshRunnable(Handler handler, SwipeRefreshLayout refreshLayout){
+      mHandler = handler;
+      this.refreshLayout = refreshLayout;
+    }
+
+    @Override
+    public void run(){
+      // enable refreshing
+      mHandler.post(new Runnable(){
+        @Override
+        public void run(){
+          refreshLayout.setRefreshing(true);
+        }
+      });
+      // check for a connection
+      XmppManager xmppManager = XmppManager.getInstance();
+      boolean shown = false;
+      if (!xmppManager.isConnected()){
+        // if not connected, try to connect
+        try{
+          xmppManager.getConnection().connect();
+        }catch (Exception e){
+          e.printStackTrace();
+        }
+        if (!xmppManager.isConnected()){
+          // if still not connected show the no connection overlay
+          shown = true;
+          Log.d("INTERNET", "I don't have internet");
+          mHandler.post(new Runnable(){
+            @Override
+            public void run(){
+              // make the view visible
+              RelativeLayout noInternet = (RelativeLayout) getActivity()
+                      .findViewById(R.id.no_internet);
+              noInternet.setVisibility(View.VISIBLE);
+              // get the in animation and set its duration
+              Animation noInternetInAnimation = AnimationUtils.loadAnimation
+                      (getContext(), R.anim.no_internet_in);
+              noInternetInAnimation.setDuration(500);
+              // start the animation
+              noInternet.startAnimation(noInternetInAnimation);
+            }
+          });
+        }
+      }
+      // disable refreshing
+      mHandler.post(new Runnable(){
+        @Override
+        public void run(){
+          refreshLayout.setRefreshing(false);
+        }
+      });
+      if (shown){
+        // if I showed the overlay it needs to be hidden afterwards
+        try{
+          // wait for 2 seconds
+          Thread.sleep(2000);
+        }catch (Exception e){
+          e.printStackTrace();
+        }
+        // start the hiding
+        mHandler.post(new Runnable(){
+          @Override
+          public void run(){
+            // the layout
+            final RelativeLayout noInternet = (RelativeLayout) getActivity()
+                    .findViewById(R.id.no_internet);
+            if (noInternet != null){
+              // if it still exists, create the animation, set its duration
+              // and start it
+              Animation noInternetOutAnimation = AnimationUtils.loadAnimation
+                      (getContext(), R.anim.no_internet_out);
+              noInternetOutAnimation.setDuration(500);
+              noInternetOutAnimation.setAnimationListener(new Animation.AnimationListener(){
+                @Override
+                public void onAnimationStart(Animation animation){
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation){
+                  // if it finished hide the view completely
+                  noInternet.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation){
+                }
+              });
+              noInternet.startAnimation(noInternetOutAnimation);
+            }
+          }
+        });
+      }
+    }
   }
 }

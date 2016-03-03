@@ -116,10 +116,11 @@
     <string name="download_failed">Downloading failed, probably due to a
         connection loss.</string>
     <string name="up_to_date">Your app is up-to-date.</string>
-    <string name="ok">OK</string>
+    <string name="ok" translatable="false">OK</string>
     <string name="check_update_error">There was an error checking for
         new updates. Make sure you are connected to the internet and try
         again.</string>
     <string name="action_about">About this app</string>
     <string name="sending_image">Sending the image</string>
+    <string name="no_internet">No internet connection</string>
 </resources>
