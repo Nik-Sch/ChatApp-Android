@@ -122,5 +122,5 @@
         again.</string>
     <string name="action_about">About this app</string>
     <string name="sending_image">Sending the image</string>
-    <string name="no_internet">No internet connection</string>
+    <string name="no_internet">No internet connection %s</string>
 </resources>

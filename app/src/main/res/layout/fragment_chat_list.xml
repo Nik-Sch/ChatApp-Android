@@ -25,11 +25,13 @@
         android:layout_height="50dp"
         android:background="@android:color/holo_red_light"
         android:visibility="gone">
-        <TextView
+
+        <com.github.ankushsachdeva.emojicon.EmojiconTextView
+            android:id="@+id/no_internet_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/no_internet"
             android:layout_centerInParent="true"
+            android:text="@string/no_internet"
             android:textSize="18sp"
             android:textStyle="bold"/>
     </RelativeLayout>
