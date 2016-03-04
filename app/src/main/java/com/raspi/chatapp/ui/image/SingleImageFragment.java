@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016 Niklas Schelten
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.raspi.chatapp.ui.image;
 
 import android.content.Context;
@@ -24,7 +39,7 @@ import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
 
-import java.io.File;
+import uk.co.senab.photoview.PhotoViewAttacher;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -138,11 +153,11 @@ public class SingleImageFragment extends Fragment{
       description.setVisibility(View.VISIBLE);
   }
 
-  private void toggleOverlay(){
+  private void showOverlay(boolean active){
     final View customActionBar = getActivity().findViewById(R.id.custom_action_bar);
     final View imageInfo = getActivity().findViewById(R.id.image_info);
     Animation anim;
-    if (overlayActive){
+    if (active){
       getActivity().getWindow().addFlags(WindowManager.LayoutParams
               .FLAG_FULLSCREEN);
       anim = AnimationUtils.loadAnimation(getContext(), R.anim.bottom_out);
@@ -193,7 +208,7 @@ public class SingleImageFragment extends Fragment{
       customActionBar.setVisibility(View.VISIBLE);
       customActionBar.startAnimation(anim);
     }
-    overlayActive = !overlayActive;
+    overlayActive = active;
   }
 
   @Override
@@ -272,35 +287,8 @@ public class SingleImageFragment extends Fragment{
     public Object instantiateItem(ViewGroup container, int position){
       ImageView imageView = new ImageView(getContext());
       imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-      imageView.setOnClickListener(new View.OnClickListener(){
-        @Override
-        public void onClick(View v){
-          toggleOverlay();
-        }
-      });
+      // decode the file into a bitmap and show it afterwards
       ImageMessage msg = mListener.getImageAtIndex(position);
-//      new Thread(new LoadImageRunnable(
-//              imageView, new Handler(), getContext(), new File(msg.file))).start();
-      File file = new File(msg.file);
-//      if (AsyncDrawable.cancelPotentialWork(file, imageView)){
-//        String tmpFileName = new File(getContext().getFilesDir(), msg.chatId
-//                + "-" + msg._ID + ".jpg").getAbsolutePath();
-//        DisplayMetrics metrics = new DisplayMetrics();
-//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//        Log.d("loadBitmap", "Dimensions: " + metrics.widthPixels + ", " +
-//                metrics.heightPixels);
-//        final AsyncDrawable.BitmapWorkerTask task =
-//                new AsyncDrawable.BitmapWorkerTask(imageView,
-//                        metrics.widthPixels,
-//                        metrics.heightPixels);
-//        imageView.setImageDrawable(new AsyncDrawable(
-//                getContext().getResources(),
-//                new File(tmpFileName).isFile()
-//                        ? BitmapFactory.decodeFile(tmpFileName)
-//                        : BitmapFactory.decodeResource(getContext().getResources(),
-//                        R.drawable.placeholder),
-//                task));
-//      }
       final BitmapFactory.Options options = new BitmapFactory.Options();
       options.inJustDecodeBounds = true;
       BitmapFactory.decodeFile(msg.file, options);
@@ -317,6 +305,13 @@ public class SingleImageFragment extends Fragment{
       Log.d("loadBitmap", "Dimensions: " + bitmap.getWidth() + ", " +
               bitmap.getHeight());
       imageView.setImageBitmap(bitmap);
+      PhotoViewAttacher attacher = new PhotoViewAttacher(imageView);
+      attacher.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener(){
+        @Override
+        public void onViewTap(View view, float x, float y){
+          showOverlay(!overlayActive);
+        }
+      });
       container.addView(imageView, 0);
       return imageView;
     }
