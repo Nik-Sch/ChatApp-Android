@@ -57,8 +57,10 @@ import java.util.Date;
  * implemented.
  */
 public class ChatActivity extends AppCompatActivity implements
-        FragmentManager.OnBackStackChangedListener, ChatListFragment
-        .OnFragmentInteractionListener, ChatFragment.OnChatFragmentInteractionListener, SendImageFragment.OnFragmentInteractionListener{
+        FragmentManager.OnBackStackChangedListener,
+        ChatListFragment.OnFragmentInteractionListener,
+        ChatFragment.OnChatFragmentInteractionListener,
+        SendImageFragment.OnFragmentInteractionListener{
 
   /**
    * This constant references to the requestCode with which the activity is
@@ -559,13 +561,7 @@ public class ChatActivity extends AppCompatActivity implements
     // set the buddyId and the chat name as arguments for the ChatFragment,
     // replace it with the current one and add it to the backstack by its
     // classname. Also make sure the current variables are set correctly.
-    ChatFragment fragment = new ChatFragment();
-    Bundle extras = new Bundle();
-    extras.putString(Constants.BUDDY_ID, buddyId);
-    extras.putString(Constants.CHAT_NAME, name);
-    if (imageUri != null)
-      extras.putParcelable(Constants.IMAGE_URI, imageUri);
-    fragment.setArguments(extras);
+    ChatFragment fragment = ChatFragment.newInstance(buddyId, name, imageUri);
     getSupportFragmentManager().beginTransaction().replace(R.id
             .fragment_container, fragment).addToBackStack(ChatFragment.class
             .getName()).commit();
@@ -611,19 +607,8 @@ public class ChatActivity extends AppCompatActivity implements
   public void sendImage(Uri imageUri){
     // open the sendImageFragment for the user to add a description and
     // probably scale the image or whatever I wanna add there.
-    SendImageFragment fragment = new SendImageFragment();
-    Bundle extras = new Bundle();
-    // the image uri is for obvious reasons.
-    extras.putString(Constants.IMAGE_URI, imageUri.toString());
-    // the buddyId is needed due to the flow of sending images: The
-    // sendImageFragment just copies the image and adds it to the message
-    // db of the chat and notifies the chatFragment that there is a new
-    // message. Therefore the chatFragment loads this message and sends it.
-    extras.putString(Constants.BUDDY_ID, currentBuddyId);
-    // the chat name is because the sendImageFragment shows it as subtitle
-    // for the actionBar
-    extras.putString(Constants.CHAT_NAME, currentChatName);
-    fragment.setArguments(extras);
+    SendImageFragment fragment = SendImageFragment.newInstance(imageUri,
+            currentBuddyId, currentChatName);
     // replace the fragment and also add it to the backstack by its name.
     getSupportFragmentManager().beginTransaction().replace(R.id
             .fragment_container, fragment).addToBackStack(SendImageFragment
@@ -691,11 +676,11 @@ public class ChatActivity extends AppCompatActivity implements
     // notfication backstack possibilities but well this works and is easy!
     if (Constants.BUDDY_ID.equals(currentBuddyId))
       getSupportFragmentManager().beginTransaction().replace(R.id
-              .fragment_container, new ChatListFragment()).commit();
+              .fragment_container, ChatListFragment.newInstance()).commit();
     else if (getSupportFragmentManager().getFragments() == null){
       //for propagating the backstack...
       getSupportFragmentManager().beginTransaction().replace(R.id
-              .fragment_container, new ChatListFragment()).commit();
+              .fragment_container, ChatListFragment.newInstance()).commit();
       onChatOpened(currentBuddyId, currentChatName);
     }
 

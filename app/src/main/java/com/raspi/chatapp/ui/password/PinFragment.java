@@ -8,7 +8,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -33,14 +32,11 @@ public class PinFragment extends Fragment{
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
    *
-   * @param hash the password hash
-   * @param salt the salt that was applied to the password
    * @return A new instance of fragment PinFragment.
    */
-  public static PinFragment newInstance(String hash, String salt){
+  public static PinFragment newInstance(){
     PinFragment fragment = new PinFragment();
-    Bundle args = new Bundle();
-    fragment.setArguments(args);
+    fragment.setArguments(new Bundle());
     return fragment;
   }
 

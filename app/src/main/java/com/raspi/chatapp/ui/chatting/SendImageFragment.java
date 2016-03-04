@@ -7,15 +7,14 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -29,6 +28,7 @@ import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
 import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.Constants;
+import com.raspi.chatapp.ui.util.LoadImageRunnable;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
@@ -69,11 +69,11 @@ public class SendImageFragment extends Fragment{
    * @param buddyId  the buddyId to whom the image should be sent
    * @return A new instance of fragment SendImageFragment.
    */
-  public static SendImageFragment newInstance(String imageUri, String
+  public static SendImageFragment newInstance(Parcelable imageUri, String
           buddyId, String name){
     SendImageFragment fragment = new SendImageFragment();
     Bundle args = new Bundle();
-    args.putString(Constants.IMAGE_URI, imageUri);
+    args.putParcelable(Constants.IMAGE_URI, imageUri);
     args.putString(Constants.BUDDY_ID, buddyId);
     args.putString(Constants.CHAT_NAME, name);
     fragment.setArguments(args);
@@ -109,7 +109,7 @@ public class SendImageFragment extends Fragment{
     // retrieve the important data
     if (getArguments() != null){
       // the image to be sent
-      imageUri = Uri.parse(getArguments().getString(Constants.IMAGE_URI));
+      imageUri = getArguments().getParcelable(Constants.IMAGE_URI);
       // the buddyId to whom to send the image
       buddyId = getArguments().getString(Constants.BUDDY_ID);
       // and the name of the chat for showing in the actionBar
@@ -163,7 +163,8 @@ public class SendImageFragment extends Fragment{
     // load the image in the background
     ImageView imageView = ((ImageView) getView().findViewById(R.id
             .send_image_image));
-    new Thread(new LoadImageRunnable(imageView, new Handler())).start();
+    new Thread(new LoadImageRunnable(
+            imageView, new Handler(), getContext(), imageUri)).start();
 
     //Cancel button pressed
     getView().findViewById(R.id.send_image_cancel)
@@ -330,38 +331,6 @@ public class SendImageFragment extends Fragment{
   }
 
   /**
-   * calculates the sampleSize of the image
-   *
-   * @param options   the options of the Bitmap
-   * @param reqWidth  the width you want the image in
-   * @param reqHeight the height you want the image in
-   * @return the sample size which is preferred for loading the image for the
-   * given width and height
-   */
-  private int calculateInSampleSize(
-          BitmapFactory.Options options, int reqWidth, int reqHeight){
-    // Raw height and width of image
-    final int height = options.outHeight;
-    final int width = options.outWidth;
-    int inSampleSize = 1;
-
-    // if I actually want to sample more
-    if (height > reqHeight || width > reqWidth){
-
-      final int halfHeight = height / 2;
-      final int halfWidth = width / 2;
-
-      // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-      // height and width larger than the requested height and width.
-      while ((halfHeight / inSampleSize) > reqHeight
-              && (halfWidth / inSampleSize) > reqWidth){
-        inSampleSize *= 2;
-      }
-    }
-    return inSampleSize;
-  }
-
-  /**
    * This interface must be implemented by ui that contain this
    * fragment to allow an interaction in this fragment to be communicated
    * to the activity and potentially other chatting contained in that
@@ -373,42 +342,6 @@ public class SendImageFragment extends Fragment{
    */
   public interface OnFragmentInteractionListener{
     void onReturnClick();
-  }
-
-  private class LoadImageRunnable implements Runnable{
-    Handler mHandler;
-    ImageView imageView;
-
-    public LoadImageRunnable(ImageView imageView, Handler mHandler){
-      this.mHandler = mHandler;
-      this.imageView = imageView;
-    }
-
-    @Override
-    public void run(){
-      final String imagePath = FileUtils.getPath(getContext(), imageUri);
-
-      // First decode with inJustDecodeBounds=true to check dimensions
-      final BitmapFactory.Options options = new BitmapFactory.Options();
-      options.inJustDecodeBounds = true;
-      BitmapFactory.decodeFile(imagePath, options);
-
-      // Calculate inSampleSize
-      DisplayMetrics d = new DisplayMetrics();
-      ((WindowManager) getContext().getSystemService(Context
-              .WINDOW_SERVICE)).getDefaultDisplay().getMetrics(d);
-      options.inSampleSize = calculateInSampleSize(options, d.widthPixels / 2, d
-              .heightPixels / 2);
-
-      // Decode bitmap with inSampleSize set
-      options.inJustDecodeBounds = false;
-      mHandler.post(new Runnable(){
-        @Override
-        public void run(){
-          imageView.setImageBitmap(BitmapFactory.decodeFile(imagePath, options));
-        }
-      });
-    }
   }
 
   /**

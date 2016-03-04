@@ -19,7 +19,8 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 public class PasswordActivity extends AppCompatActivity implements
-        PinFragment.OnFragmentInteractionListener, AGBFragment.OnFragmentInteractionListener{
+        PinFragment.OnFragmentInteractionListener,
+        AGBFragment.OnFragmentInteractionListener{
 
   public static final String PREFERENCES = "com.raspi.chatapp.ui.password" +
           ".PasswordActivity.PREFERENCES";
@@ -52,7 +53,7 @@ public class PasswordActivity extends AppCompatActivity implements
     setContentView(R.layout.activity_password);
     if (savedInstanceState == null)
       getSupportFragmentManager().beginTransaction().add(R.id
-              .fragment_container, new AGBFragment()).commit();
+              .fragment_container, AGBFragment.newInstance()).commit();
   }
 
   private void grantAccess(){
@@ -80,7 +81,7 @@ public class PasswordActivity extends AppCompatActivity implements
   @Override
   public void agbAccepted(){
     getSupportFragmentManager().beginTransaction().replace(R.id
-            .fragment_container, new PinFragment()).commit();
+            .fragment_container, PinFragment.newInstance()).commit();
 
   }
 

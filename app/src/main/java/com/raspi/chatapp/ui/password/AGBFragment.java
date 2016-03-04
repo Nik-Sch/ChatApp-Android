@@ -1,17 +1,12 @@
 package com.raspi.chatapp.ui.password;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Html;
-import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
@@ -36,6 +31,10 @@ public class AGBFragment extends Fragment{
 
   private OnFragmentInteractionListener mListener;
 
+  public AGBFragment(){
+    // require empty constructor
+  }
+
   /**
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
@@ -44,8 +43,7 @@ public class AGBFragment extends Fragment{
    */
   public static AGBFragment newInstance(){
     AGBFragment fragment = new AGBFragment();
-    Bundle args = new Bundle();
-    fragment.setArguments(args);
+    fragment.setArguments(new Bundle());
     return fragment;
   }
 
@@ -59,13 +57,12 @@ public class AGBFragment extends Fragment{
     super.onResume();
     TextView tv = ((TextView) getActivity().findViewById(R.id.agb));
     tv.setText(Html.fromHtml(agb));
-    ((ImageButton) getActivity().findViewById(R.id.agb_accept))
-            .setOnClickListener(new View.OnClickListener(){
-              @Override
-              public void onClick(View v){
-                mListener.agbAccepted();
-              }
-            });
+    getActivity().findViewById(R.id.agb_accept).setOnClickListener(new View.OnClickListener(){
+      @Override
+      public void onClick(View v){
+        mListener.agbAccepted();
+      }
+    });
   }
 
   @Override

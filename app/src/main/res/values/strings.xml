@@ -123,4 +123,7 @@
     <string name="action_about">About this app</string>
     <string name="sending_image">Sending the image</string>
     <string name="no_internet">No internet connection %s</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

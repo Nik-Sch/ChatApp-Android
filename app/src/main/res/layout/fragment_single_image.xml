@@ -1,0 +1,72 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    tools:context="com.raspi.chatapp.ui.image.SingleImageFragment">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter">
+    </ImageView>
+
+    <RelativeLayout
+        android:padding="5dp"
+        android:id="@+id/custom_action_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/custom_action_bar">
+        <ImageButton
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_arrow_back_white_36dp"
+            android:background="@android:color/transparent"/>
+        <TextView
+            android:id="@+id/image_index"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 of 88"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/back_button"
+            android:layout_toEndOf="@+id/back_button"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"/>
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/image_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/custom_action_bar"
+        android:padding="5dp">
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This is a description"
+            android:textColor="@android:color/white"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:textSize="17sp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginRight="20dp"/>
+        <TextView
+            android:id="@+id/chat_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/description"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@android:color/secondary_text_dark"
+            android:text="TestChat"/>
+    </RelativeLayout>
+
+</RelativeLayout>

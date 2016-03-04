@@ -14,6 +14,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.os.ResultReceiver;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -47,6 +48,7 @@ import com.github.ankushsachdeva.emojicon.EmojiconGridView;
 import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
 import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.image.ImageViewActivity;
 import com.raspi.chatapp.ui.util.WallpaperImageView;
 import com.raspi.chatapp.ui.util.message_array.Date;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
@@ -559,11 +561,14 @@ public class ChatFragment extends Fragment{
    * @param chatName The name of the chat
    * @return A new instance of fragment ChatFragment.
    */
-  public static ChatFragment newInstance(String buddyId, String chatName){
+  public static ChatFragment newInstance(String buddyId, String chatName,
+                                         Parcelable imageUri){
     ChatFragment fragment = new ChatFragment();
     Bundle args = new Bundle();
     args.putString(Constants.BUDDY_ID, buddyId);
     args.putString(Constants.CHAT_NAME, chatName);
+    if (imageUri != null)
+      args.putParcelable(Constants.IMAGE_URI, imageUri);
     fragment.setArguments(args);
     return fragment;
   }
@@ -796,11 +801,13 @@ public class ChatFragment extends Fragment{
         if (mac instanceof ImageMessage){
           ImageMessage im = (ImageMessage) mac;
           // yeah pretty straight forward, just view the image with the
-          // default application. I probably should make my own imageViewer
-          // which is able to scroll through the images of one chat etc.
-          Intent viewIntent = new Intent(Intent.ACTION_VIEW);
-          viewIntent.setDataAndType(Uri.fromFile(new File(im.file)),
-                  "image/*");
+          // default application.
+//          Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+//          viewIntent.setDataAndType(Uri.fromFile(new File(im.file)),
+//                  "image/*");
+          Intent viewIntent = new Intent(getContext(), ImageViewActivity.class);
+          viewIntent.putExtra(Constants.BUDDY_ID, buddyId);
+          viewIntent.putExtra(Constants.MESSAGE_ID, im._ID);
           startActivity(viewIntent);
 
           // don't ask for a pwd as I am just viewing an image

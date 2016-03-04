@@ -57,6 +57,10 @@ public class ChatListFragment extends Fragment{
     }
   };
 
+  public ChatListFragment(){
+    // require empty constructor
+  }
+
   /**
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
@@ -65,8 +69,7 @@ public class ChatListFragment extends Fragment{
    */
   public static ChatListFragment newInstance(){
     ChatListFragment fragment = new ChatListFragment();
-    Bundle args = new Bundle();
-    fragment.setArguments(args);
+    fragment.setArguments(new Bundle());
     return fragment;
   }
 
@@ -280,7 +283,7 @@ public class ChatListFragment extends Fragment{
               noInternet.setVisibility(View.VISIBLE);
               // get the in animation and set its duration
               Animation noInternetInAnimation = AnimationUtils.loadAnimation
-                      (getContext(), R.anim.no_internet_in);
+                      (getContext(), R.anim.top_in);
               noInternetInAnimation.setDuration(500);
               // start the animation
               noInternet.startAnimation(noInternetInAnimation);
@@ -314,7 +317,7 @@ public class ChatListFragment extends Fragment{
               // if it still exists, create the animation, set its duration
               // and start it
               Animation noInternetOutAnimation = AnimationUtils.loadAnimation
-                      (getContext(), R.anim.no_internet_out);
+                      (getContext(), R.anim.top_out);
               noInternetOutAnimation.setDuration(500);
               noInternetOutAnimation.setAnimationListener(new Animation.AnimationListener(){
                 @Override

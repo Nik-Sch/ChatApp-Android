@@ -5,7 +5,8 @@
     <color name="colorAccent">#3F3F9F</color>
     <color name="colorLink">#0000EE</color>
     <color name="colorTimeStamp">#606060</color>
-    <color name="listview_transparent_bg">#90A0A0A0</color>
+    <color name="listview_transparent_bg">#9AAA</color>
+    <color name="custom_action_bar">#9000</color>
     <color name="selectedListView">#440000EE</color>
     <color name="incorrect">#BB0000</color>
     <color name="lightBubble">#C4D5FB</color>
