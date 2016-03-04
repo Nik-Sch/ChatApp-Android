@@ -18,6 +18,7 @@ import com.raspi.chatapp.util.Constants;
 import org.json.JSONArray;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -319,9 +320,9 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry._ID,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID
     };
-      Cursor messages = db.query(buddyId, columns, null, null, null, null, MessageHistoryContract
-              .MessageEntry
-              .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", offset + "," + amount);
+    Cursor messages = db.query(buddyId, columns, null, null, null, null, MessageHistoryContract
+            .MessageEntry
+            .COLUMN_NAME_MESSAGE_TIMESTAMP + " DESC", offset + "," + amount);
 
     if (reverse)
       messages.moveToFirst();
@@ -511,14 +512,23 @@ public class MessageHistory{
     db.close();
   }
 
-  public void updateMessageProgress(String chatId, long _ID, double
-          newProgress){
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    ContentValues values = new ContentValues();
-    values.put(MessageHistoryContract.MessageEntry
-            .COLUMN_NAME_MESSAGE_PROGRESS, newProgress);
-    String whereClause = MessageHistoryContract.MessageEntry._ID + " == ?";
-    db.update(chatId, values, whereClause, new String[]{Long.toString(_ID)});
+  public ArrayList<ImageMessage> getImageMessages(String chatId){
+    ArrayList<ImageMessage> messages = new ArrayList<>();
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    Cursor c = db.query(chatId,
+            new String[]{MessageHistoryContract.MessageEntry._ID},
+            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE + "=?",
+            new String[]{MessageHistory.TYPE_IMAGE},
+            null, null, null);
+    c.moveToFirst();
+    do{
+      long messageId = c.getLong(0);
+      MessageArrayContent mac = getMessage(chatId, messageId);
+      if (mac instanceof ImageMessage)
+        messages.add((ImageMessage) mac);
+    }while (c.move(1));
+    c.close();
     db.close();
+    return messages;
   }
 }

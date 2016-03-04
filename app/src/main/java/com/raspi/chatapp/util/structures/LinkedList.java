@@ -41,7 +41,7 @@ public class LinkedList<E>{
    * add the object at the end.
    * @param object the object to be added.
    */
-  public void addAtEnd(E object){
+  private void addAtEnd(E object){
     ListElement<E> newElement = new ListElement<>(object);
     if (root.previous != null){
       newElement.previous = root.previous;
@@ -76,10 +76,8 @@ public class LinkedList<E>{
    * removes the current element. Afterwards, the current element will be the
    * element that followed the removed one.
    * @return the element, that has been removed.
-   * @throws EmptyLinkedListException If the list is empty there is no
-   * element to be removed.
    */
-  public E remove() throws EmptyLinkedListException{
+  public E remove(){
     if (size == 0)
       throw new EmptyLinkedListException("There is no element to be removed " +
               "in the list.");
@@ -101,10 +99,8 @@ public class LinkedList<E>{
   /**
    * returns the current element.
    * @return the current element
-   * @throws EmptyLinkedListException If the list is empty there is no
-   * element to be returned.
    */
-  public E current() throws EmptyLinkedListException{
+  public E current(){
     if (current == root)
       throw new EmptyLinkedListException();
     return current.data;
@@ -113,12 +109,11 @@ public class LinkedList<E>{
   /**
    * returns the next element if there is one and moves the current element.
    * Meaning {@link #getIndex()} will return{@code oldIndex + 1}.
-   * @return the next element.
+   * @return the next element. Or null if there is no next element.
    */
   public E next(){
     if (current.next == root)
-      throw new IllegalArgumentException("The current element is the last " +
-              "element in the list");
+      return null;
     current = current.next;
     return current.data;
   }
@@ -126,12 +121,11 @@ public class LinkedList<E>{
   /**
    * returns the previous element if there is one and moves the current element.
    * Meaning {@link #getIndex()} will return{@code oldIndex - 1}.
-   * @return the previous element.
+   * @return the previous element. Or null if there is no previous element.
    */
   public E previous(){
     if (current.previous == root)
-      throw new IllegalArgumentException("The current element is the first " +
-              "element in the list");
+      return null;
     current = current.previous;
     return current.data;
   }
@@ -177,10 +171,15 @@ public class LinkedList<E>{
     return size;
   }
 
+  public void moveToFirst(){
+    setIndex(0);
+  }
+
   /**
    * This Exception is thrown if you try to access the list while it is empty.
    */
-  public class EmptyLinkedListException extends Exception{
+  public static class EmptyLinkedListException extends RuntimeException{
+
     public EmptyLinkedListException(){
     }
 

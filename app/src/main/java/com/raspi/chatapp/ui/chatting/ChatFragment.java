@@ -630,7 +630,7 @@ public class ChatFragment extends Fragment{
     // also init the ui
     if (init)
       initUI();
-    init = true;
+    init = false;
   }
 
   @Override

@@ -1,12 +1,7 @@
 package com.raspi.chatapp.ui.util.message_array;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,10 +16,10 @@ import android.widget.TextView;
 
 import com.github.ankushsachdeva.emojicon.EmojiconTextView;
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -49,47 +44,6 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
   public void insert(MessageArrayContent object, int index){
     // inserting an item will insert it into the arrayList
     messageList.add(index, object);
-  }
-
-  /**
-   * if there is any work done by the bitmapWorkerTask of the imageView it is
-   * interrupted.
-   *
-   * @param file      the file that should be loaded
-   * @param imageView the imageView which should be checked for active tasks
-   * @return true
-   */
-  private static boolean cancelPotentialWork(File file, ImageView imageView){
-    // get the workerTask
-    final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-    // if there is a task
-    if (bitmapWorkerTask != null){
-      final File bitmapFile = bitmapWorkerTask.data;
-      // if the file doesn't exist or is wrong cancel the task
-      if (bitmapFile == null || bitmapFile != file)
-        bitmapWorkerTask.cancel(true);
-    }
-    return true;
-  }
-
-  /**
-   * returns the workerTask that is active on the imageViews bitmap
-   *
-   * @param imageView the imageView which bitmapWorkerTask should be returned
-   * @return the bitmapWorkerTask
-   */
-  private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView){
-    // there need to be an imageView
-    if (imageView != null){
-      // and the drawable needs to be async
-      final Drawable drawable = imageView.getDrawable();
-      if (drawable instanceof AsyncDrawable){
-        // if this is the case return its workerTask
-        final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-        return asyncDrawable.getBitmapWorkerTask();
-      }
-    }
-    return null;
   }
 
   @Override
@@ -430,20 +384,22 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
    * set the async drawable to the imageView for it to be loaded in the
    * background, while showing either the specified tempFile or if it doesn't
    * exists the placeholder drawable
-   * @param file the image to be loaded in the background
-   * @param imageView the imageView to show the image
+   *
+   * @param file         the image to be loaded in the background
+   * @param imageView    the imageView to show the image
    * @param tempFileName the file containing the small image
    * @throws Exception if e.g. the tempFile is no image or anything else goes
-   * wrong
+   *                   wrong
    */
   private void loadBitmap(File file, ImageView imageView, String tempFileName)
           throws Exception{
     // first cancel all potential work being done on the imageView
-    if (cancelPotentialWork(file, imageView)){
+    if (AsyncDrawable.cancelPotentialWork(file, imageView)){
       // the asyncDrawable needs the imageView and its width and height as task
-      final BitmapWorkerTask task = new BitmapWorkerTask(imageView, imageView
-              .getLayoutParams().width, imageView.getLayoutParams()
-              .height);
+      final AsyncDrawable.BitmapWorkerTask task =
+              new AsyncDrawable.BitmapWorkerTask(imageView,
+                      imageView.getLayoutParams().width,
+                      imageView.getLayoutParams().height);
       // set the drawable as the asyncDrawable
       imageView.setImageDrawable(new AsyncDrawable(
               getContext().getResources(),
@@ -489,127 +445,5 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
         throw new UnsupportedOperationException();
       }
     };
-  }
-
-  /**
-   * this drawable will contain a small image while loading the larger image.
-   * If the large image has been loaded in the background the drawable
-   * switches to it.
-   */
-  static class AsyncDrawable extends BitmapDrawable{
-    // keep reference to the workerTask
-    private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskWeakReference;
-
-    /**
-     * create an asyncDrawable
-     * @param res the resources for the BitmapDrawable
-     * @param bitmap the small bitmap to be loaded instantly
-     * @param bitmapWorkerTask the task that will load large bitmap in the
-     *                         background
-     */
-    public AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask
-            bitmapWorkerTask){
-      // create the bitmap with the small image
-      super(res, bitmap);
-      // create the reference to the workerTask
-      bitmapWorkerTaskWeakReference = new WeakReference<>(bitmapWorkerTask);
-    }
-
-    public BitmapWorkerTask getBitmapWorkerTask(){
-      // return what the reference holds
-      return bitmapWorkerTaskWeakReference.get();
-    }
-  }
-
-  /**
-   * this asyncTask will load the file in the background into a bitmap
-   */
-  private class BitmapWorkerTask extends AsyncTask<File, Void, Bitmap>{
-    private final WeakReference<ImageView> imageViewWeakReference;
-    private File data;
-    private int width, height;
-
-    /**
-     * create a bitmapWorkerTask
-     * @param imageView the imageView which should show the image
-     * @param width the width of the imageView
-     * @param height the height of the imageView
-     */
-    public BitmapWorkerTask(ImageView imageView, int width, int height){
-      // keep a weak reference to the imageView
-      imageViewWeakReference = new WeakReference<>(imageView);
-      // set width and height
-      this.width = width;
-      this.height = height;
-    }
-
-    @Override
-    protected Bitmap doInBackground(File... params){
-      if (!params[0].isFile())
-        return null;
-      data = params[0];
-
-      // First decode with inJustDecodeBounds=true to check dimensions
-      final BitmapFactory.Options options = new BitmapFactory.Options();
-      options.inJustDecodeBounds = true;
-      BitmapFactory.decodeFile(data.getAbsolutePath(), options);
-
-      // Calculate inSampleSize
-      options.inSampleSize = calculateInSampleSize(options, width, height);
-
-      // Decode bitmap with inSampleSize set
-      options.inJustDecodeBounds = false;
-      return BitmapFactory.decodeFile(data.getAbsolutePath(), options);
-    }
-
-    @Override
-    protected void onPostExecute(Bitmap bitmap){
-      // if the task was cancelled set the bitmap to null to avoid half
-      // loaded bitmaps
-      if (isCancelled())
-        bitmap = null;
-
-      // if I still have reference to the imageView and if the bitmap exists
-      if (imageViewWeakReference != null && bitmap != null){
-        // get the bitmapWorkerTask and the imageView
-        final ImageView imageView = imageViewWeakReference.get();
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask
-                (imageView);
-        // only if this is the correct workerTask and if the imageView still
-        // exists set the bitmap
-        if (this == bitmapWorkerTask && imageView != null)
-          imageView.setImageBitmap(bitmap);
-      }
-    }
-
-
-    /**
-     * calculates the sampleSize for the image to be loaded in.
-     * @param options the current options for the bitmap
-     * @param reqWidth the required width of the imageView
-     * @param reqHeight the required height of the imageView
-     * @return the sampleSize
-     */
-    private int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight){
-      // Raw height and width of image
-      final int height = options.outHeight;
-      final int width = options.outWidth;
-      int inSampleSize = 1;
-
-      if (height > reqHeight || width > reqWidth){
-
-        final int halfHeight = height / 2;
-        final int halfWidth = width / 2;
-
-        // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-        // height and width larger than the requested height and width.
-        while ((halfHeight / inSampleSize) > reqHeight
-                && (halfWidth / inSampleSize) > reqWidth){
-          inSampleSize *= 2;
-        }
-      }
-      return inSampleSize;
-    }
   }
 }
