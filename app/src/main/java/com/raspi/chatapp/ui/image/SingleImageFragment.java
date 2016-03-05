@@ -19,17 +19,22 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -83,6 +88,10 @@ public class SingleImageFragment extends Fragment{
     if (savedInstanceState != null){
       viewPagerPosition = savedInstanceState.getInt(VIEW_PAGE_ITEM, 0);
     }
+    ActionBar actionBar = ((AppCompatActivity) getActivity())
+            .getSupportActionBar();
+    actionBar.setDisplayHomeAsUpEnabled(true);
+    actionBar.setHomeButtonEnabled(true);
   }
 
   @Override
@@ -102,17 +111,15 @@ public class SingleImageFragment extends Fragment{
   }
 
   private void initUI(){
-    // activate the back button
-    getActivity().findViewById(R.id.back_button).setOnClickListener(new View.OnClickListener(){
-      @Override
-      public void onClick(View v){
-        if (getActivity().getSupportFragmentManager()
-                .getBackStackEntryCount() == 0)
-          getActivity().finish();
-        else
-          getActivity().getSupportFragmentManager().popBackStack();
-      }
-    });
+    // set the actionBars background to transparent
+    ActionBar actionBar = ((AppCompatActivity) getActivity())
+            .getSupportActionBar();
+    actionBar.setBackgroundDrawable(new ColorDrawable(getResources().getColor
+            (R.color.action_bar_transparent)));
+    // set the statusBar color
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      getActivity().getWindow().setStatusBarColor(getResources().getColor(R
+              .color.action_bar_transparent));
     TextView chatName = (TextView) getActivity().findViewById(R.id.chat_name);
     chatName.setText(mListener.getChatName());
     // get the imageView and load the image in the background
@@ -120,7 +127,7 @@ public class SingleImageFragment extends Fragment{
     viewPager.setAdapter(new ImagePagerAdapter());
     viewPager.setPageTransformer(true, new DepthPageTransformer());
     if (viewPagerPosition == -1)
-      viewPager.setCurrentItem(mListener.getCurrent() - 1);
+      viewPager.setCurrentItem(mListener.getCurrent());
     else
       viewPager.setCurrentItem(viewPagerPosition);
     viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener(){
@@ -137,29 +144,70 @@ public class SingleImageFragment extends Fragment{
       public void onPageScrollStateChanged(int state){
       }
     });
+    showOverlay(true);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item){
+    switch (item.getItemId()){
+      case android.R.id.home:
+        if (getActivity().getSupportFragmentManager()
+                .getBackStackEntryCount() == 0)
+          getActivity().finish();
+        else
+          getActivity().getSupportFragmentManager().popBackStack();
+        return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   private void updateInfo(int pos){
     // set the correct title
-    TextView title = (TextView) getActivity().findViewById(R.id.image_index);
-    title.setText(String.format(getResources().getString(R.string
+    ActionBar actionBar = ((AppCompatActivity) getActivity())
+            .getSupportActionBar();
+    actionBar.setTitle(String.format(getResources().getString(R.string
             .single_image_view_title), pos + 1, mListener.getCount()));
+    // set the description
     TextView description = (TextView) getActivity().findViewById(R.id
             .description);
     description.setText(mListener.getImageAtIndex(pos).description);
+    // make it gone if there is none for the layout to be smaller, and,
+    // therefore, the transparent background
     if (description.getText() == null || description.getText().toString().isEmpty())
       description.setVisibility(View.GONE);
     else
       description.setVisibility(View.VISIBLE);
+    // update the time of the message
+    TextView dateTime = (TextView) getActivity().findViewById(R.id.date);
+    dateTime.setText(String.format(getResources()
+                    .getString(R.string.date_and_time),
+            mListener.getImageAtIndex(mListener.getCurrent()).time));
   }
 
   private void showOverlay(boolean active){
-    final View customActionBar = getActivity().findViewById(R.id.custom_action_bar);
     final View imageInfo = getActivity().findViewById(R.id.image_info);
     Animation anim;
+    ActionBar actionBar = ((AppCompatActivity) getActivity())
+            .getSupportActionBar();
     if (active){
-      getActivity().getWindow().addFlags(WindowManager.LayoutParams
-              .FLAG_FULLSCREEN);
+      View decorView = getActivity().getWindow().getDecorView();
+      int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+              View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+      decorView.setSystemUiVisibility(uiOptions);
+      actionBar.show();
+      anim = AnimationUtils.loadAnimation(getContext(), R.anim
+              .bottom_in);
+      anim.setDuration(300);
+      imageInfo.setVisibility(View.VISIBLE);
+      imageInfo.startAnimation(anim);
+
+    }else{
+      View decorView = getActivity().getWindow().getDecorView();
+      int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN |
+              View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+              View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+      decorView.setSystemUiVisibility(uiOptions);
+      actionBar.hide();
       anim = AnimationUtils.loadAnimation(getContext(), R.anim.bottom_out);
       anim.setDuration(300);
       anim.setAnimationListener(new Animation.AnimationListener(){
@@ -177,36 +225,6 @@ public class SingleImageFragment extends Fragment{
         }
       });
       imageInfo.startAnimation(anim);
-      anim = AnimationUtils.loadAnimation(getContext(), R.anim
-              .top_out);
-      anim.setDuration(300);
-      anim.setAnimationListener(new Animation.AnimationListener(){
-        @Override
-        public void onAnimationStart(Animation animation){
-        }
-
-        @Override
-        public void onAnimationEnd(Animation animation){
-          customActionBar.setVisibility(View.GONE);
-        }
-
-        @Override
-        public void onAnimationRepeat(Animation animation){
-        }
-      });
-      customActionBar.startAnimation(anim);
-    }else{
-      getActivity().getWindow().clearFlags(WindowManager.LayoutParams
-              .FLAG_FULLSCREEN);
-      anim = AnimationUtils.loadAnimation(getContext(), R.anim
-              .bottom_in);
-      anim.setDuration(300);
-      imageInfo.setVisibility(View.VISIBLE);
-      imageInfo.startAnimation(anim);
-      anim = AnimationUtils.loadAnimation(getContext(), R.anim.top_in);
-      anim.setDuration(300);
-      customActionBar.setVisibility(View.VISIBLE);
-      customActionBar.startAnimation(anim);
     }
     overlayActive = active;
   }
@@ -218,8 +236,15 @@ public class SingleImageFragment extends Fragment{
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
       getActivity().getWindow().setStatusBarColor(Color.BLACK);
     }
+    setHasOptionsMenu(true);
     // Inflate the layout for this fragment
     return inflater.inflate(R.layout.fragment_single_image, container, false);
+  }
+
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+    menu.clear();
+    inflater.inflate(R.menu.menu_single_image, menu);
   }
 
   @Override

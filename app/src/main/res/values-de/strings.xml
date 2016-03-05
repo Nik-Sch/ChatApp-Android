@@ -19,9 +19,8 @@
     <string name="action_settings">Einstellungen</string>
     <string name="cancel">Abbrechen</string>
     <string name="last_message_yesterday">GESTERN</string>
-    <string name="last_online_at">um</string>
-    <string name="last_online_today">Heute um</string>
-    <string name="last_online_yesterday">Gestern um</string>
+    <string name="last_online_today">Heute um %1$tk:%1$tM</string>
+    <string name="last_online_yesterday">Gestern um %1$tk:%1$tM</string>
     <string name="pref_header_notifications">Benachrichtungen</string>
     <string name="pref_ringtone_silent">Stumm</string>
     <string name="pref_title_ringtone">Benachrichtungston</string>
@@ -93,4 +92,7 @@
     <string name="up_to_date">Die App ist auf dem neuesten Stand.</string>
     <string name="update_available">Es  ist ein Update verfügbar.</string>
     <string name="single_image_view_title">%1$d von %2$d</string>
+    <string name="date">%1$td.%1$tm.tY</string>
+    <string name="date_and_time">%1$td.%1$tm.tY um %1$tk:%1$tM</string>
+    <string name="time">%1$tk:%1$tM</string>
 </resources>

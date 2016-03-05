@@ -87,12 +87,14 @@ public class MessageHistory{
           startOfDay.set(Calendar.MILLISECOND, 0);
           long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
           if (diff <= 0)
-            lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+            lastMessageDate = String.format(context.getResources().getString
+                    (R.string.time), msgTime);
           else if (diff > 1000 * 60 * 60 * 24)
-            lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                    (msgTime);
+            lastMessageDate = String.format(context.getResources().getString
+                    (R.string.date), msgTime);
           else
-            lastMessageDate = "Yesterday";
+            lastMessageDate = context.getResources().getString(R.string
+                    .last_message_yesterday);
 
           resultChats[i] = new ChatEntry(
                   buddyId,

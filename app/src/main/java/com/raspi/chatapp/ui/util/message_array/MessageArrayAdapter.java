@@ -35,11 +35,9 @@ import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * this class is an arrayAdapter containing messageArrayContents and
@@ -117,12 +115,12 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
     // just for shorter access
     View v = ConvertView;
     // this is item we want to convert
-    MessageArrayContent Obj = getItem(position);
+    MessageArrayContent obj = getItem(position);
 
     // switch through all possible classes. and yep switch statement only
     // allows some data, classes not included.
-    if (Obj instanceof TextMessage){
-      final TextMessage msgObj = (TextMessage) Obj;
+    if (obj instanceof TextMessage){
+      final TextMessage msgObj = (TextMessage) obj;
       // if the view is null or it's layout is not / wrongly inflated or the
       // text does not match the new one inflate a new layout
       // TODO: I probably should check more but atm that's enough for me
@@ -152,8 +150,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       chatText.setText(msgObj.message);
       // set the timeStamp to the correct string representation
       TextView chatTime = (TextView) v.findViewById(R.id.message_text_timeStamp);
-      chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
-              (msgObj.time));
+      chatTime.setText(String.format(getContext().getResources().getString(R
+              .string.time), msgObj.time));
       // everything else differs on whether the message is on the left or
       // right side
       if (msgObj.left){
@@ -217,9 +215,9 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
             break;
         }
       }
-    }else if (Obj instanceof ImageMessage){
+    }else if (obj instanceof ImageMessage){
 
-      final ImageMessage msgObj = (ImageMessage) Obj;
+      final ImageMessage msgObj = (ImageMessage) obj;
       // if the view is null, the view has not been inflated or has been
       // inflated wrong or if the descriptions do not match inflate a new layout
       if (v == null ||
@@ -253,8 +251,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       // the timeStamp
       TextView chatTime = (TextView) v.findViewById(R.id.message_image_timeStamp);
       // set the correct string representation for the time
-      chatTime.setText(new SimpleDateFormat("HH:mm", Locale.GERMANY).format
-              (msgObj.time));
+      chatTime.setText(String.format(getContext().getResources().getString(R
+              .string.time), msgObj.time));
 
       // this is the file name of the tempFile I create for showing while
       // loading the real image.
@@ -353,7 +351,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
             break;
         }
       }
-    }else if (Obj instanceof Date){
+    }else if (obj instanceof Date){
       // I don't care about recycling here, just inflate the correct layout
       // and set the correct text
       LayoutInflater inflater = (LayoutInflater) this.getContext()
@@ -362,21 +360,21 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
 
       TextView date = (TextView) v.findViewById(R.id.date);
       // set the correct string representation
-      date.setText(new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY)
-              .format(((Date) Obj).date));
-    }else if (Obj instanceof LoadMoreMessages){
+      date.setText(String.format(getContext().getResources().getString(R
+              .string.date), ((Date) obj).date));
+    }else if (obj instanceof LoadMoreMessages){
       // I don't care about recycling here, just inflate the correct layout
       LayoutInflater inflater = (LayoutInflater) this.getContext()
               .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       v = inflater.inflate(R.layout.message_load_more, parent, false);
-    }else if (Obj instanceof NewMessage){
+    }else if (obj instanceof NewMessage){
       // I don't care about recycling here, just inflate the correct layout
       LayoutInflater inflater = (LayoutInflater) this.getContext()
               .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       v = inflater.inflate(R.layout.message_new_messages, parent, false);
       // show the correct text
       TextView nm = (TextView) v.findViewById(R.id.new_messages);
-      nm.setText(((NewMessage) Obj).status);
+      nm.setText(((NewMessage) obj).status);
     }
     return v;
   }

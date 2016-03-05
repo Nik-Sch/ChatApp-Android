@@ -158,16 +158,15 @@ public class FileUtils{
     File file = new File(getPath(context, uri));
     return getMimeType(file);
   }
-//  commented by Niklas Schelten to avoid LocalStorageProvider because it is
-//  targeting API 19 while I am targeting API 16
-//  /**
-//   * @param uri The Uri to check.
-//   * @return Whether the Uri authority is {@link LocalStorageProvider}.
-//   * @author paulburke
-//   */
-//  public static boolean isLocalStorageDocument(Uri uri){
-//    return LocalStorageProvider.AUTHORITY.equals(uri.getAuthority());
-//  }
+
+  /**
+   * @param uri The Uri to check.
+   * @return Whether the Uri authority is {@link LocalStorageProvider}.
+   * @author paulburke
+   */
+  public static boolean isLocalStorageDocument(Uri uri){
+    return LocalStorageProvider.AUTHORITY.equals(uri.getAuthority());
+  }
 
   /**
    * @param uri The Uri to check.
@@ -274,14 +273,12 @@ public class FileUtils{
     // DocumentProvider
     if (isKitKat && DocumentsContract.isDocumentUri(context, uri)){
       // LocalStorageProvider
-//      commented by Niklas Schelten in order to remove LocalStorageProvider
-//      which is targeting API 19 while I am targeting API 16
-//      if (isLocalStorageDocument(uri)){
-//        // The path is the id
-//        return DocumentsContract.getDocumentId(uri);
-//      }
+      if (isLocalStorageDocument(uri)){
+        // The path is the id
+        return DocumentsContract.getDocumentId(uri);
+      }
       // ExternalStorageProvider
-      /*else*/ if (isExternalStorageDocument(uri)){
+      else if (isExternalStorageDocument(uri)){
         final String docId = DocumentsContract.getDocumentId(uri);
         final String[] split = docId.split(":");
         final String type = split[0];

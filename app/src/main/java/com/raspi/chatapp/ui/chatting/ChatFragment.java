@@ -687,6 +687,7 @@ public class ChatFragment extends Fragment{
     switch (item.getItemId()){
       // if clicked attach perform the onAttackClicked. Easy.
       case R.id.action_attach:
+        init = true;
         mListener.onAttachClicked();
         return true;
       // if clicked rename open the dialog where the user can rename this chat
@@ -1199,21 +1200,16 @@ public class ChatFragment extends Fragment{
           // diff between start of the day and lastOnline means buddy was
           // online today
           if (diff <= 0)
-            lastOnline = getResources().getString(R.string.last_online_today) + " ";
+            lastOnline = String.format(getResources().getString(R.string.last_online_today), time);
             // if the diff is greater than 'c' than it was beyond yesterday and
             // I will show the date
           else if (diff > 1000 * 60 * 60 * 24)
-            lastOnline = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                    (time) + " " + getResources().getString(R.string
-                    .last_online_at) + " ";
+            lastOnline = String.format(getResources().getString(R.string
+                    .date_and_time), time);
             // if it wasn't today and also wasn't beyond yesterday it probably
             // was yesterday.
           else
-            lastOnline = getResources().getString(R.string.last_online_yesterday)
-                    + " ";
-          // now just add the exact time
-          lastOnline += new SimpleDateFormat("HH:mm", Locale.GERMANY)
-                  .format(time);
+            lastOnline = String.format(getResources().getString(R.string.last_online_yesterday), time);
           // and set the subtitle of the action bar
           if (actionBar != null)
             actionBar.setSubtitle(lastOnline);
@@ -1311,6 +1307,7 @@ public class ChatFragment extends Fragment{
    */
   public interface OnChatFragmentInteractionListener{
     void onAttachClicked();
+
     void sendImage(Uri imageUri);
   }
 

@@ -30,64 +30,49 @@
     </android.support.v4.view.ViewPager>
 
     <RelativeLayout
-        android:padding="10dp"
-        android:id="@+id/custom_action_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/custom_action_bar">
-        <ImageButton
-            android:id="@+id/back_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_arrow_back_white_36dp"
-            android:background="@android:color/transparent"/>
-        <TextView
-            android:id="@+id/image_index"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="3 of 88"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:layout_centerVertical="true"
-            android:layout_toRightOf="@id/back_button"
-            android:layout_toEndOf="@+id/back_button"
-            android:layout_marginLeft="10dp"
-            android:layout_marginStart="10dp"/>
-    </RelativeLayout>
-
-
-    <RelativeLayout
         android:id="@+id/image_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@color/custom_action_bar"
-        android:paddingStart="20dp"
-        android:paddingLeft="20dp"
-        android:paddingEnd="20dp"
-        android:paddingRight="20dp"
+        android:background="@color/action_bar_transparent"
         android:paddingBottom="5dp"
+        android:paddingEnd="20dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingStart="20dp"
         android:paddingTop="5dp">
+
         <TextView
             android:id="@+id/description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_marginRight="20dp"
+            android:ellipsize="end"
+            android:maxLines="3"
             android:text="This is a description"
             android:textColor="@android:color/white"
-            android:maxLines="3"
-            android:ellipsize="end"
-            android:textSize="17sp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginRight="20dp"/>
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="16.02.2016 at 18:20"
+            android:layout_below="@id/description"
+            android:textColor="@android:color/secondary_text_dark"
+            android:textSize="13sp"/>
+
         <TextView
             android:id="@+id/chat_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/description"
-            android:maxLines="1"
+            android:layout_below="@id/date"
             android:ellipsize="end"
+            android:maxLines="1"
+            android:text="TestChat"
             android:textColor="@android:color/secondary_text_dark"
-            android:text="TestChat"/>
+            android:textSize="15sp"/>
     </RelativeLayout>
 
 </RelativeLayout>
