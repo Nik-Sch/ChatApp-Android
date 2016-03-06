@@ -15,6 +15,8 @@
  */
 package com.raspi.chatapp.util;
 
+import android.content.Context;
+
 /**
  * These are the main constants used all over the application.
  */
@@ -131,4 +133,8 @@ public class Constants{
    */
   public static final String IMAGE_DIR = "ChatApp Images";
 
+  public static int dipToPixel(Context context, int dip){
+    final float scale = context.getResources().getDisplayMetrics().density;
+    return (int) (dip * scale + 0.5f);
+  }
 }

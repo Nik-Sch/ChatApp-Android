@@ -412,7 +412,7 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       final AsyncDrawable.BitmapWorkerTask task =
               new AsyncDrawable.BitmapWorkerTask(imageView,
                       imageView.getLayoutParams().width,
-                      imageView.getLayoutParams().height);
+                      imageView.getLayoutParams().height, true);
       // set the drawable as the asyncDrawable
       imageView.setImageDrawable(new AsyncDrawable(
               getContext().getResources(),

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <ImageView
+        android:id="@+id/send_image_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/send_image_description_layout"
+        android:scaleType="fitCenter"/>
+
+    <LinearLayout
+        android:id="@+id/send_image_description_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/send_image_emoti_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="3dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_insert_emoticon_white_24dp"/>
+
+        <com.github.ankushsachdeva.emojicon.EmojiconEditText
+            android:id="@+id/send_image_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textCapSentences|textAutoCorrect|textLongMessage"
+            android:maxLines="3"
+            android:minLines="1"
+            android:textColor="@color/colorAccent"
+            android:textSize="18sp"/>
+    </LinearLayout>
+
+</RelativeLayout>

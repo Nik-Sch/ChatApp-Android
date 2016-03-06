@@ -19,13 +19,19 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -36,18 +42,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.github.ankushsachdeva.emojicon.EmojiconEditText;
 import com.github.ankushsachdeva.emojicon.EmojiconGridView;
 import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
 import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.ui.util.image.LoadImageRunnable;
+import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
@@ -63,6 +70,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.co.senab.photoview.PhotoViewAttacher;
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -73,11 +82,12 @@ import java.util.List;
  */
 public class SendImageFragment extends Fragment{
 
-  private ArrayList<Uri> imageUris;
-  private int current = 0;
+  private ArrayList<Message> images;
+  private ViewPager viewPager;
   private String buddyId;
   private String name;
   private ActionBar actionBar;
+  private int current = 0;
 
   private OnFragmentInteractionListener mListener;
 
@@ -94,8 +104,9 @@ public class SendImageFragment extends Fragment{
    * @param imageUris the imageUris representing the images that are added
    * @return A new instance of fragment SendImageFragment.
    */
-  public static SendImageFragment newInstance(String
-                                                      buddyId, String name, Parcelable... imageUris){
+  public static SendImageFragment newInstance(String buddyId,
+                                              String name,
+                                              Parcelable... imageUris){
     SendImageFragment fragment = new SendImageFragment();
     Bundle args = new Bundle();
     args.putParcelableArray(Constants.IMAGE_URI, imageUris);
@@ -134,7 +145,7 @@ public class SendImageFragment extends Fragment{
     // retrieve the important data
     if (getArguments() != null){
       // the image to be sent
-      imageUris = parcelableToUriArrayList(Arrays.asList(getArguments()
+      images = parcelableToMessageArrayList(Arrays.asList(getArguments()
               .getParcelableArray(Constants.IMAGE_URI)));
       // the buddyId to whom to send the image
       buddyId = getArguments().getString(Constants.BUDDY_ID);
@@ -143,10 +154,11 @@ public class SendImageFragment extends Fragment{
     }
   }
 
-  private ArrayList<Uri> parcelableToUriArrayList(List<Parcelable> parcelables){
-    ArrayList<Uri> result = new ArrayList<>();
+  private ArrayList<Message> parcelableToMessageArrayList(List<Parcelable>
+                                                                  parcelables){
+    ArrayList<Message> result = new ArrayList<>();
     for (Parcelable p : parcelables)
-      result.add((Uri) p);
+      result.add(new Message((Uri) p));
     return result;
   }
 
@@ -191,22 +203,25 @@ public class SendImageFragment extends Fragment{
       actionBar.setTitle(R.string.send_image);
       actionBar.setSubtitle(name);
     }
-    initEmoji();
 
-    // nope this doesn't work with xml attributes because. It is just for the
-    // editText to scroll vertically instead of horizontally
-    EditText et = (EditText) getView().findViewById(R.id
-            .send_image_description);
-    et.setHorizontallyScrolling(false);
-    et.setMaxLines(3);
+    // instantiate the ViewPager
+    viewPager = (ViewPager) getActivity().findViewById(R.id
+            .send_image_view_pager);
+    viewPager.setAdapter(new MyPagerAdapter());
+    viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener(){
+      @Override
+      public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels){
+      }
 
-    // load the image in the background
-    ImageView imageView = ((ImageView) getView().findViewById(R.id
-            .send_image_image));
-    Log.d("SEND_IMAGE_LOG", imageUris.toString());
-    new Thread(new LoadImageRunnable(
-            imageView, new Handler(), getContext(), imageUris.get(current)))
-            .start();
+      @Override
+      public void onPageSelected(int position){
+        changePage(position, false);
+      }
+
+      @Override
+      public void onPageScrollStateChanged(int state){
+      }
+    });
 
     //Cancel button pressed
     getView().findViewById(R.id.send_image_cancel)
@@ -226,26 +241,138 @@ public class SendImageFragment extends Fragment{
                 // the image
                 ProgressDialog progressDialog = new ProgressDialog
                         (getContext());
-                progressDialog.setTitle(R.string.sending_image);
+                if (images.size() > 1)
+                  progressDialog.setTitle(String.format(getResources().getString(R.string
+                          .sending_images), images.size()));
+                else
+                  progressDialog.setTitle(R.string.sending_image);
                 // run the sendImage in a new thread because I am saving the
                 // image and this should be done in a new thread
                 new Thread(new SendImagesRunnable(new Handler(), getContext(),
                         progressDialog)).start();
               }
             });
+
+
+    // generate the overview only if there are at least 2 images
+    if (images.size() > 1){
+      // the layoutParams for the imageView which has the following attributes:
+      // width = height = 65dp
+      // margin = 5dp
+      getActivity().findViewById(R.id.send_image_overview).setVisibility(View.VISIBLE);
+      int a = Constants.dipToPixel(getContext(), 65);
+      RelativeLayout.LayoutParams imageViewParams = new RelativeLayout.LayoutParams
+              (a, a);
+      int b = Constants.dipToPixel(getContext(), 5);
+      imageViewParams.setMargins(b, b, b, b);
+      // the layoutParams for the backgroundView which has the following
+      // attributes:
+      // width = height = 71dp
+      // margin = 2dp
+      int c = Constants.dipToPixel(getContext(), 71);
+      RelativeLayout.LayoutParams backgroundParams = new RelativeLayout
+              .LayoutParams(c, c);
+      int d = Constants.dipToPixel(getContext(), 2);
+      backgroundParams.setMargins(d, d, d, d);
+      // the layoutParams for the relativeLayout containing the image and
+      // the background which has the following attributes:
+      // width = height = wrap_content
+      LinearLayout.LayoutParams relativeLayoutParams = new LinearLayout
+              .LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+              LinearLayout.LayoutParams.WRAP_CONTENT);
+      LinearLayout linearLayout = (LinearLayout) getActivity().findViewById(R.id
+              .send_image_overview_content);
+      int i = 0;
+      for (Message msg : images){
+        // set up the imageView
+        ImageView imageView = new ImageView(getContext());
+        imageView.setLayoutParams(imageViewParams);
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        // load the bitmap async
+        AsyncDrawable.BitmapWorkerTask bitmapWorker = new AsyncDrawable
+                .BitmapWorkerTask(imageView, a, a, true);
+        imageView.setImageDrawable(new AsyncDrawable(getResources(),
+                null, bitmapWorker));
+        imageView.setOnClickListener(new overviewSelectListener(i++));
+        bitmapWorker.execute(FileUtils.getFile(getContext(), msg.getImageUri
+                ()));
+        // set up the background
+        View background = new View(getContext());
+        background.setLayoutParams(backgroundParams);
+        background.setBackgroundColor(getActivity().getResources().getColor(R.color
+                .colorPrimaryDark));
+        // make it invisible in the beginning
+        background.setVisibility(View.GONE);
+
+        // create the relativeLayout containing them
+        RelativeLayout relativeLayout = new RelativeLayout(getContext());
+        relativeLayout.setLayoutParams(relativeLayoutParams);
+        relativeLayout.addView(background);
+        relativeLayout.addView(imageView);
+        // combination of Message and overviewViews
+        msg.setLayout(relativeLayout);
+        msg.setBackground(background);
+        linearLayout.addView(relativeLayout);
+      }
+    }else
+      getActivity().findViewById(R.id.send_image_overview).setVisibility(View.GONE);
+    changePage(0, true);
+  }
+
+  /**
+   * changes the page.
+   *
+   * @param position the page to go to.
+   * @param clicked  if true, the viewPager is set to the position
+   */
+  private void changePage(final int position, boolean clicked){
+    if (images.size() > 1 && current != position){
+      Log.d("SEND_IMAGE", "page changed");
+      images.get(current).getBackground().setVisibility(View.GONE);
+      images.get(position).getBackground().setVisibility(View.VISIBLE);
+      current = position;
+      // scroll to correct position
+      HorizontalScrollView scrollView = (HorizontalScrollView) getActivity()
+              .findViewById(R.id.send_image_overview);
+      View view = images.get(current).getLayout();
+      int vLeft = view.getLeft();
+      int vRight = view.getRight();
+      int sWidth = scrollView.getWidth();
+      if (!isViewVisible(scrollView, view))
+        scrollView.smoothScrollTo((vLeft + vRight - sWidth) / 2, 0);
+      if (clicked)
+        // setting the viewPagers item is posted via a handler, so the gui
+        // thread finishes the scrollView related task before switching the
+        // viewPager. That way it seems smoother because the new image is
+        // selected instantly.
+        new Handler().post(new Runnable(){
+          @Override
+          public void run(){
+            viewPager.setCurrentItem(position);
+          }
+        });
+    }
+  }
+
+  private boolean isViewVisible(HorizontalScrollView scrollView, View view){
+    Rect scrollBounds = new Rect();
+    scrollView.getDrawingRect(scrollBounds);
+    float vLeft = view.getLeft();
+    float vRight = view.getWidth() + vLeft;
+    return scrollBounds.left < vLeft && scrollBounds.right > vRight;
   }
 
   /**
    * initialize the emojiconKeyboard
    */
-  private void initEmoji(){
+  private void initEmoji(View view){
     // this is the same as in ChatFragment --> look there for documentation
-    final EmojiconEditText emojiconEditText = (EmojiconEditText) getActivity
-            ().findViewById(R.id.send_image_description);
+    final EmojiconEditText emojiconEditText = (EmojiconEditText) view
+            .findViewById(R.id.send_image_description);
     final View root = getActivity().findViewById(R.id.root_view);
     final EmojiconsPopup popup = new EmojiconsPopup(root, getActivity());
-    final ImageButton emojiBtn = (ImageButton) getActivity().findViewById(R
-            .id.send_image_emoti_switch);
+    final ImageButton emojiBtn = (ImageButton) view.findViewById(R.id
+            .send_image_emoti_switch);
     popup.setSizeForSoftKeyboard();
     popup.setOnDismissListener(new PopupWindow.OnDismissListener(){
       @Override
@@ -322,15 +449,21 @@ public class SendImageFragment extends Fragment{
     try{
       actionBar.show();
       View buttons = getActivity().findViewById(R.id.send_image_buttons);
-      View description = getActivity().findViewById(R.id
-              .send_image_description_layout);
+      View viewPager = getActivity().findViewById(R.id
+              .send_image_view_pager);
       RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
               RelativeLayout.LayoutParams.MATCH_PARENT,
               RelativeLayout.LayoutParams.WRAP_CONTENT);
-      params.addRule(RelativeLayout.ABOVE, R.id.send_image_buttons);
+      params.addRule(RelativeLayout.ABOVE,
+              images.size() > 1
+                      ? R.id.send_image_overview
+                      : R.id.send_image_buttons);
       params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
       params.addRule(RelativeLayout.ALIGN_PARENT_START);
-      description.setLayoutParams(params);
+      viewPager.setLayoutParams(params);
+      if (images.size() > 1)
+        getActivity().findViewById(R.id.send_image_overview).setVisibility(View
+                .VISIBLE);
       buttons.setVisibility(View.VISIBLE);
     }catch (Exception e){
       e.printStackTrace();
@@ -340,15 +473,18 @@ public class SendImageFragment extends Fragment{
   private void keyboardOpened(){
     try{
       View buttons = getActivity().findViewById(R.id.send_image_buttons);
-      View description = getActivity().findViewById(R.id
-              .send_image_description_layout);
+      View viewPager = getActivity().findViewById(R.id
+              .send_image_view_pager);
       RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
               RelativeLayout.LayoutParams.MATCH_PARENT,
               RelativeLayout.LayoutParams.WRAP_CONTENT);
       params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
       params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
       params.addRule(RelativeLayout.ALIGN_PARENT_START);
-      description.setLayoutParams(params);
+      viewPager.setLayoutParams(params);
+      if (images.size() > 1)
+        getActivity().findViewById(R.id.send_image_overview).setVisibility
+                (View.GONE);
       buttons.setVisibility(View.GONE);
       actionBar.hide();
     }catch (Exception e){
@@ -370,7 +506,7 @@ public class SendImageFragment extends Fragment{
   }
 
   private void addImage(){
-
+    
   }
 
   /**
@@ -480,17 +616,16 @@ public class SendImageFragment extends Fragment{
       MyFileUtils mfu = new MyFileUtils();
       if (mfu.isExternalStorageWritable()){
         try{
-          for (Uri imageUri : imageUris){
+          for (Message msg : images){
             //creating the directory
             File file = mfu.getFileName();
             //creating the file
             file.createNewFile();
             //save the given image into a new file
-            saveImage(FileUtils.getPath(context, imageUri), file);
+            saveImage(FileUtils.getPath(context, msg.getImageUri()), file);
             //adding the image message to the messageHistory
-            JSONArray contentJSON = createJSON(file.getAbsolutePath(), (
-                    (TextView) getView().findViewById(R.id
-                            .send_image_description)).getText().toString());
+            JSONArray contentJSON = createJSON(file.getAbsolutePath(),
+                    msg.getDescription());
             MessageHistory messageHistory = new MessageHistory(getContext());
             long id = messageHistory.addMessage(
                     buddyId,
@@ -519,6 +654,150 @@ public class SendImageFragment extends Fragment{
           mListener.onReturnClick();
         }
       }
+    }
+  }
+
+  private class overviewSelectListener implements View.OnClickListener{
+    final int i;
+
+    public overviewSelectListener(int i){
+      this.i = i;
+    }
+
+    @Override
+    public void onClick(View v){
+      changePage(i, true);
+    }
+  }
+
+  private class Message{
+    private Uri imageUri = null;
+    private String description = "";
+    private RelativeLayout layout = null;
+    private View background = null;
+
+    public Message(){
+    }
+
+    public Message(Uri imageUri){
+      this.imageUri = imageUri;
+    }
+
+    public Message(String description){
+      this.description = description;
+    }
+
+    public Uri getImageUri(){
+      return imageUri;
+    }
+
+    public void setImageUri(Uri imageUri){
+      this.imageUri = imageUri;
+    }
+
+    public String getDescription(){
+      return description;
+    }
+
+    public void setDescription(String description){
+      this.description = description;
+    }
+
+    public View getBackground(){
+      return background;
+    }
+
+    public void setBackground(View background){
+      this.background = background;
+    }
+
+    public RelativeLayout getLayout(){
+      return layout;
+    }
+
+    public void setLayout(RelativeLayout layout){
+      this.layout = layout;
+    }
+  }
+
+  private class MyPagerAdapter extends PagerAdapter{
+    @Override
+    public int getCount(){
+      return images.size();
+    }
+
+    @Override
+    public boolean isViewFromObject(View view, Object object){
+      return view == object;
+    }
+
+    @Override
+    public void destroyItem(ViewGroup container, int position, Object object){
+      container.removeView((View) object);
+    }
+
+    @Override
+    public Object instantiateItem(ViewGroup container, int position){
+      final Message msg = images.get(position);
+
+      // inflate the layout
+      LayoutInflater inflater = LayoutInflater.from(getContext());
+      View view = inflater.inflate(R.layout.send_image_view_pager_content, container,
+              false);
+      // init the emoji Button
+      initEmoji(view);
+
+      // add a textChangedListener to the editText
+      EditText editText = (EditText) view.findViewById(R.id
+              .send_image_description);
+      editText.addTextChangedListener(new TextWatcher(){
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after){
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count){
+        }
+
+        @Override
+        public void afterTextChanged(Editable s){
+          msg.setDescription(s.toString());
+        }
+      });
+      // nope this doesn't work with xml attributes because. It is just for the
+      // editText to scroll vertically instead of horizontally
+      editText.setHorizontallyScrolling(false);
+      editText.setMaxLines(3);
+      // set the current text if there is one
+      editText.setText(msg.getDescription());
+
+      // work with the image
+      String imagePath = FileUtils.getPath(getContext(), msg.getImageUri());
+      ImageView imageView = (ImageView) view.findViewById(R.id
+              .send_image_image);
+      // decode the image properly
+      final BitmapFactory.Options options = new BitmapFactory.Options();
+      options.inJustDecodeBounds = true;
+      BitmapFactory.decodeFile(imagePath, options);
+
+      DisplayMetrics metrics = new DisplayMetrics();
+      getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+      // Calculate inSampleSize
+      options.inSampleSize = AsyncDrawable.calculateInSampleSize(options,
+              metrics.widthPixels, metrics.heightPixels, true);
+
+      // Decode bitmap with inSampleSize set
+      options.inJustDecodeBounds = false;
+      Bitmap bitmap = BitmapFactory.decodeFile(imagePath, options);
+      Log.d("loadBitmap", "Dimensions: " + bitmap.getWidth() + ", " +
+              bitmap.getHeight());
+      imageView.setImageBitmap(bitmap);
+      // make zooming a thing
+      new PhotoViewAttacher(imageView);
+
+      // finally add the view
+      container.addView(view, 0);
+      return view;
     }
   }
 }

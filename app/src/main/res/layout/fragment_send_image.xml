@@ -23,41 +23,25 @@
     android:background="@android:color/black"
     tools:context="com.raspi.chatapp.ui.chatting.SendImageFragment">
 
-    <ImageView
-        android:id="@+id/send_image_image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/send_image_description_layout"
-        android:scaleType="fitCenter"/>
-
-    <LinearLayout
-        android:id="@+id/send_image_description_layout"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/send_image_view_pager"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/send_image_buttons"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:gravity="center_vertical">
+        android:layout_above="@+id/send_image_overview"/>
 
-        <ImageButton
-            android:id="@+id/send_image_emoti_switch"
+    <HorizontalScrollView
+        android:id="@+id/send_image_overview"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:layout_above="@+id/send_image_buttons"
+        android:scrollbars="horizontal"
+        android:scrollbarSize="5dp">
+        <LinearLayout
+            android:id="@+id/send_image_overview_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_insert_emoticon_white_24dp"
-            android:background="@android:color/transparent"
-            android:layout_margin="3dp"/>
-
-        <com.github.ankushsachdeva.emojicon.EmojiconEditText
-            android:id="@+id/send_image_description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textCapSentences|textAutoCorrect|textLongMessage"
-            android:ems="10"
-            android:maxLines="3"
-            android:minLines="1"
-            android:textColor="@color/colorAccent"
-            android:textSize="18sp"/>
-    </LinearLayout>
+            android:orientation="horizontal"/>
+    </HorizontalScrollView>
 
     <LinearLayout
         android:id="@+id/send_image_buttons"

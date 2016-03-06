@@ -137,6 +137,7 @@
         again.</string>
     <string name="action_about">About this app</string>
     <string name="sending_image">Sending the image</string>
+    <string name="sending_images">Sending %1$d images</string>
     <string name="no_internet">No internet connection %1$s</string>
 
     <string name="single_image_view_title">%1$d of %2$d</string>

@@ -63,6 +63,7 @@ public class AsyncDrawable extends BitmapDrawable{
     private final WeakReference<ImageView> imageViewWeakReference;
     private File data;
     private int width, height;
+    private boolean small;
 
     /**
      * create a bitmapWorkerTask
@@ -70,13 +71,17 @@ public class AsyncDrawable extends BitmapDrawable{
      * @param imageView the imageView which should show the image
      * @param width     the width of the imageView
      * @param height    the height of the imageView
+     * @param small if true, the image will have a little bit less quality
+     *              but greatly improved performance
      */
-    public BitmapWorkerTask(ImageView imageView, int width, int height){
+    public BitmapWorkerTask(ImageView imageView, int width, int height,
+                            boolean small){
       // keep a weak reference to the imageView
       imageViewWeakReference = new WeakReference<>(imageView);
       // set width and height
       this.width = width;
       this.height = height;
+      this.small = small;
     }
 
     @Override
@@ -91,7 +96,8 @@ public class AsyncDrawable extends BitmapDrawable{
       BitmapFactory.decodeFile(data.getAbsolutePath(), options);
 
       // Calculate inSampleSize
-      options.inSampleSize = calculateInSampleSize(options, width, height, false);
+      options.inSampleSize = calculateInSampleSize(options, width, height,
+              small);
 
       // Decode bitmap with inSampleSize set
       options.inJustDecodeBounds = false;

@@ -133,11 +133,11 @@ public class SingleImageFragment extends Fragment{
     viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener(){
       @Override
       public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels){
-        updateInfo(position);
       }
 
       @Override
       public void onPageSelected(int position){
+        updateInfo(position);
       }
 
       @Override
@@ -145,6 +145,7 @@ public class SingleImageFragment extends Fragment{
       }
     });
     showOverlay(true);
+    updateInfo(viewPager.getCurrentItem());
   }
 
   @Override

@@ -51,12 +51,10 @@ public class ImageViewActivity extends AppCompatActivity implements
         getSupportFragmentManager().beginTransaction().add(
                 R.id.fragment_container,
                 SingleImageFragment.newInstance()).commit();
-      current = 0;
       count = images.size();
-      for (; current < count; current++)
+      for (current = 0; current < count; current++)
         if (images.get(current)._ID == messageId)
           break;
-      current++;
     }else if (extras != null && extras.containsKey(Constants.BUDDY_ID)){
       messageId = -1;
       if (savedInstanceState == null)
