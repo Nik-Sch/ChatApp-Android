@@ -81,11 +81,9 @@ import com.raspi.chatapp.util.storage.file.MyFileUtils;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -614,7 +612,7 @@ public class ChatFragment extends Fragment{
     // therefore, an imageUri will be attached to the intent that opens the
     // chat. Then I directly want to open the sendImageFragment.
     if (arguments.containsKey(Constants.IMAGE_URI)){
-      mListener.sendImage((Uri) arguments.getParcelable(Constants.IMAGE_URI));
+      mListener.sendImages((Uri) arguments.getParcelable(Constants.IMAGE_URI));
       init = false;
 
     }
@@ -1308,7 +1306,7 @@ public class ChatFragment extends Fragment{
   public interface OnChatFragmentInteractionListener{
     void onAttachClicked();
 
-    void sendImage(Uri imageUri);
+    void sendImages(Uri... imageUris);
   }
 
   /**

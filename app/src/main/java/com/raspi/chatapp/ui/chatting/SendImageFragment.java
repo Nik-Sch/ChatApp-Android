@@ -26,8 +26,12 @@ import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -35,6 +39,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.github.ankushsachdeva.emojicon.EmojiconEditText;
@@ -42,8 +47,8 @@ import com.github.ankushsachdeva.emojicon.EmojiconGridView;
 import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
 import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
-import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.ui.util.image.LoadImageRunnable;
+import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
@@ -54,6 +59,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -65,7 +73,8 @@ import java.io.OutputStream;
  */
 public class SendImageFragment extends Fragment{
 
-  private Uri imageUri;
+  private ArrayList<Uri> imageUris;
+  private int current = 0;
   private String buddyId;
   private String name;
   private ActionBar actionBar;
@@ -80,15 +89,16 @@ public class SendImageFragment extends Fragment{
    * Use this factory method to create a new instance of
    * this fragment using the provided parameters.
    *
-   * @param imageUri the uri of the image that should be sent.
-   * @param buddyId  the buddyId to whom the image should be sent
+   * @param buddyId   the buddyId to whom the image should be sent
+   * @param name      the name of the chat
+   * @param imageUris the imageUris representing the images that are added
    * @return A new instance of fragment SendImageFragment.
    */
-  public static SendImageFragment newInstance(Parcelable imageUri, String
-          buddyId, String name){
+  public static SendImageFragment newInstance(String
+                                                      buddyId, String name, Parcelable... imageUris){
     SendImageFragment fragment = new SendImageFragment();
     Bundle args = new Bundle();
-    args.putParcelable(Constants.IMAGE_URI, imageUri);
+    args.putParcelableArray(Constants.IMAGE_URI, imageUris);
     args.putString(Constants.BUDDY_ID, buddyId);
     args.putString(Constants.CHAT_NAME, name);
     fragment.setArguments(args);
@@ -124,7 +134,8 @@ public class SendImageFragment extends Fragment{
     // retrieve the important data
     if (getArguments() != null){
       // the image to be sent
-      imageUri = getArguments().getParcelable(Constants.IMAGE_URI);
+      imageUris = parcelableToUriArrayList(Arrays.asList(getArguments()
+              .getParcelableArray(Constants.IMAGE_URI)));
       // the buddyId to whom to send the image
       buddyId = getArguments().getString(Constants.BUDDY_ID);
       // and the name of the chat for showing in the actionBar
@@ -132,11 +143,25 @@ public class SendImageFragment extends Fragment{
     }
   }
 
+  private ArrayList<Uri> parcelableToUriArrayList(List<Parcelable> parcelables){
+    ArrayList<Uri> result = new ArrayList<>();
+    for (Parcelable p : parcelables)
+      result.add((Uri) p);
+    return result;
+  }
+
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState){
     // Inflate the layout for this fragment
+    setHasOptionsMenu(true);
     return inflater.inflate(R.layout.fragment_send_image, container, false);
+  }
+
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater){
+    menu.clear();
+    inflater.inflate(R.menu.menu_send_image, menu);
   }
 
   @Override
@@ -157,8 +182,8 @@ public class SendImageFragment extends Fragment{
   }
 
   /**
-   * this function will initialize the ui and reload everything to make sure
-   * it is shown correctly
+   * this function will initialize the ui showing the current image and reload
+   * everything to make sure it is shown correctly
    */
   private void initUI(){
     // set the actionBar title and subtitle
@@ -178,8 +203,10 @@ public class SendImageFragment extends Fragment{
     // load the image in the background
     ImageView imageView = ((ImageView) getView().findViewById(R.id
             .send_image_image));
+    Log.d("SEND_IMAGE_LOG", imageUris.toString());
     new Thread(new LoadImageRunnable(
-            imageView, new Handler(), getContext(), imageUri)).start();
+            imageView, new Handler(), getContext(), imageUris.get(current)))
+            .start();
 
     //Cancel button pressed
     getView().findViewById(R.id.send_image_cancel)
@@ -202,7 +229,7 @@ public class SendImageFragment extends Fragment{
                 progressDialog.setTitle(R.string.sending_image);
                 // run the sendImage in a new thread because I am saving the
                 // image and this should be done in a new thread
-                new Thread(new SendImageRunnable(new Handler(), getContext(),
+                new Thread(new SendImagesRunnable(new Handler(), getContext(),
                         progressDialog)).start();
               }
             });
@@ -229,12 +256,14 @@ public class SendImageFragment extends Fragment{
     popup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener(){
       @Override
       public void onKeyboardOpen(int keyBoardHeight){
+        keyboardOpened();
       }
 
       @Override
       public void onKeyboardClose(){
         if (popup.isShowing())
           popup.dismiss();
+        keyboardClosed();
       }
     });
     popup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener(){
@@ -287,6 +316,61 @@ public class SendImageFragment extends Fragment{
           popup.dismiss();
       }
     });
+  }
+
+  private void keyboardClosed(){
+    try{
+      actionBar.show();
+      View buttons = getActivity().findViewById(R.id.send_image_buttons);
+      View description = getActivity().findViewById(R.id
+              .send_image_description_layout);
+      RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+              RelativeLayout.LayoutParams.MATCH_PARENT,
+              RelativeLayout.LayoutParams.WRAP_CONTENT);
+      params.addRule(RelativeLayout.ABOVE, R.id.send_image_buttons);
+      params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+      params.addRule(RelativeLayout.ALIGN_PARENT_START);
+      description.setLayoutParams(params);
+      buttons.setVisibility(View.VISIBLE);
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+  }
+
+  private void keyboardOpened(){
+    try{
+      View buttons = getActivity().findViewById(R.id.send_image_buttons);
+      View description = getActivity().findViewById(R.id
+              .send_image_description_layout);
+      RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+              RelativeLayout.LayoutParams.MATCH_PARENT,
+              RelativeLayout.LayoutParams.WRAP_CONTENT);
+      params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+      params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+      params.addRule(RelativeLayout.ALIGN_PARENT_START);
+      description.setLayoutParams(params);
+      buttons.setVisibility(View.GONE);
+      actionBar.hide();
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item){
+    switch (item.getItemId()){
+      case android.R.id.home:
+        mListener.onReturnClick();
+        return true;
+      case R.id.add_image:
+        addImage();
+        return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
+  private void addImage(){
+
   }
 
   /**
@@ -363,7 +447,7 @@ public class SendImageFragment extends Fragment{
    * this runnable sends the image, shows while saving the image a
    * progressDialog and afterwards clicks return
    */
-  private class SendImageRunnable implements Runnable{
+  private class SendImagesRunnable implements Runnable{
 
     Handler mHandler;
     Context context;
@@ -376,8 +460,8 @@ public class SendImageFragment extends Fragment{
      * @param context        the context
      * @param progressDialog the progressDialog to show when saving the image
      */
-    public SendImageRunnable(Handler mHandler, Context context,
-                             ProgressDialog progressDialog){
+    public SendImagesRunnable(Handler mHandler, Context context,
+                              ProgressDialog progressDialog){
       this.mHandler = mHandler;
       this.context = context;
       this.progressDialog = progressDialog;
@@ -396,29 +480,31 @@ public class SendImageFragment extends Fragment{
       MyFileUtils mfu = new MyFileUtils();
       if (mfu.isExternalStorageWritable()){
         try{
-          //creating the directory
-          File file = mfu.getFileName();
-          //creating the file
-          file.createNewFile();
-          //save the given image into a new file
-          saveImage(FileUtils.getPath(context, imageUri), file);
-          //adding the image message to the messageHistory
-          JSONArray contentJSON = createJSON(file.getAbsolutePath(), (
-                  (TextView) getView().findViewById(R.id
-                          .send_image_description)).getText().toString());
-          MessageHistory messageHistory = new MessageHistory(getContext());
-          long id = messageHistory.addMessage(
-                  buddyId,
-                  // I send it by myself --> get my username
-                  getActivity().getSharedPreferences(Constants.PREFERENCES, 0)
-                          .getString(Constants.USERNAME, ""),
-                  MessageHistory.TYPE_IMAGE,
-                  contentJSON.toString(),
-                  MessageHistory.STATUS_WAITING,
-                  -1);
-          // also make sure to save a down sampled copy of the image in
-          // localStorage for fast rendering in the chatFragment
-          saveImageCopy(getContext(), file.getAbsolutePath(), id, buddyId);
+          for (Uri imageUri : imageUris){
+            //creating the directory
+            File file = mfu.getFileName();
+            //creating the file
+            file.createNewFile();
+            //save the given image into a new file
+            saveImage(FileUtils.getPath(context, imageUri), file);
+            //adding the image message to the messageHistory
+            JSONArray contentJSON = createJSON(file.getAbsolutePath(), (
+                    (TextView) getView().findViewById(R.id
+                            .send_image_description)).getText().toString());
+            MessageHistory messageHistory = new MessageHistory(getContext());
+            long id = messageHistory.addMessage(
+                    buddyId,
+                    // I send it by myself --> get my username
+                    getActivity().getSharedPreferences(Constants.PREFERENCES, 0)
+                            .getString(Constants.USERNAME, ""),
+                    MessageHistory.TYPE_IMAGE,
+                    contentJSON.toString(),
+                    MessageHistory.STATUS_WAITING,
+                    -1);
+            // also make sure to save a down sampled copy of the image in
+            // localStorage for fast rendering in the chatFragment
+            saveImageCopy(getContext(), file.getAbsolutePath(), id, buddyId);
+          }
         }catch (Exception e){
           e.printStackTrace();
         }finally{

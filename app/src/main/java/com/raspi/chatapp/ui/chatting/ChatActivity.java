@@ -18,6 +18,7 @@ package com.raspi.chatapp.ui.chatting;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -25,6 +26,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -62,6 +64,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -443,7 +446,7 @@ public class ChatActivity extends AppCompatActivity implements
    * downloading it will install the app.
    */
   private class UpdateAppAsyncTask extends AsyncTask<String[], Integer,
-            Boolean>{
+          Boolean>{
     private ProgressDialog updateDownloadProgressDialog;
     private String fileLocation = "";
 
@@ -590,7 +593,18 @@ public class ChatActivity extends AppCompatActivity implements
     // if the user chose a image to be sent to the current buddy
     if (requestCode == ChatActivity.PHOTO_ATTACH_SELECTED && resultCode ==
             Activity.RESULT_OK){
-      sendImage(data.getData());
+      if (data.getData() != null)
+        // only one image was selected
+        sendImages(data.getData());
+      else if (data.getClipData() != null){
+        // multiple images were selected
+        ArrayList<Uri> uris = new ArrayList<>();
+        ClipData clipData = data.getClipData();
+        for (int i = 0; i < clipData.getItemCount(); i++)
+          uris.add(clipData.getItemAt(i).getUri());
+        Uri[] array = new Uri[uris.size()];
+        sendImages(uris.toArray(array));
+      }
     }else if (requestCode == PasswordActivity.ASK_PWD_REQUEST){
       // if the user has entered a password or exited the passwordActivity
       // otherwise.
@@ -619,11 +633,11 @@ public class ChatActivity extends AppCompatActivity implements
   }
 
   @Override
-  public void sendImage(Uri imageUri){
+  public void sendImages(Uri... imageUris){
     // open the sendImageFragment for the user to add a description and
     // probably scale the image or whatever I wanna add there.
-    SendImageFragment fragment = SendImageFragment.newInstance(imageUri,
-            currentBuddyId, currentChatName);
+    SendImageFragment fragment = SendImageFragment.newInstance
+            (currentBuddyId, currentChatName, imageUris);
     // replace the fragment and also add it to the backstack by its name.
     getSupportFragmentManager().beginTransaction().replace(R.id
             .fragment_container, fragment).addToBackStack(SendImageFragment
@@ -637,6 +651,8 @@ public class ChatActivity extends AppCompatActivity implements
     // this intent is for getting the image
     Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
     getIntent.setType("image/*");
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+      getIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
 
     // and this for getting the application to get the image with
     Intent pickIntent = new Intent(Intent.ACTION_PICK,

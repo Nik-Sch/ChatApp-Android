@@ -25,15 +25,12 @@ import android.widget.ImageView;
 
 import com.raspi.chatapp.util.storage.file.FileUtils;
 
-import java.io.File;
-
 
 public class LoadImageRunnable implements Runnable{
   Handler mHandler;
   ImageView imageView;
   Context context;
   Uri imageUri;
-  File imageFile;
 
   public LoadImageRunnable(ImageView imageView, Handler mHandler, Context
           context, Uri imageUri){
@@ -43,19 +40,9 @@ public class LoadImageRunnable implements Runnable{
     this.imageUri = imageUri;
   }
 
-  public LoadImageRunnable(ImageView imageView, Handler mHandler, Context
-          context, File imageFile){
-    this.mHandler = mHandler;
-    this.imageView = imageView;
-    this.context = context;
-    this.imageFile = imageFile;
-  }
-
   @Override
   public void run(){
-    final String imagePath = (imageUri != null)
-            ? FileUtils.getPath(context, imageUri)
-            : imageFile.getAbsolutePath();
+    final String imagePath = FileUtils.getPath(context, imageUri);
 
     // First decode with inJustDecodeBounds=true to check dimensions
     final BitmapFactory.Options options = new BitmapFactory.Options();
