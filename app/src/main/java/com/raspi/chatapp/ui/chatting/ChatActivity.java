@@ -160,7 +160,7 @@ public class ChatActivity extends AppCompatActivity implements
     super.onResume();
     // start the messageService just in case it isn't already started or got
     // terminated (which should never happen as it boots with the system)
-    startService(new Intent(getApplicationContext(), MessageService.class));
+    startService(new Intent(this, MessageService.class));
     //if the user wants a pwd protection and if we want to ask for a password
     // start the password activity for a result.
     if (PreferenceManager.getDefaultSharedPreferences(getApplication())

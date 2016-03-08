@@ -277,34 +277,26 @@ public class ChatListFragment extends Fragment{
       });
       // check for a connection
       XmppManager xmppManager = XmppManager.getInstance();
-      boolean shown = false;
+      boolean internet = true;
       if (!xmppManager.isConnected()){
-        // if not connected, try to connect
-        try{
-          xmppManager.getConnection().connect();
-        }catch (Exception e){
-          e.printStackTrace();
-        }
-        if (!xmppManager.isConnected()){
-          // if still not connected show the no connection overlay
-          shown = true;
-          Log.d("INTERNET", "I don't have internet");
-          mHandler.post(new Runnable(){
-            @Override
-            public void run(){
-              // make the view visible
-              RelativeLayout noInternet = (RelativeLayout) getActivity()
-                      .findViewById(R.id.no_internet);
-              noInternet.setVisibility(View.VISIBLE);
-              // get the in animation and set its duration
-              Animation noInternetInAnimation = AnimationUtils.loadAnimation
-                      (getContext(), R.anim.top_in);
-              noInternetInAnimation.setDuration(500);
-              // start the animation
-              noInternet.startAnimation(noInternetInAnimation);
-            }
-          });
-        }
+        // if still not connected show the no connection overlay
+        internet = false;
+        Log.d("INTERNET", "I don't have internet");
+        mHandler.post(new Runnable(){
+          @Override
+          public void run(){
+            // make the view visible
+            RelativeLayout noInternet = (RelativeLayout) getActivity()
+                    .findViewById(R.id.no_internet);
+            noInternet.setVisibility(View.VISIBLE);
+            // get the in animation and set its duration
+            Animation noInternetInAnimation = AnimationUtils.loadAnimation
+                    (getContext(), R.anim.top_in);
+            noInternetInAnimation.setDuration(500);
+            // start the animation
+            noInternet.startAnimation(noInternetInAnimation);
+          }
+        });
       }
       // disable refreshing
       mHandler.post(new Runnable(){
@@ -313,7 +305,7 @@ public class ChatListFragment extends Fragment{
           refreshLayout.setRefreshing(false);
         }
       });
-      if (shown){
+      if (!internet){
         // if I showed the overlay it needs to be hidden afterwards
         try{
           // wait for 2 seconds
@@ -353,6 +345,12 @@ public class ChatListFragment extends Fragment{
             }
           }
         });
+        // if not connected, try to connect
+        try{
+          xmppManager.getConnection().connect();
+        }catch (Exception e){
+          e.printStackTrace();
+        }
       }
     }
   }

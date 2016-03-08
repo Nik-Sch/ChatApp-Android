@@ -40,6 +40,7 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.ping.PingFailedListener;
 import org.jivesoftware.smackx.ping.PingManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -142,6 +143,17 @@ public class XmppManager{
     });
     PingManager pingManager = PingManager.getInstanceFor(connection);
     pingManager.setPingInterval(60);
+    pingManager.registerPingFailedListener(new PingFailedListener(){
+      @Override
+      public void pingFailed(){
+        try{
+          connection.connect();
+        }catch (Exception e){
+          Log.e("ERROR", "Couldn't connect.");
+          Log.e("ERROR", e.toString());
+        }
+      }
+    });
     try{
       connection.connect();
     }catch (Exception e){
@@ -171,7 +183,6 @@ public class XmppManager{
     if (connection != null && connection.isConnected())
       try{
         connection.login(username, password);
-        PingManager pingManager = PingManager.getInstanceFor(connection);
         Log.d("DEBUG", "Success: Logged in.");
         return true;
       }catch (Exception e){

@@ -46,7 +46,6 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.roster.RosterEntry;
 import org.jivesoftware.smack.roster.RosterListener;
-import org.jivesoftware.smackx.offline.OfflineMessageManager;
 
 import java.util.Collection;
 
@@ -119,11 +118,6 @@ public class MessageService extends Service{
   @Override
   public int onStartCommand(Intent intent, int flags, int startId){
     new InitAsyncTask().execute();
-    try{
-      xmppManager.getConnection().connect();
-    }catch (Exception e){
-      e.printStackTrace();
-    }
     return START_STICKY;
   }
 
@@ -136,11 +130,11 @@ public class MessageService extends Service{
       if (!xmppManager.isConnected()){
         xmppManager.init();
         xmppManager.performLogin(getUserName(), getPassword());
-        OfflineMessageManager offlineMessageManager = new
-                OfflineMessageManager(xmppManager.getConnection());
-        if (offlineMessageManager.supportsFlexibleRetrieval())
-          processMessages(offlineMessageManager.getMessages().toArray(new
-                  Message[offlineMessageManager.getMessageCount()]));
+//        OfflineMessageManager offlineMessageManager = new
+//                OfflineMessageManager(xmppManager.getConnection());
+//        if (offlineMessageManager.supportsFlexibleRetrieval())
+//          processMessages(offlineMessageManager.getMessages().toArray(new
+//                  Message[offlineMessageManager.getMessageCount()]));
         new Thread(reloadRoster).start();
       }
 
