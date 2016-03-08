@@ -40,11 +40,10 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ortiz.touch.TouchImageView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.ui.util.message_array.ImageMessage;
-
-import uk.co.senab.photoview.PhotoViewAttacher;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -311,7 +310,7 @@ public class SingleImageFragment extends Fragment{
 
     @Override
     public Object instantiateItem(ViewGroup container, int position){
-      ImageView imageView = new ImageView(getContext());
+      TouchImageView imageView = new TouchImageView(getContext());
       imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
       // decode the file into a bitmap and show it afterwards
       ImageMessage msg = mListener.getImageAtIndex(position);
@@ -331,13 +330,19 @@ public class SingleImageFragment extends Fragment{
       Log.d("loadBitmap", "Dimensions: " + bitmap.getWidth() + ", " +
               bitmap.getHeight());
       imageView.setImageBitmap(bitmap);
-      PhotoViewAttacher attacher = new PhotoViewAttacher(imageView);
-      attacher.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener(){
+      imageView.setOnClickListener(new View.OnClickListener(){
         @Override
-        public void onViewTap(View view, float x, float y){
+        public void onClick(View v){
           showOverlay(!overlayActive);
         }
       });
+//      PhotoViewAttacher attacher = new PhotoViewAttacher(imageView);
+//      attacher.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener(){
+//        @Override
+//        public void onViewTap(View view, float x, float y){
+//          showOverlay(!overlayActive);
+//        }
+//      });
       container.addView(imageView, 0);
       return imageView;
     }

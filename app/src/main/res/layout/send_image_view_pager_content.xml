@@ -5,12 +5,20 @@
     android:layout_height="match_parent"
     android:background="@android:color/black">
 
-    <ImageView
-        android:id="@+id/send_image_image"
+
+    <!-- This extra linear layout is needed, because the TouchImageView is not
+       - capable of layout restrictions... -->
+    <LinearLayout
+        android:id="@+id/send_image_image_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/send_image_description_layout"
-        android:scaleType="fitCenter"/>
+        android:layout_height="match_parent">
+
+        <com.ortiz.touch.TouchImageView
+            android:id="@+id/send_image_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/send_image_description_layout"

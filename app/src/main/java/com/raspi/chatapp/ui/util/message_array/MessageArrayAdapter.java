@@ -121,14 +121,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
     // allows some data, classes not included.
     if (obj instanceof TextMessage){
       final TextMessage msgObj = (TextMessage) obj;
-      // if the view is null or it's layout is not / wrongly inflated or the
-      // text does not match the new one inflate a new layout
-      // TODO: I probably should check more but atm that's enough for me
-      if (v == null ||
-              v.findViewById(R.id.message_text) == null /*||
-              ((TextView) v.findViewById(R.id.message_text_text))
-                      .getText().toString()
-                      .equals(msgObj.message)*/){
+      // if the view is null or it's layout is not / wrongly inflated
+      if (v == null || v.findViewById(R.id.message_text) == null){
         LayoutInflater inflater = (LayoutInflater) this.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         v = inflater.inflate(R.layout.message_text, parent, false);

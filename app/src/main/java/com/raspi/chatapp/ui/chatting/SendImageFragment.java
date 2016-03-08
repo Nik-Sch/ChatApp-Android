@@ -15,15 +15,20 @@
  */
 package com.raspi.chatapp.ui.chatting;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -53,6 +58,7 @@ import com.github.ankushsachdeva.emojicon.EmojiconEditText;
 import com.github.ankushsachdeva.emojicon.EmojiconGridView;
 import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
 import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
+import com.ortiz.touch.TouchImageView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.util.Constants;
@@ -70,8 +76,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import uk.co.senab.photoview.PhotoViewAttacher;
-
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -82,6 +86,28 @@ import uk.co.senab.photoview.PhotoViewAttacher;
  */
 public class SendImageFragment extends Fragment{
 
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data){
+    super.onActivityResult(requestCode, resultCode, data);
+    // if the user chose a image to be sent to the current buddy
+    if (requestCode == ADD_PHOTO_CLICKED && resultCode ==
+            Activity.RESULT_OK){
+      if (data.getData() != null){
+        // one image was selected
+        Message msg = new Message(data.getData());
+        images.add(msg);
+        current = images.size() - 1;
+      }else if (data.getClipData() != null){
+        // multiple images were selected
+        ClipData clipData = data.getClipData();
+        for (int i = 0; i < clipData.getItemCount(); i++)
+          images.add(new Message(clipData.getItemAt(i).getUri()));
+        current = images.size() - 1;
+      }
+    }
+  }
+
+  private static final int ADD_PHOTO_CLICKED = 542;
   private ArrayList<Message> images;
   private ViewPager viewPager;
   private String buddyId;
@@ -215,7 +241,7 @@ public class SendImageFragment extends Fragment{
 
       @Override
       public void onPageSelected(int position){
-        changePage(position, false);
+        changePage(position, false, false);
       }
 
       @Override
@@ -282,6 +308,7 @@ public class SendImageFragment extends Fragment{
               LinearLayout.LayoutParams.WRAP_CONTENT);
       LinearLayout linearLayout = (LinearLayout) getActivity().findViewById(R.id
               .send_image_overview_content);
+      linearLayout.removeAllViewsInLayout();
       int i = 0;
       for (Message msg : images){
         // set up the imageView
@@ -316,7 +343,7 @@ public class SendImageFragment extends Fragment{
       }
     }else
       getActivity().findViewById(R.id.send_image_overview).setVisibility(View.GONE);
-    changePage(0, true);
+    changePage(current, true, true);
   }
 
   /**
@@ -325,8 +352,8 @@ public class SendImageFragment extends Fragment{
    * @param position the page to go to.
    * @param clicked  if true, the viewPager is set to the position
    */
-  private void changePage(final int position, boolean clicked){
-    if (images.size() > 1 && current != position){
+  private void changePage(final int position, boolean clicked, boolean force){
+    if (images.size() > 1 && (force || current != position)){
       Log.d("SEND_IMAGE", "page changed");
       images.get(current).getBackground().setVisibility(View.GONE);
       images.get(position).getBackground().setVisibility(View.VISIBLE);
@@ -451,16 +478,21 @@ public class SendImageFragment extends Fragment{
       View buttons = getActivity().findViewById(R.id.send_image_buttons);
       View viewPager = getActivity().findViewById(R.id
               .send_image_view_pager);
-      RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+      RelativeLayout.LayoutParams viewPagerParams = new RelativeLayout.LayoutParams(
               RelativeLayout.LayoutParams.MATCH_PARENT,
               RelativeLayout.LayoutParams.WRAP_CONTENT);
-      params.addRule(RelativeLayout.ABOVE,
+      viewPagerParams.addRule(RelativeLayout.ABOVE,
               images.size() > 1
                       ? R.id.send_image_overview
                       : R.id.send_image_buttons);
-      params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-      params.addRule(RelativeLayout.ALIGN_PARENT_START);
-      viewPager.setLayoutParams(params);
+      viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+      viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_START);
+      viewPager.setLayoutParams(viewPagerParams);
+      RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(
+              ViewGroup.LayoutParams.MATCH_PARENT,
+              ViewGroup.LayoutParams.MATCH_PARENT);
+      imageParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+      images.get(current).getImageLayout().setLayoutParams(imageParams);
       if (images.size() > 1)
         getActivity().findViewById(R.id.send_image_overview).setVisibility(View
                 .VISIBLE);
@@ -482,6 +514,11 @@ public class SendImageFragment extends Fragment{
       params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
       params.addRule(RelativeLayout.ALIGN_PARENT_START);
       viewPager.setLayoutParams(params);
+      RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(
+              ViewGroup.LayoutParams.MATCH_PARENT,
+              ViewGroup.LayoutParams.MATCH_PARENT);
+      imageParams.addRule(RelativeLayout.ABOVE, R.id.send_image_description_layout);
+      images.get(current).getImageLayout().setLayoutParams(imageParams);
       if (images.size() > 1)
         getActivity().findViewById(R.id.send_image_overview).setVisibility
                 (View.GONE);
@@ -506,7 +543,30 @@ public class SendImageFragment extends Fragment{
   }
 
   private void addImage(){
-    
+
+    // when clicking attack the user should at first select an application to
+    // choose the image with and then choose an image.
+    // this intent is for getting the image
+    Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+    getIntent.setType("image/*");
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+      getIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+    // and this for getting the application to get the image with
+    Intent pickIntent = new Intent(Intent.ACTION_PICK,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+    pickIntent.setType("image/*");
+
+    // and this finally is for opening the chooserIntent for opening the
+    // getIntent for returning the image uri. Yep, thanks android
+    Intent chooserIntent = Intent.createChooser(getIntent, getResources()
+            .getString(R.string.select_image));
+    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new
+            Intent[]{pickIntent});
+    startActivityForResult(chooserIntent, ADD_PHOTO_CLICKED);
+    // nope I don't want to be asked for a pwd when selected the image
+    getActivity().getSharedPreferences(Constants.PREFERENCES, 0).edit()
+            .putBoolean(Constants.PWD_REQUEST, false).apply();
   }
 
   /**
@@ -666,12 +726,13 @@ public class SendImageFragment extends Fragment{
 
     @Override
     public void onClick(View v){
-      changePage(i, true);
+      changePage(i, true, false);
     }
   }
 
   private class Message{
     private Uri imageUri = null;
+    private LinearLayout imageLayout = null;
     private String description = "";
     private RelativeLayout layout = null;
     private View background = null;
@@ -717,6 +778,14 @@ public class SendImageFragment extends Fragment{
 
     public void setLayout(RelativeLayout layout){
       this.layout = layout;
+    }
+
+    public LinearLayout getImageLayout(){
+      return imageLayout;
+    }
+
+    public void setImageLayout(LinearLayout imageLayout){
+      this.imageLayout = imageLayout;
     }
   }
 
@@ -773,7 +842,7 @@ public class SendImageFragment extends Fragment{
 
       // work with the image
       String imagePath = FileUtils.getPath(getContext(), msg.getImageUri());
-      ImageView imageView = (ImageView) view.findViewById(R.id
+      TouchImageView imageView = (TouchImageView) view.findViewById(R.id
               .send_image_image);
       // decode the image properly
       final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -792,8 +861,10 @@ public class SendImageFragment extends Fragment{
       Log.d("loadBitmap", "Dimensions: " + bitmap.getWidth() + ", " +
               bitmap.getHeight());
       imageView.setImageBitmap(bitmap);
-      // make zooming a thing
-      new PhotoViewAttacher(imageView);
+
+      // set the imageViewLayout
+      msg.setImageLayout((LinearLayout) view.findViewById(R.id
+              .send_image_image_layout));
 
       // finally add the view
       container.addView(view, 0);

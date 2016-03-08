@@ -32,11 +32,9 @@ import com.raspi.chatapp.util.Constants;
 
 import org.json.JSONArray;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
 public class MessageHistory{
   public static final String TYPE_TEXT = "com.raspi.storage.MessageHistory.TYPE_TEXT";
@@ -116,12 +114,14 @@ public class MessageHistory{
           startOfDay.set(Calendar.MILLISECOND, 0);
           long diff = startOfDay.getTimeInMillis() - msgTime.getTime();
           if (diff <= 0)
-            lastMessageDate = new SimpleDateFormat("HH:mm", Locale.GERMANY).format(msgTime);
+            lastMessageDate = String.format(context.getResources().getString
+                    (R.string.time), msgTime);
           else if (diff > 1000 * 60 * 60 * 24)
-            lastMessageDate = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format
-                    (msgTime);
+            lastMessageDate = String.format(context.getResources().getString
+                    (R.string.date), msgTime);
           else
-            lastMessageDate = "Yesterday";
+            lastMessageDate = context.getResources().getString(R.string
+                    .last_message_yesterday);
           msg.description += "".equals(msg.description) ? context
                   .getResources().getString(R.string.image) : "";
 
