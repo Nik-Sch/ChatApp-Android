@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -761,6 +762,11 @@ public class ChatFragment extends Fragment{
 
     listView = (ListView) getView().findViewById(R.id.chat_listview);
     textIn = (EmojiconEditText) getView().findViewById(R.id.chat_in);
+
+    Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(),
+            "fonts/Aileron-Bold.otf");
+    textIn.setTypeface(typeface);
+
     Button sendBtn = (Button) getView().findViewById(R.id.chat_sendBtn);
 
     sendBtn.setOnClickListener(new View.OnClickListener(){

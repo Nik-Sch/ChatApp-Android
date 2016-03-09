@@ -17,6 +17,7 @@ package com.raspi.chatapp.ui.util.message_array;
 
 import android.content.Context;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -117,6 +118,9 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
     // this is item we want to convert
     MessageArrayContent obj = getItem(position);
 
+    Typeface typeface = Typeface.createFromAsset(getContext().getAssets(),
+            "fonts/Aileron-SemiBold.otf");
+
     // switch through all possible classes. and yep switch statement only
     // allows some data, classes not included.
     if (obj instanceof TextMessage){
@@ -142,6 +146,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       chatText.setExpandedSize(true);
       // set the actual text
       chatText.setText(msgObj.message);
+      // set the typeface
+      chatText.setTypeface(typeface);
       // set the timeStamp to the correct string representation
       TextView chatTime = (TextView) v.findViewById(R.id.message_text_timeStamp);
       chatTime.setText(String.format(getContext().getResources().getString(R
@@ -237,6 +243,8 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
       description.setExpandedSize(true);
       // set the correct text
       description.setText(msgObj.description);
+      // set the typeface
+      description.setTypeface(typeface);
 
       // the imageView containing the image
       ImageView imageView = (ImageView) v.findViewById(R.id
