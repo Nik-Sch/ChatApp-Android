@@ -100,4 +100,6 @@
     <string name="send_image_hint">Füge eine Beschreibung hinzu</string>
     <string name="send_message_hint">Schreibe Nachricht</string>
     <string name="sending_images">Sende %1$d Bilder</string>
+    <string name="reset_wallpaper_msg">Das Hintergrundbild für alle Chats zurücksetzten?</string>
+    <string name="reset_wallpaper_title">Hintergrundbild zurücksetzten</string>
 </resources>

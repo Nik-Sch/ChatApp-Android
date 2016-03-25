@@ -148,4 +148,6 @@
     <string name="image_info">Information</string>
     <string name="send_message_hint">Type a message</string>
     <string name="send_image_hint">Add a description</string>
+    <string name="reset_wallpaper_msg">Resetting the wallpaper for all chats?</string>
+    <string name="reset_wallpaper_title">Resetting wallpaper</string>
 </resources>

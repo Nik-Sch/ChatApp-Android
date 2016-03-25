@@ -35,6 +35,9 @@ import com.raspi.chatapp.R;
  * create an instance of this fragment.
  */
 public class AGBFragment extends Fragment{
+  /**
+   * this is a sexy string, isn't it?
+   */
   private static final String agb =  "<pre><code>                         <span class=\"title\">Apache</span> License" +
           "                   Version <span class=\"number\">2</span>.<span class=\"number\">0</span>, January <span class=\"number\">2004</span>" +
           "                <span class=\"url\">http://www.apache.org/licenses/" +
@@ -113,8 +116,10 @@ public class AGBFragment extends Fragment{
   @Override
   public void onResume(){
     super.onResume();
+    // show the license text
     TextView tv = ((TextView) getActivity().findViewById(R.id.agb));
     tv.setText(Html.fromHtml(agb));
+    // set the accept button
     getActivity().findViewById(R.id.agb_accept).setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){

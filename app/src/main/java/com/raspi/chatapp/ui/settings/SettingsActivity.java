@@ -19,6 +19,7 @@ package com.raspi.chatapp.ui.settings;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -38,6 +39,7 @@ import android.preference.SwitchPreference;
 import android.provider.MediaStore;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -227,16 +229,20 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
       super.onCreate(savedInstanceState);
       addPreferencesFromResource(R.xml.pref_password);
       setHasOptionsMenu(true);
+      // start the changePwdActivity when enabling the password and ask for
+      // the pwd when disabling
       findPreference(getResources().getString(R.string.pref_key_enablepwd))
               .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener(){
                 @Override
                 public boolean onPreferenceChange(Preference preference,
                                                   Object value){
                   if (((SwitchPreference) preference).isChecked())
+                    // if isChecked then I am disabling
                     startActivityForResult(
                             new Intent(getActivity(), PasswordActivity.class),
                             PasswordActivity.ASK_PWD_REQUEST);
                   else{
+                    // otherwise enabling
                     Intent intent = new Intent(getActivity(), ChangePasswordActivity
                             .class);
                     intent.putExtra(ChangePasswordActivity.ASK_PWD, false);
@@ -253,15 +259,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
       super.onActivityResult(requestCode, resultCode, data);
       switch (requestCode){
         case PasswordActivity.ASK_PWD_REQUEST:
-          if (resultCode != Activity.RESULT_OK){
-            ((SwitchPreference) findPreference(getResources().getString(R.string
-                    .pref_key_enablepwd))).setChecked(true);
-          }
+          // if I asked for a pwd and the pwd was ok the disable the
+          // preference, otherwise enable it again
+          ((SwitchPreference) findPreference(getResources().getString(R.string
+                  .pref_key_enablepwd)))
+                  .setChecked(resultCode != Activity.RESULT_OK);
           break;
         case ChangePasswordActivity.CHANGE_PWD_REQUEST:
-          if (resultCode != Activity.RESULT_OK)
-            ((SwitchPreference) findPreference(getResources().getString(R.string
-                    .pref_key_enablepwd))).setChecked(false);
+          // if I ask for a pwd change and the password was changed correctly
+          // enable the preference
+          ((SwitchPreference) findPreference(getResources().getString(R.string
+                  .pref_key_enablepwd)))
+                  .setChecked(resultCode == Activity.RESULT_OK);
           break;
       }
     }
@@ -321,6 +330,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
       super.onCreate(savedInstanceState);
       addPreferencesFromResource(R.xml.pref_chats);
       setHasOptionsMenu(true);
+      // when clicking change wallpaper let the user choose an image
       findPreference(getResources().getString(R.string.pref_key_wallpaper))
               .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener(){
                 @Override
@@ -341,26 +351,41 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
                   return true;
                 }
               });
+      // when resetting the wallpaper ask for confirmation and then reset it
       findPreference(getResources().getString(R.string
               .pref_key_reset_wallpaper)).setOnPreferenceClickListener(new Preference.OnPreferenceClickListener(){
         @Override
         public boolean onPreferenceClick(Preference preference){
-          try{
-            File file = new File(getActivity().getFilesDir(), Constants
-                    .WALLPAPER_NAME);
-            Bitmap bm = BitmapFactory.decodeResource(getResources(), R
-                    .drawable.default_wallpaper);
-            OutputStream outputStream = new FileOutputStream(file);
-            bm.compress(Bitmap.CompressFormat.JPEG, 42, outputStream);
-            outputStream.flush();
-            outputStream.close();
-            Toast.makeText(getActivity(), R.string.wallpaper_changed, Toast
-                    .LENGTH_LONG).show();
-          }catch (Exception e){
-            e.printStackTrace();
-            Toast.makeText(getActivity(), R.string.wallpaper_not_changed, Toast
-                    .LENGTH_LONG).show();
-          }
+          new AlertDialog.Builder(getActivity())
+                  .setMessage(R.string.reset_wallpaper_msg)
+                  .setTitle(R.string.reset_wallpaper_title)
+                  .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which){
+                      try{
+                        // get an output stream to the wallpaper file
+                        File file = new File(getActivity().getFilesDir(), Constants
+                                .WALLPAPER_NAME);
+                        OutputStream outputStream = new FileOutputStream(file);
+                        // decode the default wallpaper and compress to the file
+                        Bitmap bm = BitmapFactory.decodeResource(getResources(), R
+                                .drawable.default_wallpaper);
+                        bm.compress(Bitmap.CompressFormat.JPEG, 42, outputStream);
+                        outputStream.flush();
+                        outputStream.close();
+                        // show the success
+                        Toast.makeText(getActivity(), R.string.wallpaper_changed, Toast
+                                .LENGTH_LONG).show();
+                      }catch (Exception e){
+                        e.printStackTrace();
+                        // something went wrong...
+                        Toast.makeText(getActivity(), R.string.wallpaper_not_changed, Toast
+                                .LENGTH_LONG).show();
+                      }
+                    }
+                  })
+                  .setNegativeButton(R.string.cancel, null)
+                  .show();
           return true;
         }
       });
@@ -371,6 +396,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
       super.onActivityResult(requestCode, resultCode, data);
       if (requestCode == WALLPAPER_CHOSEN){
         if (resultCode == Activity.RESULT_OK){
+          // get the path of the selected image and copy it to the wallpaper
+          // file
           String imageUriPath = FileUtils.getPath(getActivity(), data.getData());
           File file = new File(getActivity().getFilesDir(), Constants
                   .WALLPAPER_NAME);
@@ -392,11 +419,14 @@ public class SettingsActivity extends AppCompatPreferenceActivity{
 
 
     private void copyImage(String sourcePath, File destFile) throws IOException{
+      // get an output stream, decode the file as bitmap and compress it back
+      // to the output stream
       OutputStream out = new FileOutputStream(destFile);
       final BitmapFactory.Options options = new BitmapFactory.Options();
       options.inDensity = 96;
       Bitmap image = BitmapFactory.decodeFile(sourcePath, options);
       image.compress(Bitmap.CompressFormat.JPEG, 42, out);
+      out.flush();
       out.close();
     }
 

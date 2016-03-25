@@ -65,6 +65,7 @@ public class PinFragment extends Fragment{
     super.onResume();
 
     EditText pin = (EditText) getView().findViewById(R.id.pin);
+    // always focus the pinEditText
     pin.setFocusableInTouchMode(true);
     pin.requestFocus();
     InputMethodManager inputMethodManager = (InputMethodManager)
@@ -83,11 +84,14 @@ public class PinFragment extends Fragment{
 
       @Override
       public void afterTextChanged(Editable s){
+        // if the text reached a length of 4 chars check the password and
+        // clear the editText
         if (s.length() == 4){
           char[] pwd = new char[4];
           s.getChars(0, 4, pwd, 0);
           mListener.onPasswordEntered(pwd);
           s.clear();
+          // otherwise make sure that the invalid pwd textView is gone
         }else
           getView().findViewById(R.id.password_invalid).setVisibility(View.GONE);
       }

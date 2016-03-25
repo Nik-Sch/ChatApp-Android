@@ -43,9 +43,18 @@ public class ChangePasswordActivity extends AppCompatActivity{
   public static final String ASK_PWD = "com.raspi.chatapp.ui.settings" +
           ".ChangePasswordActivity.ASK_PWD";
 
+  /**
+   * the request code when starting this activity as a result
+   */
   public static final int CHANGE_PWD_REQUEST = 4242;
 
+  /**
+   * holds the value of whether the changing process was completed or not
+   */
   private boolean changed = false;
+  /**
+   * this will only become true if the passwordActivity returns ok
+   */
   private boolean active = false;
 
   @Override
@@ -54,10 +63,15 @@ public class ChangePasswordActivity extends AppCompatActivity{
 
     Bundle extras = getIntent().getExtras();
     setResult(Activity.RESULT_CANCELED);
+    // if I should ask for a password before changing it (when the pwd gets
+    // activated, there should be no request for the old (non-existent) pwd)
     if (extras.getBoolean(ASK_PWD, true)){
+      // start the pwdActivity with some special flags to not make it
+      // possible to get back to it via the back button or similar
       Intent intent = new Intent(this, PasswordActivity.class);
       intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS | Intent.FLAG_ACTIVITY_NO_HISTORY);
       startActivityForResult(intent, PasswordActivity.ASK_PWD_REQUEST);
+      // otherwise just launch onActivityResult with the result ok
     }else
       onActivityResult(PasswordActivity.ASK_PWD_REQUEST, Activity.RESULT_OK,
               null);
@@ -66,10 +80,10 @@ public class ChangePasswordActivity extends AppCompatActivity{
   @Override
   protected void onResume(){
     super.onResume();
-    ui();
+    initUI();
   }
 
-  private void ui(){
+  private void initUI(){
     final EditText np = (EditText) findViewById(R.id.new_pin);
     final EditText cp = (EditText) findViewById(R.id.confirm_pin);
     if (np != null)
@@ -84,10 +98,13 @@ public class ChangePasswordActivity extends AppCompatActivity{
 
         @Override
         public void afterTextChanged(Editable s){
-          if (s.length() == 4){
+          // if the length of the newPinEditText equals 4 focus the
+          // confirmEditText
+          if (s.length() == 4)
             cp.requestFocus();
-            s = null;
-          }
+          // otherwise make sure the the no match sign is gone
+          else
+            findViewById(R.id.pwd_no_match).setVisibility(View.GONE);
         }
       });
 
@@ -104,14 +121,17 @@ public class ChangePasswordActivity extends AppCompatActivity{
         @Override
         public void afterTextChanged(Editable s){
           s.length();
+          // if the length equals 4, check the entered pwds for equality
           if (s.length() == 4){
             if (checkEqual(s, np.getText())){
+              // if they equal, change the password and finish the activity
+              // with the result ok
               changePwd(s.toString().toCharArray());
-              s = null;
               changed = true;
               setResult(Activity.RESULT_OK);
               finish();
             }else{
+              // otherwise clear the editTexts and show the no match warning
               s.clear();
               np.getText().clear();
               np.requestFocus();
@@ -123,29 +143,30 @@ public class ChangePasswordActivity extends AppCompatActivity{
   }
 
   private boolean checkEqual(Editable c, Editable n){
+    // get the char arrays
     char[] newPwd = new char[n.length()];
     n.getChars(0, n.length(), newPwd, 0);
 
     char[] conPwd = new char[c.length()];
     c.getChars(0, c.length(), conPwd, 0);
-    boolean ret = Arrays.equals(newPwd, conPwd);
-    conPwd = null;
-    newPwd = null;
-    n = null;
-    c = null;
-    return ret;
+    // check the arrays for equality
+    return Arrays.equals(newPwd, conPwd);
   }
 
   private void changePwd(char[] pwd){
     try{
-      byte[] salt = new byte[32];
+      // generate a salt
+      byte[] salt = new byte[PasswordActivity.SALT_LENGTH];
       Random random = new Random();
       random.nextBytes(salt);
-      KeySpec spec = new PBEKeySpec(pwd, salt, PasswordActivity.ITERATIONS, 32);
-      pwd = null;
+      // create the keySpec
+      KeySpec spec = new PBEKeySpec(pwd, salt, PasswordActivity.ITERATIONS,
+              PasswordActivity.SALT_LENGTH);
+      // encode the password
       SecretKeyFactory factory = PasswordActivity.getSecretKeyFactory();
       byte[] hash = factory.generateSecret(spec).getEncoded();
 
+      // save the hash and the salt
       getSharedPreferences(PasswordActivity.PREFERENCES, 0).edit()
               .putString(PasswordActivity.SALT, Base64.encodeToString(salt,
                       Base64.DEFAULT))
@@ -177,7 +198,9 @@ public class ChangePasswordActivity extends AppCompatActivity{
   @Override
   protected void onDestroy(){
     super.onDestroy();
+    // only if active show the toast (otherwise the changePwd was not started
     if (active){
+      // show the toast for either successful change or unsuccessful change
       Toast toast = Toast.makeText(getApplicationContext(), changed ? R.string
               .pwd_changed : R.string.pwd_not_changed, Toast.LENGTH_LONG);
       toast.show();
