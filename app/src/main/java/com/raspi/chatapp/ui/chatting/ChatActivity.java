@@ -35,7 +35,6 @@ import android.provider.MediaStore;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -122,9 +121,6 @@ public class ChatActivity extends AppCompatActivity implements
     // the layout contains just the toolbar and the FrameLayout which
     // contains every fragment
     setContentView(R.layout.activity_chat);
-    // setting the actionbar
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
 
     // manage the backstack, therefore, I got a function that checks whether I
     // can go back and sets the back button in the actionbar accordingly
@@ -214,7 +210,7 @@ public class ChatActivity extends AppCompatActivity implements
   public boolean onCreateOptionsMenu(Menu menu){
     // "You must return true for the menu to be displayed;[...]"
     // thanks android :)
-    return true;
+    return false;
   }
 
   @Override
@@ -235,8 +231,8 @@ public class ChatActivity extends AppCompatActivity implements
     // clicking the settings entry in the optionsMenu will launch the
     // settingsActivity and also signal not to ask for a pwd the next time
     // someone asks for a pwd.
-    // TODO: Yep for now if you close the app while in settings and the
-    // relaunch it you won't be asked for a pwd... Maybe going to fix this
+    // TODO: Yep for now if you close the app while in settings and then
+    // relaunch you won't be asked for a pwd... Maybe going to fix this
     Intent intent = new Intent(this, SettingsActivity.class);
     startActivity(intent);
     getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
@@ -581,7 +577,7 @@ public class ChatActivity extends AppCompatActivity implements
     // classname. Also make sure the current variables are set correctly.
     ChatFragment fragment = ChatFragment.newInstance(buddyId, name, imageUri);
     getSupportFragmentManager().beginTransaction().replace(R.id
-            .fragment_container, fragment).addToBackStack(ChatFragment.class
+            .root_view, fragment).addToBackStack(ChatFragment.class
             .getName()).commit();
     currentBuddyId = buddyId;
     currentChatName = name;
@@ -640,7 +636,7 @@ public class ChatActivity extends AppCompatActivity implements
             (currentBuddyId, currentChatName, imageUris);
     // replace the fragment and also add it to the backstack by its name.
     getSupportFragmentManager().beginTransaction().replace(R.id
-            .fragment_container, fragment).addToBackStack(SendImageFragment
+            .root_view, fragment).addToBackStack(SendImageFragment
             .class.getName()).commit();
   }
 
@@ -707,11 +703,11 @@ public class ChatActivity extends AppCompatActivity implements
     // notfication backstack possibilities but well this works and is easy!
     if (Constants.BUDDY_ID.equals(currentBuddyId))
       getSupportFragmentManager().beginTransaction().replace(R.id
-              .fragment_container, ChatListFragment.newInstance()).commit();
+              .root_view, ChatListFragment.newInstance()).commit();
     else if (getSupportFragmentManager().getFragments() == null){
       //for propagating the backstack...
       getSupportFragmentManager().beginTransaction().replace(R.id
-              .fragment_container, ChatListFragment.newInstance()).commit();
+              .root_view, ChatListFragment.newInstance()).commit();
       onChatOpened(currentBuddyId, currentChatName);
     }
 
@@ -722,7 +718,7 @@ public class ChatActivity extends AppCompatActivity implements
 
   @Override
   public boolean onSupportNavigateUp(){
-    //like what the fuck should the up button from the actionBar do
+    // like what the fuck should the up button from the actionBar do
     // otherwise? Why do I need to implement this?
     getSupportFragmentManager().popBackStack();
     return true;
@@ -730,7 +726,7 @@ public class ChatActivity extends AppCompatActivity implements
 
   @Override
   public void onReturnClick(){
-    //this function is for the sendImageFragment to pop the backstack when
+    // this function is for the sendImageFragment to pop the backstack when
     // clicking cancel or send or pressing back.
     getSupportFragmentManager().popBackStack();
   }

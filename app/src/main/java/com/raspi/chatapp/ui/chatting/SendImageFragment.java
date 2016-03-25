@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -86,27 +87,6 @@ import java.util.List;
  */
 public class SendImageFragment extends Fragment{
 
-  @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data){
-    super.onActivityResult(requestCode, resultCode, data);
-    // if the user chose a image to be sent to the current buddy
-    if (requestCode == ADD_PHOTO_CLICKED && resultCode ==
-            Activity.RESULT_OK){
-      if (data.getData() != null){
-        // one image was selected
-        Message msg = new Message(data.getData());
-        images.add(msg);
-        current = images.size() - 1;
-      }else if (data.getClipData() != null){
-        // multiple images were selected
-        ClipData clipData = data.getClipData();
-        for (int i = 0; i < clipData.getItemCount(); i++)
-          images.add(new Message(clipData.getItemAt(i).getUri()));
-        current = images.size() - 1;
-      }
-    }
-  }
-
   private static final int ADD_PHOTO_CLICKED = 542;
   private ArrayList<Message> images;
   private ViewPager viewPager;
@@ -114,6 +94,7 @@ public class SendImageFragment extends Fragment{
   private String name;
   private ActionBar actionBar;
   private int current = 0;
+  private boolean keyboardShown = false;
 
   private OnFragmentInteractionListener mListener;
 
@@ -189,6 +170,27 @@ public class SendImageFragment extends Fragment{
   }
 
   @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data){
+    super.onActivityResult(requestCode, resultCode, data);
+    // if the user chose a image to be sent to the current buddy
+    if (requestCode == ADD_PHOTO_CLICKED && resultCode ==
+            Activity.RESULT_OK){
+      if (data.getData() != null){
+        // one image was selected
+        Message msg = new Message(data.getData());
+        images.add(msg);
+        current = images.size() - 1;
+      }else if (data.getClipData() != null){
+        // multiple images were selected
+        ClipData clipData = data.getClipData();
+        for (int i = 0; i < clipData.getItemCount(); i++)
+          images.add(new Message(clipData.getItemAt(i).getUri()));
+        current = images.size() - 1;
+      }
+    }
+  }
+
+  @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState){
     // Inflate the layout for this fragment
@@ -219,6 +221,19 @@ public class SendImageFragment extends Fragment{
     mListener = null;
   }
 
+  @Override
+  public void onPause(){
+    super.onPause();
+    actionBar.setBackgroundDrawable(new ColorDrawable(getResources().getColor
+            (R.color.colorPrimary)));
+    // set the statusBar color
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      getActivity().getWindow().setStatusBarColor(getResources().getColor(R
+              .color.colorPrimaryDark));
+    getActivity().getWindow().getDecorView().setSystemUiVisibility(View
+            .SYSTEM_UI_FLAG_VISIBLE);
+  }
+
   /**
    * this function will initialize the ui showing the current image and reload
    * everything to make sure it is shown correctly
@@ -228,6 +243,12 @@ public class SendImageFragment extends Fragment{
     if (actionBar != null){
       actionBar.setTitle(R.string.send_image);
       actionBar.setSubtitle(name);
+//      actionBar.setBackgroundDrawable(new ColorDrawable(getResources().getColor
+//              (R.color.action_bar_transparent)));
+//      // set the statusBar color
+//      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+//        getActivity().getWindow().setStatusBarColor(getResources().getColor(R
+//                .color.action_bar_transparent));
     }
 
     // instantiate the ViewPager
@@ -344,6 +365,7 @@ public class SendImageFragment extends Fragment{
     }else
       getActivity().findViewById(R.id.send_image_overview).setVisibility(View.GONE);
     changePage(current, true, true);
+    showSystemUI();
   }
 
   /**
@@ -473,60 +495,77 @@ public class SendImageFragment extends Fragment{
   }
 
   private void keyboardClosed(){
-    try{
-      actionBar.show();
-      View buttons = getActivity().findViewById(R.id.send_image_buttons);
-      View viewPager = getActivity().findViewById(R.id
-              .send_image_view_pager);
-      RelativeLayout.LayoutParams viewPagerParams = new RelativeLayout.LayoutParams(
-              RelativeLayout.LayoutParams.MATCH_PARENT,
-              RelativeLayout.LayoutParams.WRAP_CONTENT);
-      viewPagerParams.addRule(RelativeLayout.ABOVE,
-              images.size() > 1
-                      ? R.id.send_image_overview
-                      : R.id.send_image_buttons);
-      viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-      viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_START);
-      viewPager.setLayoutParams(viewPagerParams);
-      RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(
-              ViewGroup.LayoutParams.MATCH_PARENT,
-              ViewGroup.LayoutParams.MATCH_PARENT);
-      imageParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-      images.get(current).getImageLayout().setLayoutParams(imageParams);
-      if (images.size() > 1)
-        getActivity().findViewById(R.id.send_image_overview).setVisibility(View
-                .VISIBLE);
-      buttons.setVisibility(View.VISIBLE);
-    }catch (Exception e){
-      e.printStackTrace();
+    if (keyboardShown){
+      try{
+        showSystemUI();
+        View buttons = getActivity().findViewById(R.id.send_image_buttons);
+        View viewPager = getActivity().findViewById(R.id
+                .send_image_view_pager);
+        RelativeLayout.LayoutParams viewPagerParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        viewPagerParams.addRule(RelativeLayout.ABOVE,R.id.send_image_overview);
+        viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_START);
+        viewPager.setLayoutParams(viewPagerParams);
+        RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        imageParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        images.get(current).getImageLayout().setLayoutParams(imageParams);
+        if (images.size() > 1)
+          getActivity().findViewById(R.id.send_image_overview).setVisibility(View
+                  .VISIBLE);
+        buttons.setVisibility(View.VISIBLE);
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+      keyboardShown = false;
     }
   }
 
   private void keyboardOpened(){
-    try{
-      View buttons = getActivity().findViewById(R.id.send_image_buttons);
-      View viewPager = getActivity().findViewById(R.id
-              .send_image_view_pager);
-      RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-              RelativeLayout.LayoutParams.MATCH_PARENT,
-              RelativeLayout.LayoutParams.WRAP_CONTENT);
-      params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-      params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-      params.addRule(RelativeLayout.ALIGN_PARENT_START);
-      viewPager.setLayoutParams(params);
-      RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(
-              ViewGroup.LayoutParams.MATCH_PARENT,
-              ViewGroup.LayoutParams.MATCH_PARENT);
-      imageParams.addRule(RelativeLayout.ABOVE, R.id.send_image_description_layout);
-      images.get(current).getImageLayout().setLayoutParams(imageParams);
-      if (images.size() > 1)
-        getActivity().findViewById(R.id.send_image_overview).setVisibility
-                (View.GONE);
-      buttons.setVisibility(View.GONE);
-      actionBar.hide();
-    }catch (Exception e){
-      e.printStackTrace();
+    if (!keyboardShown){
+      try{
+        View buttons = getActivity().findViewById(R.id.send_image_buttons);
+        View viewPager = getActivity().findViewById(R.id
+                .send_image_view_pager);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_START);
+        viewPager.setLayoutParams(params);
+        RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        imageParams.addRule(RelativeLayout.ABOVE, R.id.send_image_description_layout);
+        images.get(current).getImageLayout().setLayoutParams(imageParams);
+        if (images.size() > 1)
+          getActivity().findViewById(R.id.send_image_overview).setVisibility
+                  (View.GONE);
+        buttons.setVisibility(View.GONE);
+        hideSystemUI();
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+      keyboardShown = true;
     }
+  }
+
+  private void showSystemUI(){
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      getActivity().getWindow().setStatusBarColor(getResources().getColor(R
+              .color.colorPrimaryDark));
+    actionBar.show();
+  }
+
+  private void hideSystemUI(){
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+      getActivity().getWindow().setStatusBarColor(getResources().getColor
+              (android.R.color.black));
+    actionBar.hide();
   }
 
   @Override
@@ -731,10 +770,26 @@ public class SendImageFragment extends Fragment{
   }
 
   private class Message{
+    /**
+     * the uri of the image to be sent
+     */
     private Uri imageUri = null;
+    /**
+     * the layout containing the imageView
+     */
     private LinearLayout imageLayout = null;
+    /**
+     * the description of the image
+     */
     private String description = "";
+    /**
+     * the layout containing the preview image in the overview
+     */
     private RelativeLayout layout = null;
+    /**
+     * the background image of the preview image in the overview (the active
+     * images backgroun is visible and blue, showing the blue border)
+     */
     private View background = null;
 
     public Message(){

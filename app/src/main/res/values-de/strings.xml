@@ -95,4 +95,9 @@
     <string name="date">%1$td.%1$tm.tY</string>
     <string name="date_and_time">%1$td.%1$tm.tY um %1$tk:%1$tM</string>
     <string name="time">%1$tk:%1$tM</string>
+    <string name="add_image">Bilder hinzufügen</string>
+    <string name="image_info">Informationen</string>
+    <string name="send_image_hint">Füge eine Beschreibung hinzu</string>
+    <string name="send_message_hint">Schreibe Nachricht</string>
+    <string name="sending_images">Sende %1$d Bilder</string>
 </resources>

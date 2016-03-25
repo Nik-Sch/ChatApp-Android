@@ -145,5 +145,7 @@
     <string name="date">%1$tm/%1$td/%1$tY</string>
     <string name="time">%1$tl:%1$tM %1$Tp</string>
     <string name="add_image">Add images</string>
-    <string name="image_info">Informations</string>
+    <string name="image_info">Information</string>
+    <string name="send_message_hint">Type a message</string>
+    <string name="send_image_hint">Add a description</string>
 </resources>

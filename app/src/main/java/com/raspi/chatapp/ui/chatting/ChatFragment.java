@@ -422,11 +422,14 @@ public class ChatFragment extends Fragment{
       MenuItem itemCopy = menu.findItem(R.id.action_copy);
       // be careful, use the count function and not the count of one of the
       // Sets because the sets may also include invalid selections.
-      itemCopy.setVisible((count()) == 1);
+      int count = count();
+      itemCopy.setVisible((count) == 1);
 
       // if I deselected the last valid item finish the actionMode
-      if (count() == 0)
+      if (count == 0)
         mode.finish();
+      else
+        mode.setTitle(String.valueOf(count));
     }
 
     /**
@@ -446,6 +449,11 @@ public class ChatFragment extends Fragment{
 
     @Override
     public boolean onCreateActionMode(ActionMode mode, Menu menu){
+      // initialize the Sets
+      selected = new HashSet<>();
+      // this is a tree set because a treeSet sorts the element (binary
+      // search tree implementation I suppose)
+      selectedPositions = new TreeSet<>();
       // inflate the menu
       MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.menu_message_select, menu);
@@ -463,11 +471,6 @@ public class ChatFragment extends Fragment{
 
     @Override
     public boolean onPrepareActionMode(ActionMode mode, Menu menu){
-      // initialize the Sets
-      selected = new HashSet<>();
-      // this is a tree set because a treeSet sorts the element (binary
-      // search tree implementation I suppose)
-      selectedPositions = new TreeSet<>();
       return true;
     }
 
@@ -763,9 +766,10 @@ public class ChatFragment extends Fragment{
     listView = (ListView) getView().findViewById(R.id.chat_listview);
     textIn = (EmojiconEditText) getView().findViewById(R.id.chat_in);
 
-    Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(),
-            "fonts/Aileron-Bold.otf");
-    textIn.setTypeface(typeface);
+//    // Change the TypFace
+//    Typeface typeface = Typeface.createFromAsset(getActivity().getAssets(),
+//            "fonts/Aileron-Bold.otf");
+//    textIn.setTypeface(typeface);
 
     Button sendBtn = (Button) getView().findViewById(R.id.chat_sendBtn);
 
@@ -838,8 +842,6 @@ public class ChatFragment extends Fragment{
           // FIXME: fix bugs xD
           // 1. need further investigation, sometimes if there is only one more
           // message to be loaded it is not loaded but only the dateMessage
-          // 2. sometimes the recycling doesn't quite work as I need to
-          // scroll down and up again to view the correct messages.
 
           // retrieve the messages from db
           MessageArrayContent[] macs = messageHistory.getMessages(buddyId,

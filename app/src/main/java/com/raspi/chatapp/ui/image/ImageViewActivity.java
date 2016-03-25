@@ -39,23 +39,28 @@ public class ImageViewActivity extends AppCompatActivity implements
   @Override
   protected void onCreate(Bundle savedInstanceState){
     super.onCreate(savedInstanceState);
+    // set the layout
     setContentView(R.layout.activity_image_view);
+    // get all necessary information: the chatId, messageId (of provided) and
+    // all the images from the messageHistory
     Bundle extras = getIntent().getExtras();
     chatId = extras.getString(Constants.BUDDY_ID);
     MessageHistory messageHistory = new MessageHistory(this);
     images = messageHistory.getImageMessages(chatId);
-    if (extras != null && extras.containsKey(Constants.BUDDY_ID) && extras
-            .containsKey(Constants.MESSAGE_ID)){
+    if (extras.containsKey(Constants.MESSAGE_ID)){
+      // if there is a messageId, open the singleImageFragment
       messageId = extras.getLong(Constants.MESSAGE_ID);
       if (savedInstanceState == null)
         getSupportFragmentManager().beginTransaction().add(
                 R.id.fragment_container,
                 SingleImageFragment.newInstance()).commit();
       count = images.size();
+      // loop through the images until the current image matches the messageId
       for (current = 0; current < count; current++)
         if (images.get(current)._ID == messageId)
           break;
-    }else if (extras != null && extras.containsKey(Constants.BUDDY_ID)){
+    }else{
+      // if no messageId is provided open the overview
       messageId = -1;
       if (savedInstanceState == null)
         getSupportFragmentManager().beginTransaction().add(

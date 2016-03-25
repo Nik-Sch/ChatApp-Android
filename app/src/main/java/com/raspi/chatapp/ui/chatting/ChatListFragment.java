@@ -49,6 +49,10 @@ import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -278,10 +282,11 @@ public class ChatListFragment extends Fragment{
       // check for a connection
       XmppManager xmppManager = XmppManager.getInstance();
       boolean internet = true;
-      if (!xmppManager.isConnected()){
-        // if still not connected show the no connection overlay
+      if (!isReachable("raspi-server.ddns.net", 5222, 2000)){
+        // if there is no internet
         internet = false;
         Log.d("INTERNET", "I don't have internet");
+        // show the ui that there is no internet
         mHandler.post(new Runnable(){
           @Override
           public void run(){
@@ -345,12 +350,32 @@ public class ChatListFragment extends Fragment{
             }
           }
         });
-        // if not connected, try to connect
-        try{
-          xmppManager.getConnection().connect();
-        }catch (Exception e){
-          e.printStackTrace();
-        }
+      }
+      // just try to connect no matter if I have internet or not, won't do
+      // any harm
+      try{
+        xmppManager.getConnection().connect();
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+    }
+
+    /**
+     * checks whether the given address is reachable at the specified port.
+     * @param addr the address to be checked
+     * @param port the port to which to connect
+     * @param timeout the maximum time the connections will be tried to be
+     *                established
+     * @return true if a connection could be established
+     */
+    private boolean isReachable(String addr, int port, int timeout){
+      try{
+        Socket socket = new Socket();
+        socket.connect(new InetSocketAddress(addr, port), timeout);
+        socket.close();
+        return true;
+      }catch (IOException e){
+        return false;
       }
     }
   }

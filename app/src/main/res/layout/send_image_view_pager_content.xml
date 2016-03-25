@@ -43,8 +43,10 @@
             android:inputType="textCapSentences|textAutoCorrect|textLongMessage"
             android:maxLines="3"
             android:minLines="1"
-            android:textColor="@color/colorAccent"
-            android:textSize="18sp"/>
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="18sp"
+            android:hint="@string/send_image_hint"
+            android:textColorHint="@color/sendImageHint"/>
     </LinearLayout>
 
 </RelativeLayout>

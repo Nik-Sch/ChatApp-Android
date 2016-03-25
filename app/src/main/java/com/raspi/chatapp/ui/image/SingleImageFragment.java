@@ -187,14 +187,11 @@ public class SingleImageFragment extends Fragment{
   private void showOverlay(boolean active){
     final View imageInfo = getActivity().findViewById(R.id.image_info);
     Animation anim;
-    ActionBar actionBar = ((AppCompatActivity) getActivity())
-            .getSupportActionBar();
     if (active){
       View decorView = getActivity().getWindow().getDecorView();
       int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
               View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
       decorView.setSystemUiVisibility(uiOptions);
-      actionBar.show();
       anim = AnimationUtils.loadAnimation(getContext(), R.anim
               .bottom_in);
       anim.setDuration(300);
@@ -207,7 +204,6 @@ public class SingleImageFragment extends Fragment{
               View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
               View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
       decorView.setSystemUiVisibility(uiOptions);
-      actionBar.hide();
       anim = AnimationUtils.loadAnimation(getContext(), R.anim.bottom_out);
       anim.setDuration(300);
       anim.setAnimationListener(new Animation.AnimationListener(){
@@ -336,13 +332,6 @@ public class SingleImageFragment extends Fragment{
           showOverlay(!overlayActive);
         }
       });
-//      PhotoViewAttacher attacher = new PhotoViewAttacher(imageView);
-//      attacher.setOnViewTapListener(new PhotoViewAttacher.OnViewTapListener(){
-//        @Override
-//        public void onViewTap(View view, float x, float y){
-//          showOverlay(!overlayActive);
-//        }
-//      });
       container.addView(imageView, 0);
       return imageView;
     }

@@ -77,7 +77,8 @@
                 android:inputType="textMultiLine"
                 android:maxLines="4"
                 android:minLines="1"
-                android:textSize="@dimen/font_size"/>
+                android:textSize="@dimen/font_size"
+                android:hint="@string/send_message_hint"/>
 
 
             <Button

@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/message_image_status"
                     android:text="00:00"
-                    android:textColor="@color/colorTimeStamp"/>
+                    android:textColor="@color/timeStamp"/>
 
                 <ImageView
                     android:id="@+id/message_image_status"

@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
@@ -154,6 +153,7 @@ public class ChangePasswordActivity extends AppCompatActivity{
                       Base64.DEFAULT))
               .commit();
     }catch (Exception e){
+      e.printStackTrace();
     }
   }
 
@@ -164,8 +164,6 @@ public class ChangePasswordActivity extends AppCompatActivity{
             Activity.RESULT_OK){
       //access was granted -> change pwd
       setContentView(R.layout.content_change_pwd_pin);
-      Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-      setSupportActionBar(toolbar);
       ActionBar actionBar = getSupportActionBar();
       actionBar.setTitle(R.string.change_pwd);
       actionBar.setDisplayHomeAsUpEnabled(true);
