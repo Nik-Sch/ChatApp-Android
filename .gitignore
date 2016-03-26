@@ -37,5 +37,8 @@ captures/
 #bin images folder
 images/
 
+#this file varies from android studio instance to instance, because it may contain signing which is only available at my main pc
+app/build.gradle
+
 #xml files are generated
 .idea/*.xml

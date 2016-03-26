@@ -30,8 +30,11 @@ import com.raspi.chatapp.util.storage.MessageHistory;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * this array adapter serves for showing a list of {@link ChatEntry ChatEntries}.
+ */
 public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
-  private List<ChatEntry> chatList = new ArrayList<ChatEntry>();
+  private List<ChatEntry> chatList = new ArrayList<>();
 
   public ChatArrayAdapter(Context context, int textViewResourceId){
     super(context, textViewResourceId);
@@ -43,38 +46,48 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
     notifyDataSetChanged();
   }
 
+  @Override
   public int getCount(){
     return chatList.size();
   }
 
+  @Override
   public ChatEntry getItem(int i){
     return chatList.get(i);
   }
 
+  @Override
   public View getView(int position, View ConvertView, ViewGroup parent){
     View v = ConvertView;
+    // if the view doesn't exist create it.
     if (v == null){
       LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       v = inflater.inflate(R.layout.chat_list_entry, parent, false);
     }
 
+    // get the corresponding object
     ChatEntry chatObj = getItem(position);
 
 
     ((TextView) v.findViewById(R.id.chat_list_entry_name)).setText(chatObj.name);
+    // if there is data for this object then show it
     if (!chatObj.lastMessageStatus.equals("")){
       ((TextView) v.findViewById(R.id.chat_list_entry_time)).setText(chatObj.lastMessageDate);
+      // show the last message
       EmojiconTextView msg = ((EmojiconTextView) v.findViewById(R.id.chat_list_entry_mess));
       msg.setExpandedSize(true);
       msg.setText(chatObj.lastMessageMessage);
+      // if it is an imageMessage show the image icon, otherwise hide it
       if (MessageHistory.TYPE_IMAGE.equals(chatObj.lastMessageType))
         msg.setCompoundDrawablesWithIntrinsicBounds(R.drawable
                 .ic_photo_camera_black_18dp, 0, 0, 0);
       else
         msg.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+      // if I sent the message show the status
       if (chatObj.sent){
         v.findViewById(R.id.chat_list_entry).setBackgroundColor(0xFFFFFF);
         switch (chatObj.lastMessageStatus){
+          // show every possible status
           case MessageHistory.STATUS_WAITING:
             ((ImageView) v.findViewById(R.id.chat_list_entry_status))
                     .setImageResource(R.drawable.ic_hourglass_empty_black_48dp);
@@ -89,6 +102,7 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
             ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageResource(R.drawable.two_blue_hook);
             break;
         }
+        // otherwise it might be read or received, if received a blue background should be shown
       }else{
         ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageDrawable(null);
         if (!chatObj.sent && !chatObj.read)
@@ -96,6 +110,7 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
         else
           v.findViewById(R.id.chat_list_entry).setBackgroundColor(0xFFFFFF);
       }
+      // if there is no data set everything to blank
     }else{
       ((ImageView) v.findViewById(R.id.chat_list_entry_status)).setImageDrawable(null);
       ((TextView) v.findViewById(R.id.chat_list_entry_time)).setText("");
