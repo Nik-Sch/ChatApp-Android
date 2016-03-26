@@ -60,6 +60,9 @@ import javax.xml.transform.stream.StreamResult;
  */
 public class XmppManager{
 
+  /**
+   * the HttpUrl to the server
+   */
   public static final String SERVER = "raspi-server.ddns.net";
   private static final String SERVICE = "chatapp.com";
   private static final int PORT = 5222;
@@ -121,18 +124,23 @@ public class XmppManager{
    * @return true if a connection could be established
    */
   public boolean init(){
+    // configure the smack
     SmackConfiguration.setDefaultPacketReplyTimeout(packetReplyTime);
+    // set smack to try reconnect every5 secs when loosing connection
     ReconnectionManager.setEnabledPerDefault(true);
     ReconnectionManager.setDefaultReconnectionPolicy(ReconnectionManager.ReconnectionPolicy.FIXED_DELAY);
     ReconnectionManager.setDefaultFixedDelay(5);
 
+    // build the connectionConfig
     XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
             .setServiceName(service)
             .setHost(server)
             .setPort(port)
             .setSendPresence(false)
             .setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible).build();
+    // create the connection and enable necessary features
     connection = new XMPPTCPConnection(config);
+    // stream management prevents message loss
     connection.setUseStreamManagement(true);
     connection.addConnectionListener(connectionListener);
     connection.addAsyncStanzaListener(stanzaListener, new StanzaFilter(){
@@ -141,6 +149,8 @@ public class XmppManager{
         return (stanza.getError() != null);
       }
     });
+    // enable the pingManager to ping every 60 seconds and try to reconnect in order to  maintain
+    // the connection
     PingManager pingManager = PingManager.getInstanceFor(connection);
     pingManager.setPingInterval(60);
     pingManager.registerPingFailedListener(new PingFailedListener(){
@@ -154,6 +164,7 @@ public class XmppManager{
         }
       }
     });
+    // finally try to connect to the server
     try{
       connection.connect();
     }catch (Exception e){
@@ -209,6 +220,11 @@ public class XmppManager{
     }
   }
 
+  /**
+   * send the raw string as a message without wrapping it with xml attributes
+   * @param message the message to be sent
+   * @param buddyJID the buddy to send the message to
+   */
   public void sendRaw(String message, String buddyJID){
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
     if (connection != null && connection.isConnected() && chatManager != null){
@@ -235,6 +251,7 @@ public class XmppManager{
         buddyJID += "@" + service;
       Chat chat = chatManager.createChat(buddyJID);
       try{
+        // wrap the message with all necessary xml attributes
         Document doc = DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder().newDocument();
         Element msg = doc.createElement("message");
@@ -245,12 +262,14 @@ public class XmppManager{
         msg.appendChild(file);
         file.setTextContent(message);
 
+        // transform everything to a string
         Transformer t = TransformerFactory.newInstance().newTransformer();
         StringWriter writer = new StringWriter();
         StreamResult r = new StreamResult(writer);
         t.transform(new DOMSource(doc), r);
-
         message = writer.toString();
+
+        // send the message
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
         return true;
@@ -281,7 +300,6 @@ public class XmppManager{
       Chat chat = chatManager.createChat(buddyJID);
       try{
         //generate the message in order to set the type to image
-
         Document doc = DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder().newDocument();
         Element msg = doc.createElement("message");
@@ -295,13 +313,14 @@ public class XmppManager{
         msg.appendChild(desc);
         desc.setTextContent(description);
 
+        // create the string
         Transformer t = TransformerFactory.newInstance().newTransformer();
         StringWriter writer = new StringWriter();
         StreamResult r = new StreamResult(writer);
         t.transform(new DOMSource(doc), r);
-
         String message = writer.toString();
 
+        // send the message
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
         return true;
@@ -316,11 +335,11 @@ public class XmppManager{
   }
 
   /**
-   *
-   * @param buddyId
-   * @param othersId
-   * @param type
-   * @return
+   * send an acknowledgement
+   * @param buddyId the buddyId to receive the acknowledgement
+   * @param othersId the id the buddy has sent the message with
+   * @param type the type of acknowledgement to send
+   * @return true if sending was successful
    */
   public boolean sendAcknowledgement(String buddyId, long othersId, String type){
     ChatManager chatManager = ChatManager.getInstanceFor(connection);
@@ -329,6 +348,7 @@ public class XmppManager{
         buddyId += "@" + service;
       Chat chat = chatManager.createChat(buddyId);
       try{
+        // create the message structure
         Document doc = DocumentBuilderFactory.newInstance()
                 .newDocumentBuilder().newDocument();
         Element ack = doc.createElement("acknowledgement");
@@ -336,12 +356,14 @@ public class XmppManager{
         ack.setAttribute("id", String.valueOf(othersId));
         ack.setAttribute("type", type);
 
+        // create the string representation of the message
         Transformer t = TransformerFactory.newInstance().newTransformer();
         StringWriter writer = new StringWriter();
         StreamResult r = new StreamResult(writer);
         t.transform(new DOMSource(doc), r);
-
         String message = writer.toString();
+
+        // send the message
         chat.sendMessage(message);
         Log.d("DEBUG", "Success: Sent message");
         return true;
@@ -356,14 +378,19 @@ public class XmppManager{
   }
 
 
-
+  /**
+   * creates a list of all RosterEntries
+   * @return the rosterEntryArray
+   */
   public RosterEntry[] listRoster(){
     try{
+      // get the roster and if it is not loaded reload it
       Roster roster = Roster.getInstanceFor(connection);
       if (!roster.isLoaded())
         roster.reloadAndWait();
       RosterEntry[] result = new RosterEntry[roster.getEntries().size()];
       int i = 0;
+      // loop through all roster entries and append them to the array
       for (RosterEntry entry: roster.getEntries()){
         result[i++] = entry;
       }
@@ -383,8 +410,10 @@ public class XmppManager{
    */
   public boolean setStatus(boolean available, String status){
     if (connection != null && connection.isConnected()){
-      Presence.Type type = available ? Presence.Type.available : Presence.Type.unavailable;
-      Presence presence = new Presence(type);
+      // set the presence type
+      Presence presence = new Presence(available
+              ? Presence.Type.available
+              : Presence.Type.unavailable);
 
       presence.setStatus(status);
       try{
@@ -401,14 +430,23 @@ public class XmppManager{
     return false;
   }
 
+  /**
+   * returns whether the app has an active connection to the server
+   * @return true if the connection is connected to the xmpp server
+   */
   public boolean isConnected(){
     return connection != null && connection.isConnected();
   }
 
+  /**
+   * returns the underlying connection to the server
+   * @return the connection
+   */
   public XMPPTCPConnection getConnection(){
     return connection;
   }
 
+  // just for debug purposes
   private ConnectionListener connectionListener = new ConnectionListener(){
     @Override
     public void connected(XMPPConnection connection){

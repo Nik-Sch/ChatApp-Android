@@ -95,7 +95,9 @@ public class Constants{
    */
   public static final String MESSAGE_ID = "com.raspi.chatapp.util.Constants.MESSAGE_ID";
   /**
-   * This string references to everything related to the id of a message
+   * This string references to everything related to the id that the corresponding chat partner
+   * has of this message. That means every message has an messageId, which is mine and an
+   * othersId which is the message id of the buddy.
    */
   public static final String MESSAGE_OTHERS_ID = "com.raspi.chatapp.util.Constants.MESSAGE_OTHERS_ID";
   /**

@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -1349,7 +1348,13 @@ public class ChatFragment extends Fragment{
 
       // Decode bitmap with inSampleSize set
       options.inJustDecodeBounds = false;
-      return BitmapFactory.decodeFile(data.getAbsolutePath(), options);
+      Bitmap bitmap = null;
+      try{
+        bitmap = BitmapFactory.decodeFile(data.getAbsolutePath(), options);
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+      return bitmap;
     }
 
     @Override
