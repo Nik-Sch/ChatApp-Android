@@ -37,8 +37,5 @@ captures/
 #bin images folder
 images/
 
-# the signing function is only available on one machine
-app/build.gradle
-
 #xml files are generated
 .idea/*.xml
