@@ -75,7 +75,7 @@ public class MessageXmlParser{
         msg.id = Long.parseLong(parser.getAttributeValue(null, "id"));
       }
     }catch (Exception e){
-
+      e.printStackTrace();
     }
     return msg;
   }

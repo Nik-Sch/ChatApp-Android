@@ -126,6 +126,10 @@ public class Constants{
    */
   public static final String LAST_PRESENCE_SENT = "com.raspi.chatapp.util.Constants.LAST_PRESENCE_SENT";
   /**
+   * This string references to stuff concerning copying images
+   */
+  public static final String COPY_IMAGE = "com.raspi.chatapp.util.Constants.COPY_IMAGE";
+  /**
    * This string references to the file name of the wallpaper image.
    */
   public static final String WALLPAPER_NAME = "wallpaper.jpg";

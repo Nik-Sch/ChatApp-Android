@@ -58,7 +58,7 @@ public class WallpaperImageView extends AppCompatImageView{
       matrix.setScale(scaleFactor, scaleFactor, 0, 0);
       setImageMatrix(matrix);
     }catch (NullPointerException e){
-      e.printStackTrace();
+//      e.printStackTrace();
     }
     return super.setFrame(l, t, r, b);
   }

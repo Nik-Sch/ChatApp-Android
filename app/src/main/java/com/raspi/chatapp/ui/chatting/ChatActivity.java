@@ -39,6 +39,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.alexbbb.uploadservice.UploadService;
 import com.raspi.chatapp.BuildConfig;
@@ -81,10 +82,14 @@ public class ChatActivity extends AppCompatActivity implements
         SendImageFragment.OnFragmentInteractionListener{
 
   /**
-   * This constant references to the requestCode with which the activity is
-   * started to return the image I want to send.
+   * The requestCode for accessing the library
    */
-  private static final int PHOTO_ATTACH_SELECTED = 42;
+  private static final int SEND_LIBRARY_IMAGE_REQUEST_CODE = 42;
+
+  /**
+   * The requestCode for accessing the camera
+   */
+  private static final int SEND_CAMERA_IMAGE_REQUEST_CODE = 4242;
 
   /**
    * this is true if the popup is currently showing
@@ -316,6 +321,7 @@ public class ChatActivity extends AppCompatActivity implements
   }
 
   public void sendLibraryImage(View view){
+    // hide the popup
     View v = findViewById(R.id.popup_layout);
     if (v != null){
       v.setVisibility(View.GONE);
@@ -340,10 +346,23 @@ public class ChatActivity extends AppCompatActivity implements
             .getString(R.string.select_image));
     chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new
             Intent[]{pickIntent});
-    startActivityForResult(chooserIntent, ChatActivity.PHOTO_ATTACH_SELECTED);
+    startActivityForResult(chooserIntent, SEND_LIBRARY_IMAGE_REQUEST_CODE);
     // nope I don't want to be asked for a pwd when selected the image
     getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
             (Constants.PWD_REQUEST, false).apply();
+  }
+
+  public void sendCameraImage(View view){
+    // hide the popup
+    View v = findViewById(R.id.popup_layout);
+    if (v != null){
+      v.setVisibility(View.GONE);
+      attachPopup = false;
+    }
+    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    Uri fileUri = Uri.fromFile(MyFileUtils.getFileName());
+    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+    startActivityForResult(cameraIntent, SEND_CAMERA_IMAGE_REQUEST_CODE);
   }
 
   /**
@@ -591,7 +610,7 @@ public class ChatActivity extends AppCompatActivity implements
   }
 
   /**
-   * Sets myt username and password used to log into the XMPP server if they
+   * Sets my username and password used to log into the XMPP server if they
    * aren't already set.<br>
    * The reason I am not hard coding these or making them constants is for
    * further improvements to be made easier. Probably I want the user to
@@ -601,10 +620,10 @@ public class ChatActivity extends AppCompatActivity implements
     //this is straight forward.
     SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, 0);
     if (!preferences.contains(Constants.USERNAME))
-      preferences.edit().putString(Constants.USERNAME, "dummy").apply();
+      preferences.edit().putString(Constants.USERNAME, "niklas").apply();
 
     if (!preferences.contains(Constants.PASSWORD))
-      preferences.edit().putString(Constants.PASSWORD, "passwdDummy").apply();
+      preferences.edit().putString(Constants.PASSWORD, "passwdNiklas").apply();
   }
 
   @Override
@@ -624,44 +643,54 @@ public class ChatActivity extends AppCompatActivity implements
   protected void onActivityResult(int requestCode, int resultCode, Intent data){
     super.onActivityResult(requestCode, resultCode, data);
     // if the user chose a image to be sent to the current buddy
-    if (requestCode == ChatActivity.PHOTO_ATTACH_SELECTED && resultCode ==
-            Activity.RESULT_OK){
-      if (data.getData() != null)
-        // only one image was selected
-        sendImages(data.getData());
-      else if (data.getClipData() != null){
-        // multiple images were selected
-        ArrayList<Uri> uris = new ArrayList<>();
-        ClipData clipData = data.getClipData();
-        for (int i = 0; i < clipData.getItemCount(); i++)
-          uris.add(clipData.getItemAt(i).getUri());
-        Uri[] array = new Uri[uris.size()];
-        sendImages(uris.toArray(array));
-      }
-    }else if (requestCode == PasswordActivity.ASK_PWD_REQUEST){
-      // if the user has entered a password or exited the passwordActivity
-      // otherwise.
-      if (resultCode == Activity.RESULT_OK){
-        // if the pwd was correct do not request a new pwd. Yep this function
-        // is called before onResume, therefore, this would end in an
-        // infinity loop otherwise...
-        getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
-                (Constants.PWD_REQUEST, false).apply();
-        // actually I am not sure, shouldn't the onResume function be called
-        // which calls init?
-        init();
-      }else{
+    switch (requestCode){
+      case SEND_CAMERA_IMAGE_REQUEST_CODE:
+        if (resultCode == RESULT_OK && data != null)
+          sendImages(data.getData());
+        else
+          Toast.makeText(this, R.string.capturing_image_error, Toast.LENGTH_LONG).show();
+        break;
+      case SEND_LIBRARY_IMAGE_REQUEST_CODE:
+        if (resultCode == Activity.RESULT_OK){
+          if (data.getData() != null)
+            // only one image was selected
+            sendImages(data.getData());
+          else if (data.getClipData() != null){
+            // multiple images were selected
+            ArrayList<Uri> uris = new ArrayList<>();
+            ClipData clipData = data.getClipData();
+            for (int i = 0; i < clipData.getItemCount(); i++)
+              uris.add(clipData.getItemAt(i).getUri());
+            Uri[] array = new Uri[uris.size()];
+            sendImages(uris.toArray(array));
+          }
+        }
+        break;
+      case PasswordActivity.ASK_PWD_REQUEST:
+        // if the user has entered a password or exited the passwordActivity
+        // otherwise.
+        if (resultCode == Activity.RESULT_OK){
+          // if the pwd was correct do not request a new pwd. Yep this function
+          // is called before onResume, therefore, this would end in an
+          // infinity loop otherwise...
+          getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
+                  (Constants.PWD_REQUEST, false).apply();
+          // actually I am not sure, shouldn't the onResume function be called
+          // which calls init?
+          init();
+        }else{
 //        if (PreferenceManager.getDefaultSharedPreferences(getApplication())
 //                .getBoolean(
 //                        getResources().getString(R.string.pref_key_enablepwd),
 //                        true))
 //          startActivityForResult(new Intent(this, PasswordActivity.class),
 //                  PasswordActivity.ASK_PWD_REQUEST);
-        // I suppose I should finish the activity here as the user pressed
-        // back. TODO: I am not sure whether on resume gets called and finish
-        // will really finish if the passwordActivity is called...
-        finish();
-      }
+          // I suppose I should finish the activity here as the user pressed
+          // back. TODO: I am not sure whether on resume gets called and finish
+          // will really finish if the passwordActivity is called...
+          finish();
+        }
+        break;
     }
   }
 

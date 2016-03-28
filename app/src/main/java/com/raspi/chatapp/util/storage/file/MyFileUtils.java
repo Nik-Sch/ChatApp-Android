@@ -20,12 +20,11 @@ import android.os.Environment;
 import com.raspi.chatapp.util.Constants;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MyFileUtils{
-  public File getFileName() throws IOException{
+  public static File getFileName(){
     String root = Environment.getExternalStoragePublicDirectory(Environment
             .DIRECTORY_PICTURES).getAbsolutePath();
     File myDir = new File(root + "/" + Constants.IMAGE_DIR);
@@ -41,7 +40,7 @@ public class MyFileUtils{
     return file;
   }
 
-  public boolean isExternalStorageWritable(){
+  public static boolean isExternalStorageWritable(){
     String state = Environment.getExternalStorageState();
     if (Environment.MEDIA_MOUNTED.equals(state)){
       return true;

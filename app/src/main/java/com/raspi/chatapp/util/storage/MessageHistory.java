@@ -204,7 +204,6 @@ public class MessageHistory{
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
               MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL,
-              MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
               MessageHistoryContract.MessageEntry._ID,
               MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID
       };
@@ -224,8 +223,8 @@ public class MessageHistory{
                   lastMessage.getString(2),
                   lastMessage.getLong(4),
                   lastMessage.getString(3),
-                  lastMessage.getLong(7),
-                  lastMessage.getLong(8));
+                  lastMessage.getLong(6),
+                  lastMessage.getLong(7));
         }else if (TYPE_IMAGE.equals(type)){
           JSONArray contentJSON = new JSONArray(lastMessage.getString(2));
           mac = new ImageMessage(
@@ -236,9 +235,9 @@ public class MessageHistory{
                   lastMessage.getInt(6),
                   lastMessage.getLong(4),
                   lastMessage.getString(3),
-                  lastMessage.getLong(7),
+                  lastMessage.getLong(6),
                   lastMessage.getString(1),
-                  lastMessage.getLong(8));
+                  lastMessage.getLong(7));
         }
       }
     }catch (Exception e){
@@ -331,7 +330,6 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL,
-            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
             MessageHistoryContract.MessageEntry._ID,
@@ -357,11 +355,11 @@ public class MessageHistory{
         String type = messages.getString(1);
         String content = messages.getString(2);
         String url = messages.getString(3);
-        int progress = messages.getInt(4);
-        String status = messages.getString(5);
-        long time = messages.getLong(6);
-        long _ID = messages.getLong(7);
-        long othersId = messages.getLong(8);
+        int progress = 0;
+        String status = messages.getString(4);
+        long time = messages.getLong(5);
+        long _ID = messages.getLong(6);
+        long othersId = messages.getLong(7);
         switch (type){
           case (MessageHistory.TYPE_TEXT):
             result[i] = new TextMessage(!me.equals(from), content, time,
@@ -420,7 +418,6 @@ public class MessageHistory{
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL,
-            MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_PROGRESS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS,
             MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP,
             MessageHistoryContract.MessageEntry._ID,
@@ -438,11 +435,11 @@ public class MessageHistory{
     String type = message.getString(1);
     String content = message.getString(2);
     String url = message.getString(3);
-    int progress = message.getInt(4);
-    String status = message.getString(5);
-    long time = message.getLong(6);
-    long _ID = message.getLong(7);
-    long othersId = message.getLong(8);
+    int progress = 0;
+    String status = message.getString(4);
+    long time = message.getLong(5);
+    long _ID = message.getLong(6);
+    long othersId = message.getLong(7);
     switch (type){
       case (MessageHistory.TYPE_TEXT):
         mac = new TextMessage(!me.equals(from), content, time, status, _ID, othersId);
@@ -471,7 +468,7 @@ public class MessageHistory{
   }
 
   public long addMessage(String chatId, String buddyId, String type, String
-          content, String url, String progress, String status, long othersId){
+          content, String url, String status, long othersId){
     //Log.d("DATABASE", "Adding a message");
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     //remove everything after @ if it exists
@@ -489,8 +486,6 @@ public class MessageHistory{
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TYPE, type);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_CONTENT, content);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_URL, url);
-    values.put(MessageHistoryContract.MessageEntry
-            .COLUMN_NAME_MESSAGE_PROGRESS, progress);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_STATUS, status);
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_MESSAGE_TIMESTAMP, new Date().getTime());
     values.put(MessageHistoryContract.MessageEntry.COLUMN_NAME_OTHERS_ID, othersId);
@@ -502,7 +497,7 @@ public class MessageHistory{
 
   public long addMessage(String chatId, String buddyId, String type, String
           content, String status, long othersId){
-    return addMessage(chatId, buddyId, type, content, "", "0", status, othersId);
+    return addMessage(chatId, buddyId, type, content, "", status, othersId);
   }
 
   public void updateMessageStatus(String chatId, long _ID, String newStatus){

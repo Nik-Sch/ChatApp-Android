@@ -712,12 +712,11 @@ public class SendImageFragment extends Fragment{
         }
       });
       // can only send the image if I can save it locally in the external Storage
-      MyFileUtils mfu = new MyFileUtils();
-      if (mfu.isExternalStorageWritable()){
+      if (MyFileUtils.isExternalStorageWritable()){
         try{
           for (Message msg : images){
             //creating the directory
-            File file = mfu.getFileName();
+            File file = MyFileUtils.getFileName();
             //creating the file
             file.createNewFile();
             //save the given image into a new file

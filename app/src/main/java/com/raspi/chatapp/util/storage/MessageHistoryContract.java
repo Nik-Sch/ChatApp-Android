@@ -35,7 +35,6 @@ public class MessageHistoryContract{
     public static final String COLUMN_NAME_MESSAGE_CONTENT = "content";
     public static final String COLUMN_NAME_MESSAGE_STATUS = "status";
     public static final String COLUMN_NAME_MESSAGE_TIMESTAMP = "timestamp";
-    public static final String COLUMN_NAME_MESSAGE_PROGRESS = "progress";
     public static final String COLUMN_NAME_MESSAGE_URL = "url";
     public static final String COLUMN_NAME_OTHERS_ID = "othersId";
   }

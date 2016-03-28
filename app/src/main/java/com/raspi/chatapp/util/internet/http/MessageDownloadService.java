@@ -24,7 +24,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,6 +103,11 @@ public class MessageDownloadService extends IntentService{
       Long othersId = extras.getLong(PARAM_OTHERS_MSG_ID);
       ResultReceiver receiver = intent.getParcelableExtra(PARAM_RECEIVER);
       String chatId = extras.getString(PARAM_CHAT_ID);
+      // send a progress update of 0
+      Bundle resultData = new Bundle();
+      resultData.putInt(PARAM_PROGRESS, 0);
+      resultData.putLong(PARAM_MESSAGE_ID, messageId);
+      receiver.send(UPDATE_PROGRESS, resultData);
       // try to download the message
       try{
         // establish the connection
@@ -118,17 +122,17 @@ public class MessageDownloadService extends IntentService{
         byte data[] = new byte[4096];
         long total = 0;
         int count;
-        long start = new Date().getTime();
+        long lastUpdate = 0;
         // copy the streams until there is no data left in the input stream
-        while ((count = input.read(data)) != -1){
+        while ((count = input.read(data, 0, 4096)) != -1){
           total += count;
-          // "only" publish the progress 10 times a second
-          if ((new Date().getTime() - start) >= 100){
-            Bundle resultData = new Bundle();
+          // "only" publish the progress every 16kB
+          if (total - lastUpdate >= 16384){
+            resultData = new Bundle();
             resultData.putInt(PARAM_PROGRESS, (int) (total * 100 / fileLength));
             resultData.putLong(PARAM_MESSAGE_ID, messageId);
             receiver.send(UPDATE_PROGRESS, resultData);
-            start = new Date().getTime();
+            lastUpdate = total;
           }
           output.write(data, 0, count);
         }
@@ -165,7 +169,7 @@ public class MessageDownloadService extends IntentService{
       }
 
       // publish a final progress making sure the image is completely downloaded
-      Bundle resultData = new Bundle();
+      resultData = new Bundle();
       resultData.putInt(PARAM_PROGRESS, 100);
       resultData.putLong(PARAM_MESSAGE_ID, messageId);
       receiver.send(UPDATE_PROGRESS, resultData);

@@ -152,4 +152,5 @@
     <string name="reset_wallpaper_title">Resetting wallpaper</string>
     <string name="send_library">library</string>
     <string name="send_camera">camera</string>
+    <string name="capturing_image_error">There was an error capturing an image.</string>
 </resources>

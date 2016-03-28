@@ -49,7 +49,6 @@ public class MessageHistoryDbHelper extends SQLiteOpenHelper{
             .COLUMN_NAME_MESSAGE_TYPE + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_CONTENT + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_URL + " TEXT, " + MessageHistoryContract.MessageEntry
-            .COLUMN_NAME_MESSAGE_PROGRESS + " REAL, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_STATUS + " TEXT, " + MessageHistoryContract.MessageEntry
             .COLUMN_NAME_MESSAGE_TIMESTAMP + " INTEGER)");
   }

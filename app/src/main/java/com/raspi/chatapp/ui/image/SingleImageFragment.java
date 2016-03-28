@@ -28,7 +28,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -323,8 +322,6 @@ public class SingleImageFragment extends Fragment{
       // Decode bitmap with inSampleSize set
       options.inJustDecodeBounds = false;
       Bitmap bitmap = BitmapFactory.decodeFile(msg.file, options);
-      Log.d("loadBitmap", "Dimensions: " + bitmap.getWidth() + ", " +
-              bitmap.getHeight());
       imageView.setImageBitmap(bitmap);
       imageView.setOnClickListener(new View.OnClickListener(){
         @Override

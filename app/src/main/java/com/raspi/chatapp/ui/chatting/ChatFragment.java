@@ -1167,9 +1167,8 @@ public class ChatFragment extends Fragment{
               nm.status = getResources().getString(R.string.new_messages);
             // ImageMessage may also be in waiting status when they are on
             // the left side, they need to be downloaded.
-          }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
+          }else if (!msg.status.equals(MessageHistory.STATUS_READ))
             downloadImage(msg);
-          }
         }else if (MessageHistory.STATUS_WAITING.equals(msg.status)){
           // don't send them but upload them
           Upload.Task task = new Upload.Task(new File(msg.file), msg.chatId, msg

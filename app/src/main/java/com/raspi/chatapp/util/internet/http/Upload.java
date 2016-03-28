@@ -55,7 +55,6 @@ public class Upload{
               .setMaxRetries(2)
               .startUpload();
       // register the receiver to receiver upload updates
-      uploadReceiver.unregister(context);
       uploadReceiver.register(context);
     }catch (Exception e){
       Log.e("AndroidUploadService", e.getMessage(), e);
@@ -145,6 +144,7 @@ public class Upload{
               }else{
                 messageHistory.updateMessageStatus(buddyId, messageId,
                         MessageHistory.STATUS_WAITING);
+                Log.e("UPLOAD", "Sending the uploaded image failed");
               }
               this.unregister(context);
             }

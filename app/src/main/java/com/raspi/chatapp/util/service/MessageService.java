@@ -181,6 +181,10 @@ public class MessageService extends Service{
         return;
       }
       MessageXmlParser.Message msg = MessageXmlParser.parse(message.getBody());
+      if (msg == null){
+        Log.e("PROCESS_MESSAGE", "Error parsing message:\n" + message.getBody());
+        return;
+      }
       if (!"acknowledgement".equals(msg.type)){
         long othersId = msg.id;
         String name = messageHistory.getName(buddyId);
@@ -201,16 +205,14 @@ public class MessageService extends Service{
                   .TYPE_TEXT);
         }else if (MessageHistory.TYPE_IMAGE.equals(msg.type)){
           try{
-            MyFileUtils mfu = new MyFileUtils();
             messageId = messageHistory.addMessage(
                     buddyId,
                     buddyId,
                     msg.type,
                     SendImageFragment.createJSON(
-                            mfu.getFileName().getAbsolutePath(),
+                            MyFileUtils.getFileName().getAbsolutePath(),
                             msg.description).toString(),
                     "http://" + XmppManager.SERVER + "/ChatApp/" + msg.url,
-                    "0",
                     MessageHistory.STATUS_WAITING,
                     othersId);
             xmppManager.sendAcknowledgement(buddyId, msg.id, MessageHistory
