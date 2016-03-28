@@ -39,10 +39,10 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/chat_form"
             android:layout_alignParentTop="true"
+            android:background="@android:color/transparent"
             android:divider="@null"
             android:dividerHeight="-5dp"
-            android:scrollbars="vertical"
-            android:background="@android:color/transparent"/>
+            android:scrollbars="vertical"/>
 
         <LinearLayout
             android:id="@+id/chat_form"
@@ -51,44 +51,86 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:background="@drawable/send_form_bg"
             android:layout_margin="3dp"
-            android:gravity="bottom"
-            android:baselineAligned="false">
+            android:background="@drawable/send_form_bg"
+            android:baselineAligned="false"
+            android:gravity="bottom">
 
             <ImageButton
                 android:id="@+id/emoti_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_insert_emoticon_black_24dp"
-                android:background="@android:color/transparent"
+                android:layout_marginBottom="13dp"
                 android:layout_marginLeft="10dp"
                 android:layout_marginStart="10dp"
-                android:layout_marginBottom="13dp"/>
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_insert_emoticon_black_24dp"/>
 
             <com.github.ankushsachdeva.emojicon.EmojiconEditText
                 android:id="@+id/chat_in"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
-                android:lines="4"
+                android:layout_weight="1"
                 android:ems="10"
+                android:hint="@string/send_message_hint"
                 android:inputType="textMultiLine"
+                android:lines="4"
                 android:maxLines="4"
                 android:minLines="1"
-                android:textSize="@dimen/font_size"
-                android:hint="@string/send_message_hint"/>
+                android:textSize="@dimen/font_size"/>
 
 
             <Button
                 android:id="@+id/chat_sendBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/send"
                 android:background="@drawable/send_button_bg"
+                android:text="@string/send"
                 android:textColor="@android:color/white"/>
         </LinearLayout>
     </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/popup_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/listview_transparent_bg"
+        android:onClick="onAttachClicked">
+
+        <GridLayout
+            android:layout_margin="2dp"
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@drawable/popup_attach_bg"
+            android:columnCount="2"
+            android:orientation="horizontal"
+            android:rowCount="1"
+            android:layout_gravity="center_horizontal"
+            android:foregroundGravity="center_horizontal">
+
+            <ImageButton
+                android:id="@+id/send_library"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_gravity="center_horizontal"
+                android:background="@android:color/transparent"
+                android:onClick="sendLibraryImage"
+                android:padding="5dp"
+                android:src="@drawable/ic_photo_library_white_48dp"/>
+
+            <ImageButton
+                android:id="@+id/send_camera"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_gravity="center_horizontal"
+                android:background="@android:color/transparent"
+                android:padding="5dp"
+                android:src="@drawable/ic_photo_camera_white_48dp"/>
+        </GridLayout>
+    </LinearLayout>
 
 </FrameLayout>

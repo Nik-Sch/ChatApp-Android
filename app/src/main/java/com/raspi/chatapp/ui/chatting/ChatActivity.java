@@ -38,6 +38,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.alexbbb.uploadservice.UploadService;
 import com.raspi.chatapp.BuildConfig;
@@ -84,6 +85,11 @@ public class ChatActivity extends AppCompatActivity implements
    * started to return the image I want to send.
    */
   private static final int PHOTO_ATTACH_SELECTED = 42;
+
+  /**
+   * this is true if the popup is currently showing
+   */
+  private boolean attachPopup = true;
 
   /**
    * Here should the current buddy be stored. That means the buddyId of the
@@ -307,6 +313,37 @@ public class ChatActivity extends AppCompatActivity implements
     }catch (Exception e){
       e.printStackTrace();
     }
+  }
+
+  public void sendLibraryImage(View view){
+    View v = findViewById(R.id.popup_layout);
+    if (v != null){
+      v.setVisibility(View.GONE);
+      attachPopup = false;
+    }
+    // when clicking attack the user should at first select an application to
+    // choose the image with and then choose an image.
+    // this intent is for getting the image
+    Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+    getIntent.setType("image/*");
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
+      getIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+    // and this for getting the application to get the image with
+    Intent pickIntent = new Intent(Intent.ACTION_PICK,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+    pickIntent.setType("image/*");
+
+    // and this finally is for opening the chooserIntent for opening the
+    // getIntent for returning the image uri. Yep, thanks android
+    Intent chooserIntent = Intent.createChooser(getIntent, getResources()
+            .getString(R.string.select_image));
+    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new
+            Intent[]{pickIntent});
+    startActivityForResult(chooserIntent, ChatActivity.PHOTO_ATTACH_SELECTED);
+    // nope I don't want to be asked for a pwd when selected the image
+    getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
+            (Constants.PWD_REQUEST, false).apply();
   }
 
   /**
@@ -641,30 +678,12 @@ public class ChatActivity extends AppCompatActivity implements
   }
 
   @Override
-  public void onAttachClicked(){
-    // when clicking attack the user should at first select an application to
-    // choose the image with and then choose an image.
-    // this intent is for getting the image
-    Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
-    getIntent.setType("image/*");
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
-      getIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-
-    // and this for getting the application to get the image with
-    Intent pickIntent = new Intent(Intent.ACTION_PICK,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-    pickIntent.setType("image/*");
-
-    // and this finally is for opening the chooserIntent for opening the
-    // getIntent for returning the image uri. Yep, thanks android
-    Intent chooserIntent = Intent.createChooser(getIntent, getResources()
-            .getString(R.string.select_image));
-    chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new
-            Intent[]{pickIntent});
-    startActivityForResult(chooserIntent, ChatActivity.PHOTO_ATTACH_SELECTED);
-    // nope I don't want to be asked for a pwd when selected the image
-    getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
-            (Constants.PWD_REQUEST, false).apply();
+  public void onAttachClicked(View view){
+    View v = findViewById(R.id.popup_layout);
+    if (v != null){
+      v.setVisibility(attachPopup ? View.GONE : View.VISIBLE);
+      attachPopup = !attachPopup;
+    }
   }
 
   @Override
@@ -672,6 +691,12 @@ public class ChatActivity extends AppCompatActivity implements
     // every time I click back or add an item to the backstack I want to check
     // whether I want to display the home button in the actionBar or not.
     shouldDisplayHomeUp();
+    // make sure that the popup is gone
+    View v = findViewById(R.id.popup_layout);
+    if (v != null){
+      v.setVisibility(View.GONE);
+      attachPopup = false;
+    }
   }
 
   /**

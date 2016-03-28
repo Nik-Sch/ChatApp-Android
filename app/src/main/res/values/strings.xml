@@ -150,4 +150,6 @@
     <string name="send_image_hint">Add a description</string>
     <string name="reset_wallpaper_msg">Resetting the wallpaper for all chats?</string>
     <string name="reset_wallpaper_title">Resetting wallpaper</string>
+    <string name="send_library">library</string>
+    <string name="send_camera">camera</string>
 </resources>

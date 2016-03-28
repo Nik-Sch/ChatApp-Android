@@ -689,7 +689,7 @@ public class ChatFragment extends Fragment{
       // if clicked attach perform the onAttackClicked. Easy.
       case R.id.action_attach:
         init = true;
-        mListener.onAttachClicked();
+        mListener.onAttachClicked(getActivity().findViewById(R.id.action_attach));
         return true;
       // if clicked rename open the dialog where the user can rename this chat
       case R.id.action_rename:
@@ -1311,7 +1311,7 @@ public class ChatFragment extends Fragment{
    * >Communicating with Other Fragments</a> for more information.
    */
   public interface OnChatFragmentInteractionListener{
-    void onAttachClicked();
+    void onAttachClicked(View view);
 
     void sendImages(Uri... imageUris);
   }
