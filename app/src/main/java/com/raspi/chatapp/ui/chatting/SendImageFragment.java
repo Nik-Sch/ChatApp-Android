@@ -504,7 +504,7 @@ public class SendImageFragment extends Fragment{
         RelativeLayout.LayoutParams viewPagerParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT,
                 RelativeLayout.LayoutParams.WRAP_CONTENT);
-        viewPagerParams.addRule(RelativeLayout.ABOVE,R.id.send_image_overview);
+        viewPagerParams.addRule(RelativeLayout.ABOVE, R.id.send_image_overview);
         viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         viewPagerParams.addRule(RelativeLayout.ALIGN_PARENT_START);
         viewPager.setLayoutParams(viewPagerParams);
@@ -912,6 +912,8 @@ public class SendImageFragment extends Fragment{
       // Decode bitmap with inSampleSize set
       options.inJustDecodeBounds = false;
       Bitmap bitmap = BitmapFactory.decodeFile(imagePath, options);
+      if (bitmap == null)
+        return null;
       Log.d("loadBitmap", "Dimensions: " + bitmap.getWidth() + ", " +
               bitmap.getHeight());
       imageView.setImageBitmap(bitmap);

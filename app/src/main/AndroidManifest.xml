@@ -2,8 +2,8 @@
 <manifest
     package="com.raspi.chatapp"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="3"
-    android:versionName="MusicToGo 1.1 by MusicToGo-Coop">
+    android:versionCode="4"
+    android:versionName="MusicToGo 1.2 by MusicToGo-Coop">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.INTERNET"/>

@@ -102,4 +102,6 @@
     <string name="sending_images">Sende %1$d Bilder</string>
     <string name="reset_wallpaper_msg">Das Hintergrundbild für alle Chats zurücksetzten?</string>
     <string name="reset_wallpaper_title">Hintergrundbild zurücksetzten</string>
+    <string name="send_camera">Kamera</string>
+    <string name="send_library">Bibilothek</string>
 </resources>

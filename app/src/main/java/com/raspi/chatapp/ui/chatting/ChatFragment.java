@@ -56,6 +56,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupWindow;
+import android.widget.Toast;
 
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
 import com.github.ankushsachdeva.emojicon.EmojiconEditText;

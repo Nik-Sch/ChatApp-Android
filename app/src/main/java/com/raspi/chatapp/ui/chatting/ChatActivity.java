@@ -39,7 +39,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.alexbbb.uploadservice.UploadService;
 import com.raspi.chatapp.BuildConfig;
@@ -620,10 +619,10 @@ public class ChatActivity extends AppCompatActivity implements
     //this is straight forward.
     SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, 0);
     if (!preferences.contains(Constants.USERNAME))
-      preferences.edit().putString(Constants.USERNAME, "niklas").apply();
+      preferences.edit().putString(Constants.USERNAME, "aylin").apply();
 
     if (!preferences.contains(Constants.PASSWORD))
-      preferences.edit().putString(Constants.PASSWORD, "passwdNiklas").apply();
+      preferences.edit().putString(Constants.PASSWORD, "passwdAylin").apply();
   }
 
   @Override
@@ -647,8 +646,6 @@ public class ChatActivity extends AppCompatActivity implements
       case SEND_CAMERA_IMAGE_REQUEST_CODE:
         if (resultCode == RESULT_OK && data != null)
           sendImages(data.getData());
-        else
-          Toast.makeText(this, R.string.capturing_image_error, Toast.LENGTH_LONG).show();
         break;
       case SEND_LIBRARY_IMAGE_REQUEST_CODE:
         if (resultCode == Activity.RESULT_OK){
