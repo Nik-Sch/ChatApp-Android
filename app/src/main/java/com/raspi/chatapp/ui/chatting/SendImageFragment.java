@@ -39,7 +39,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -52,13 +51,8 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
-import com.github.ankushsachdeva.emojicon.EmojiconEditText;
-import com.github.ankushsachdeva.emojicon.EmojiconGridView;
-import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
-import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.ortiz.touch.TouchImageView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.image.AsyncDrawable;
@@ -66,6 +60,8 @@ import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
+import com.rockerhieu.emojicon.EmojiconEditText;
+import com.rockerhieu.emojicon.EmojiconsFragment;
 
 import org.json.JSONArray;
 
@@ -97,6 +93,7 @@ public class SendImageFragment extends Fragment{
   private boolean keyboardShown = false;
 
   private OnFragmentInteractionListener mListener;
+  private boolean emojiKeyBoardOpen = false;
 
   public SendImageFragment(){
     // Required empty public constructor
@@ -415,81 +412,36 @@ public class SendImageFragment extends Fragment{
    * initialize the emojiconKeyboard
    */
   private void initEmoji(View view){
-    // this is the same as in ChatFragment --> look there for documentation
-    final EmojiconEditText emojiconEditText = (EmojiconEditText) view
-            .findViewById(R.id.send_image_description);
-    final View root = getActivity().findViewById(R.id.root_view);
-    final EmojiconsPopup popup = new EmojiconsPopup(root, getActivity());
-    final ImageButton emojiBtn = (ImageButton) view.findViewById(R.id
-            .send_image_emoti_switch);
-    popup.setSizeForSoftKeyboard();
-    popup.setOnDismissListener(new PopupWindow.OnDismissListener(){
-      @Override
-      public void onDismiss(){
-//        changeKeyboardIcon();
-      }
-    });
-    popup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener(){
-      @Override
-      public void onKeyboardOpen(int keyBoardHeight){
-        keyboardOpened();
-      }
 
-      @Override
-      public void onKeyboardClose(){
-        if (popup.isShowing())
-          popup.dismiss();
-        keyboardClosed();
-      }
-    });
-    popup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener(){
-      @Override
-      public void onEmojiconClicked(Emojicon emojicon){
-        if (emojiconEditText == null || emojicon == null)
-          return;
-        int start = emojiconEditText.getSelectionStart();
-        int end = emojiconEditText.getSelectionEnd();
-        if (start < 0)
-          emojiconEditText.append(emojicon.getEmoji());
-        else
-          emojiconEditText.getText().replace(
-                  Math.min(start, end),
-                  Math.max(start, end),
-                  emojicon.getEmoji(),
-                  0,
-                  emojicon.getEmoji().length());
-      }
-    });
-    popup.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener(){
-      @Override
-      public void onEmojiconBackspaceClicked(View v){
-        KeyEvent event = new KeyEvent(
-                0, 0, 0,
-                KeyEvent.KEYCODE_DEL,
-                0, 0, 0, 0,
-                KeyEvent.KEYCODE_ENDCALL
-        );
-        emojiconEditText.dispatchKeyEvent(event);
-      }
-    });
+    // save the views I will use
+    final EmojiconEditText emojiconEditText = (EmojiconEditText) getActivity
+            ().findViewById(R.id.send_image_description);
+    final ImageButton emojiBtn = (ImageButton) view.findViewById(R
+            .id.send_image_emoti_switch);
+    mListener.setCurrentEmojiconEditText(emojiconEditText);
+    // open/close the emojicon keyboard when pressing the button
     emojiBtn.setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){
-        if (!popup.isShowing()){
-          if (popup.isKeyBoardOpen())
-            popup.showAtBottom();
-          else{
-            emojiconEditText.setFocusableInTouchMode(true);
-            emojiconEditText.requestFocus();
-            popup.showAtBottomPending();
-            InputMethodManager inputMethodManager = (InputMethodManager)
-                    getActivity().getSystemService(Context
-                            .INPUT_METHOD_SERVICE);
-            inputMethodManager.showSoftInput(emojiconEditText,
-                    InputMethodManager.SHOW_IMPLICIT);
-          }
-        }else
-          popup.dismiss();
+        if (emojiconEditText == null)
+          return;
+        getActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.emojicon_keyboard, EmojiconsFragment
+                        .newInstance(!emojiKeyBoardOpen))
+                .commit();
+        emojiconEditText.setFocusableInTouchMode(true);
+        emojiconEditText.requestFocus();
+        InputMethodManager inputMethodManager = (InputMethodManager)
+                getActivity().getSystemService(Context
+                        .INPUT_METHOD_SERVICE);
+        if (emojiKeyBoardOpen)
+          inputMethodManager.showSoftInput(emojiconEditText,
+                  InputMethodManager.SHOW_IMPLICIT);
+        else
+          inputMethodManager.hideSoftInputFromWindow(emojiconEditText
+                  .getWindowToken(), 0);
+
+        emojiKeyBoardOpen = !emojiKeyBoardOpen;
       }
     });
   }
@@ -676,6 +628,9 @@ public class SendImageFragment extends Fragment{
    */
   public interface OnFragmentInteractionListener{
     void onReturnClick();
+
+    void setCurrentEmojiconEditText(com.rockerhieu.emojicon.EmojiconEditText
+                                            editText);
   }
 
   /**

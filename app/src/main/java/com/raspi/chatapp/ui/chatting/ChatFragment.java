@@ -39,7 +39,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.util.Log;
 import android.view.ActionMode;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -55,14 +54,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.PopupWindow;
-import android.widget.Toast;
 
 import com.alexbbb.uploadservice.UploadServiceBroadcastReceiver;
-import com.github.ankushsachdeva.emojicon.EmojiconEditText;
-import com.github.ankushsachdeva.emojicon.EmojiconGridView;
-import com.github.ankushsachdeva.emojicon.EmojiconsPopup;
-import com.github.ankushsachdeva.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.image.ImageViewActivity;
 import com.raspi.chatapp.ui.util.image.WallpaperImageView;
@@ -79,6 +72,8 @@ import com.raspi.chatapp.util.internet.http.MessageDownloadService;
 import com.raspi.chatapp.util.internet.http.Upload;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
+import com.rockerhieu.emojicon.EmojiconEditText;
+import com.rockerhieu.emojicon.EmojiconsFragment;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -565,6 +560,7 @@ public class ChatFragment extends Fragment{
    * if init is false do not initialize the fragment this time
    */
   private boolean init = true;
+  private boolean emojiKeyBoardOpen = false;
 
   public ChatFragment(){
     // Required empty public constructor
@@ -917,101 +913,38 @@ public class ChatFragment extends Fragment{
   }
 
   /**
-   * initilize the emojiconKeyboard
+   * initialize the emojiconKeyboard
    */
   private void initEmoji(){
-    // this method is based on the example for the emojicons I use
-    // (https://github.com/ankushsachdeva/emojicon)
-
     // save the views I will use
     final EmojiconEditText emojiconEditText = (EmojiconEditText) getActivity
             ().findViewById(R.id.chat_in);
-    final View root = getActivity().findViewById(R.id.root_view);
-    final EmojiconsPopup popup = new EmojiconsPopup(root, getActivity());
     final ImageButton emojiBtn = (ImageButton) getActivity().findViewById(R
             .id.emoti_switch);
-    // resize correspondingly
-    popup.setSizeForSoftKeyboard();
-    // if you want to do anything when closing the popup
-    popup.setOnDismissListener(new PopupWindow.OnDismissListener(){
-      @Override
-      public void onDismiss(){
-//        changeKeyboardIcon();
-      }
-    });
-    // do anything on opening or closing the keyboard
-    popup.setOnSoftKeyboardOpenCloseListener(new EmojiconsPopup.OnSoftKeyboardOpenCloseListener(){
-      @Override
-      public void onKeyboardOpen(int keyBoardHeight){
-      }
-
-      @Override
-      public void onKeyboardClose(){
-        // if it is showing, close it
-        if (popup.isShowing())
-          popup.dismiss();
-      }
-    });
-    // when clicking an emojicon
-    popup.setOnEmojiconClickedListener(new EmojiconGridView.OnEmojiconClickedListener(){
-      @Override
-      public void onEmojiconClicked(Emojicon emojicon){
-        // only if there is a emojicon and an editText
-        if (emojiconEditText == null || emojicon == null)
-          return;
-        // get the currently selected text
-        int start = emojiconEditText.getSelectionStart();
-        int end = emojiconEditText.getSelectionEnd();
-        // if there is nothing selected just append the emojicon
-        if (start < 0)
-          emojiconEditText.append(emojicon.getEmoji());
-          // otherwise replace the currently selected text with the emojicon
-        else
-          emojiconEditText.getText().replace(
-                  Math.min(start, end),
-                  Math.max(start, end),
-                  emojicon.getEmoji(),
-                  0,
-                  emojicon.getEmoji().length());
-      }
-    });
-    // when clicking the backspace on the emojicon keyboard simulate a
-    // backspace press
-    popup.setOnEmojiconBackspaceClickedListener(new EmojiconsPopup.OnEmojiconBackspaceClickedListener(){
-      @Override
-      public void onEmojiconBackspaceClicked(View v){
-        KeyEvent event = new KeyEvent(
-                0, 0, 0,
-                KeyEvent.KEYCODE_DEL,
-                0, 0, 0, 0,
-                KeyEvent.KEYCODE_ENDCALL
-        );
-        emojiconEditText.dispatchKeyEvent(event);
-      }
-    });
+    mListener.setCurrentEmojiconEditText(emojiconEditText);
     // open/close the emojicon keyboard when pressing the button
     emojiBtn.setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){
-        // if it is showing
-        if (!popup.isShowing()){
-          // if the keyboard is active just show the popup
-          if (popup.isKeyBoardOpen())
-            popup.showAtBottom();
-            // otherwise request focus on the editText, show the softInput and
-            // show the popup
-          else{
-            emojiconEditText.setFocusableInTouchMode(true);
-            emojiconEditText.requestFocus();
-            popup.showAtBottomPending();
-            InputMethodManager inputMethodManager = (InputMethodManager)
-                    getActivity().getSystemService(Context
-                            .INPUT_METHOD_SERVICE);
-            inputMethodManager.showSoftInput(emojiconEditText,
-                    InputMethodManager.SHOW_IMPLICIT);
-          }
-        }else
-          popup.dismiss();
+        if (emojiconEditText == null)
+          return;
+//        getActivity().getSupportFragmentManager().beginTransaction()
+//                .replace(R.id.emojicon_keyboard, EmojiconsFragment
+//                        .newInstance(!emojiKeyBoardOpen))
+//                .commit();
+        emojiconEditText.setFocusableInTouchMode(true);
+        emojiconEditText.requestFocus();
+        InputMethodManager inputMethodManager = (InputMethodManager)
+                getActivity().getSystemService(Context
+                        .INPUT_METHOD_SERVICE);
+        if (emojiKeyBoardOpen)
+          inputMethodManager.showSoftInput(emojiconEditText,
+                  InputMethodManager.SHOW_IMPLICIT);
+        else
+          inputMethodManager.hideSoftInputFromWindow(emojiconEditText
+                  .getWindowToken(), 0);
+
+        emojiKeyBoardOpen = !emojiKeyBoardOpen;
       }
     });
   }
@@ -1314,6 +1247,9 @@ public class ChatFragment extends Fragment{
     void onAttachClicked(View view);
 
     void sendImages(Uri... imageUris);
+
+    void setCurrentEmojiconEditText(com.rockerhieu.emojicon.EmojiconEditText
+                                            editText);
   }
 
   /**

@@ -41,13 +41,13 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
-import com.github.ankushsachdeva.emojicon.EmojiconTextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
 import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
+import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -227,7 +227,6 @@ public class ChatListFragment extends Fragment{
     // make sure that the no internet text displays the emojicon correctly
     EmojiconTextView textView = (EmojiconTextView) getActivity()
             .findViewById(R.id.no_internet_text);
-    textView.setExpandedSize(true);
     textView.setText(String.format(getActivity().getResources().getString(R
             .string.no_internet), "\uD83D\uDE28"));
 

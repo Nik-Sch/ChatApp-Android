@@ -70,7 +70,7 @@
             android:layout_alignStart="@+id/message_image_wrapper"
             android:layout_below="@+id/message_image_wrapper">
 
-            <com.github.ankushsachdeva.emojicon.EmojiconTextView
+            <com.rockerhieu.emojicon.EmojiconTextView
                 android:id="@+id/message_image_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

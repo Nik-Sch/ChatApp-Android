@@ -23,9 +23,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.github.ankushsachdeva.emojicon.EmojiconTextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.util.storage.MessageHistory;
+import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +75,6 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatEntry>{
       ((TextView) v.findViewById(R.id.chat_list_entry_time)).setText(chatObj.lastMessageDate);
       // show the last message
       EmojiconTextView msg = ((EmojiconTextView) v.findViewById(R.id.chat_list_entry_mess));
-      msg.setExpandedSize(true);
       msg.setText(chatObj.lastMessageMessage);
       // if it is an imageMessage show the image icon, otherwise hide it
       if (MessageHistory.TYPE_IMAGE.equals(chatObj.lastMessageType))

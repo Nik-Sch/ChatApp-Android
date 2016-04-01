@@ -29,10 +29,10 @@ import android.widget.RelativeLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.github.ankushsachdeva.emojicon.EmojiconTextView;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.util.storage.MessageHistory;
+import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -141,8 +141,6 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
               R.drawable.bubble_right);
       // this is the textView showing the actual message
       EmojiconTextView chatText = (EmojiconTextView) v.findViewById(R.id.message_text_text);
-      // make the emojicons the correct size$
-      chatText.setExpandedSize(true);
       // set the actual text
       chatText.setText(msgObj.message);
 //      // set the typeface
@@ -238,8 +236,6 @@ public class MessageArrayAdapter extends ArrayAdapter<MessageArrayContent>
               R.drawable.bubble_right);
       EmojiconTextView description = (EmojiconTextView) v.findViewById(R.id
               .message_image_description);
-      // make the emojicons the correct size
-      description.setExpandedSize(true);
       // set the correct text
       description.setText(msgObj.description);
 //      // set the typeface

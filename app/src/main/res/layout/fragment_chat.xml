@@ -66,7 +66,7 @@
                 android:background="@android:color/transparent"
                 android:src="@drawable/ic_insert_emoticon_black_24dp"/>
 
-            <com.github.ankushsachdeva.emojicon.EmojiconEditText
+            <com.rockerhieu.emojicon.EmojiconEditText
                 android:id="@+id/chat_in"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -96,7 +96,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/listview_transparent_bg"
-        android:onClick="onAttachClicked">
+        android:onClick="onAttachClicked"
+        android:visibility="gone">
 
         <GridLayout
             android:layout_margin="2dp"

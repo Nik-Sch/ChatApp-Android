@@ -55,7 +55,7 @@
         android:layout_alignParentRight="true"
         android:text="00.00.0000" />
 
-    <com.github.ankushsachdeva.emojicon.EmojiconTextView
+    <com.rockerhieu.emojicon.EmojiconTextView
         android:id="@+id/chat_list_entry_mess"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

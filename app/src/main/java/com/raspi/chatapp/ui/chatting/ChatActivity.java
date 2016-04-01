@@ -52,6 +52,10 @@ import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.AndroidDatabaseManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
+import com.rockerhieu.emojicon.EmojiconEditText;
+import com.rockerhieu.emojicon.EmojiconGridFragment;
+import com.rockerhieu.emojicon.EmojiconsFragment;
+import com.rockerhieu.emojicon.emoji.Emojicon;
 
 import org.jivesoftware.smack.roster.RosterEntry;
 
@@ -78,7 +82,9 @@ public class ChatActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
         ChatListFragment.OnFragmentInteractionListener,
         ChatFragment.OnChatFragmentInteractionListener,
-        SendImageFragment.OnFragmentInteractionListener{
+        SendImageFragment.OnFragmentInteractionListener,
+        EmojiconGridFragment.OnEmojiconClickedListener,
+        EmojiconsFragment.OnEmojiconBackspaceClickedListener{
 
   /**
    * The requestCode for accessing the library
@@ -120,6 +126,8 @@ public class ChatActivity extends AppCompatActivity implements
    * doing ui related tasks from a background thread
    */
   private Handler mHandler;
+
+  private EmojiconEditText currentEmojiconEditText = null;
 
 
   @Override
@@ -362,6 +370,16 @@ public class ChatActivity extends AppCompatActivity implements
     Uri fileUri = Uri.fromFile(MyFileUtils.getFileName());
     cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
     startActivityForResult(cameraIntent, SEND_CAMERA_IMAGE_REQUEST_CODE);
+  }
+
+  @Override
+  public void onEmojiconBackspaceClicked(View view){
+    EmojiconsFragment.backspace(currentEmojiconEditText);
+  }
+
+  @Override
+  public void onEmojiconClicked(Emojicon emojicon){
+    EmojiconsFragment.input(currentEmojiconEditText, emojicon);
   }
 
   /**
@@ -701,6 +719,11 @@ public class ChatActivity extends AppCompatActivity implements
     getSupportFragmentManager().beginTransaction().replace(R.id
             .root_view, fragment).addToBackStack(SendImageFragment
             .class.getName()).commit();
+  }
+
+  @Override
+  public void setCurrentEmojiconEditText(EmojiconEditText editText){
+    currentEmojiconEditText = editText;
   }
 
   @Override
