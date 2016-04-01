@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -37,6 +38,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -46,6 +48,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -556,11 +559,57 @@ public class ChatFragment extends Fragment{
     }
   };
 
+  private boolean pressedBack = false;
+  private ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new
+          ViewTreeObserver.OnGlobalLayoutListener(){
+            @Override
+            public void onGlobalLayout(){
+              Rect r = new Rect();
+              rootView.getWindowVisibleDisplayFrame(r);
+
+              int screenHeight = getUsableScreenHeight(rootView);
+              int heightDifference = screenHeight
+                      - (r.bottom - r.top);
+              int resourceId = getResources()
+                      .getIdentifier("status_bar_height",
+                              "dimen", "android");
+              if (resourceId > 0){
+                heightDifference -= getResources()
+                        .getDimensionPixelSize(resourceId);
+              }
+              if (heightDifference > 100){
+                if (keyboardOpen != 2)
+                  keyboardOpen = 1;
+                else
+                  getActivity().findViewById(R.id.emojicon_keyboard)
+                          .setVisibility(View.GONE);
+              }else{
+                if (keyboardOpen != 2)
+                  keyboardOpen = 0;
+                else if (!getActivity().getSharedPreferences(Constants
+                        .PREFERENCES, 0).getBoolean(Constants.PRESSED_BACK,
+                        true))
+                  getActivity().findViewById(R.id.emojicon_keyboard)
+                          .setVisibility(View.VISIBLE);
+                else
+                  getActivity().getSharedPreferences(Constants.PREFERENCES,
+                          0).edit().putBoolean(Constants.PRESSED_BACK, false)
+                          .apply();
+              }
+            }
+          };
+
   /**
    * if init is false do not initialize the fragment this time
    */
   private boolean init = true;
-  private boolean emojiKeyBoardOpen = false;
+  private View rootView = null;
+  /**
+   * 0 -> no keyboard
+   * 1 -> softkeyBoard
+   * 2 -> emojiKeyboard
+   */
+  private int keyboardOpen = 0;
 
   public ChatFragment(){
     // Required empty public constructor
@@ -660,6 +709,9 @@ public class ChatFragment extends Fragment{
     LBmgr.registerReceiver(messageStatusChangedReceiver, new IntentFilter
             (Constants.MESSAGE_STATUS_CHANGED));
     uploadReceiver.unregister(getContext());
+    rootView.getViewTreeObserver().removeOnGlobalLayoutListener
+            (onGlobalLayoutListener);
+    getActivity().findViewById(R.id.emojicon_keyboard).setVisibility(View.GONE);
     super.onPause();
   }
 
@@ -749,6 +801,7 @@ public class ChatFragment extends Fragment{
   }
 
   private void initUI(){
+    rootView = getActivity().findViewById(R.id.root_view);
     // load wallpaper
     loadWallPaper();
     // enable the emojicon-keyboard
@@ -921,6 +974,11 @@ public class ChatFragment extends Fragment{
             ().findViewById(R.id.chat_in);
     final ImageButton emojiBtn = (ImageButton) getActivity().findViewById(R
             .id.emoti_switch);
+    getActivity().getSupportFragmentManager().beginTransaction()
+            .replace(R.id.emojicon_keyboard, EmojiconsFragment
+                    .newInstance(true)).commit();
+    final View emojiKeyboard = getActivity().findViewById(R.id
+            .emojicon_keyboard);
     mListener.setCurrentEmojiconEditText(emojiconEditText);
     // open/close the emojicon keyboard when pressing the button
     emojiBtn.setOnClickListener(new View.OnClickListener(){
@@ -928,25 +986,48 @@ public class ChatFragment extends Fragment{
       public void onClick(View v){
         if (emojiconEditText == null)
           return;
-//        getActivity().getSupportFragmentManager().beginTransaction()
-//                .replace(R.id.emojicon_keyboard, EmojiconsFragment
-//                        .newInstance(!emojiKeyBoardOpen))
-//                .commit();
         emojiconEditText.setFocusableInTouchMode(true);
         emojiconEditText.requestFocus();
         InputMethodManager inputMethodManager = (InputMethodManager)
                 getActivity().getSystemService(Context
                         .INPUT_METHOD_SERVICE);
-        if (emojiKeyBoardOpen)
-          inputMethodManager.showSoftInput(emojiconEditText,
-                  InputMethodManager.SHOW_IMPLICIT);
-        else
-          inputMethodManager.hideSoftInputFromWindow(emojiconEditText
-                  .getWindowToken(), 0);
-
-        emojiKeyBoardOpen = !emojiKeyBoardOpen;
+        switch (keyboardOpen){
+          case 0:
+            emojiKeyboard.setVisibility(View.VISIBLE);
+            keyboardOpen = 2;
+            break;
+          case 1:
+            inputMethodManager.hideSoftInputFromWindow(emojiconEditText
+                    .getWindowToken(), 0);
+            emojiKeyboard.setVisibility(View.VISIBLE);
+            keyboardOpen = 2;
+            break;
+          case 2:
+            emojiKeyboard.setVisibility(View.GONE);
+            inputMethodManager.showSoftInput(emojiconEditText,
+                    InputMethodManager.SHOW_IMPLICIT);
+            keyboardOpen = 1;
+            break;
+        }
       }
     });
+
+    rootView.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
+  }
+
+  private int getUsableScreenHeight(View rootView){
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
+      DisplayMetrics metrics = new DisplayMetrics();
+
+      WindowManager windowManager = (WindowManager)
+              getActivity().getSystemService(Context
+                      .WINDOW_SERVICE);
+      windowManager.getDefaultDisplay().getMetrics(metrics);
+
+      return metrics.heightPixels;
+
+    }else
+      return rootView.getRootView().getHeight();
   }
 
   /**

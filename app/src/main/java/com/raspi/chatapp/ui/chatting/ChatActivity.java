@@ -748,6 +748,17 @@ public class ChatActivity extends AppCompatActivity implements
     }
   }
 
+  @Override
+  public void onBackPressed(){
+    View ekb = findViewById(R.id.emojicon_keyboard);
+    if (ekb.getVisibility() == View.VISIBLE){
+      getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
+              (Constants.PRESSED_BACK, true).apply();
+      ekb.setVisibility(View.GONE);
+    }else
+      super.onBackPressed();
+  }
+
   /**
    * chooses whether to display the back button in the actionBar and act
    * correspondingly (enabling/disabling the back button and resetting the

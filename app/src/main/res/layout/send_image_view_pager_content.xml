@@ -35,7 +35,7 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_insert_emoticon_white_24dp"/>
 
-        <com.github.ankushsachdeva.emojicon.EmojiconEditText
+        <com.rockerhieu.emojicon.EmojiconEditText
             android:id="@+id/send_image_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
