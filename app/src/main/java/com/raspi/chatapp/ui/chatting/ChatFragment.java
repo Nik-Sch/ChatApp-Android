@@ -559,43 +559,34 @@ public class ChatFragment extends Fragment{
     }
   };
 
-  private boolean pressedBack = false;
   private ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new
           ViewTreeObserver.OnGlobalLayoutListener(){
             @Override
             public void onGlobalLayout(){
               Rect r = new Rect();
               rootView.getWindowVisibleDisplayFrame(r);
-
-              int screenHeight = getUsableScreenHeight(rootView);
-              int heightDifference = screenHeight
-                      - (r.bottom - r.top);
-              int resourceId = getResources()
-                      .getIdentifier("status_bar_height",
-                              "dimen", "android");
-              if (resourceId > 0){
-                heightDifference -= getResources()
-                        .getDimensionPixelSize(resourceId);
-              }
-              if (heightDifference > 100){
-                if (keyboardOpen != 2)
-                  keyboardOpen = 1;
-                else
-                  getActivity().findViewById(R.id.emojicon_keyboard)
-                          .setVisibility(View.GONE);
-              }else{
-                if (keyboardOpen != 2)
-                  keyboardOpen = 0;
-                else if (!getActivity().getSharedPreferences(Constants
-                        .PREFERENCES, 0).getBoolean(Constants.PRESSED_BACK,
-                        true))
-                  getActivity().findViewById(R.id.emojicon_keyboard)
-                          .setVisibility(View.VISIBLE);
-                else
-                  getActivity().getSharedPreferences(Constants.PREFERENCES,
-                          0).edit().putBoolean(Constants.PRESSED_BACK, false)
-                          .apply();
-              }
+              int currentHeight = r.bottom - r.top;
+              if (currentHeight != oldHeight)
+                if (currentHeight < initUsableHeight){
+                  if (keyboardOpen != 2){
+                    keyboardOpen = 1;
+                  }else
+                    getActivity().findViewById(R.id.emojicon_keyboard)
+                            .setVisibility(View.GONE);
+                }else{
+                  if (keyboardOpen != 2){
+                    keyboardOpen = 0;
+                  }else if (!getActivity().getSharedPreferences(Constants
+                          .PREFERENCES, 0).getBoolean(Constants.PRESSED_BACK,
+                          true)){
+                    getActivity().findViewById(R.id.emojicon_keyboard)
+                            .setVisibility(View.VISIBLE);
+                  }else
+                    getActivity().getSharedPreferences(Constants.PREFERENCES,
+                            0).edit().putBoolean(Constants.PRESSED_BACK, false)
+                            .apply();
+                }
+              oldHeight = currentHeight;
             }
           };
 
@@ -610,6 +601,8 @@ public class ChatFragment extends Fragment{
    * 2 -> emojiKeyboard
    */
   private int keyboardOpen = 0;
+  private int initUsableHeight;
+  private int oldHeight = -1;
 
   public ChatFragment(){
     // Required empty public constructor
@@ -802,6 +795,10 @@ public class ChatFragment extends Fragment{
 
   private void initUI(){
     rootView = getActivity().findViewById(R.id.root_view);
+
+    Rect r = new Rect();
+    rootView.getWindowVisibleDisplayFrame(r);
+    initUsableHeight = r.bottom - r.top;
     // load wallpaper
     loadWallPaper();
     // enable the emojicon-keyboard
@@ -976,7 +973,7 @@ public class ChatFragment extends Fragment{
             .id.emoti_switch);
     getActivity().getSupportFragmentManager().beginTransaction()
             .replace(R.id.emojicon_keyboard, EmojiconsFragment
-                    .newInstance(true)).commit();
+                    .newInstance(false)).commit();
     final View emojiKeyboard = getActivity().findViewById(R.id
             .emojicon_keyboard);
     mListener.setCurrentEmojiconEditText(emojiconEditText);
@@ -1016,18 +1013,23 @@ public class ChatFragment extends Fragment{
   }
 
   private int getUsableScreenHeight(View rootView){
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
-      DisplayMetrics metrics = new DisplayMetrics();
+    try{
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
+        DisplayMetrics metrics = new DisplayMetrics();
 
-      WindowManager windowManager = (WindowManager)
-              getActivity().getSystemService(Context
-                      .WINDOW_SERVICE);
-      windowManager.getDefaultDisplay().getMetrics(metrics);
+        WindowManager windowManager = (WindowManager)
+                getActivity().getSystemService(Context
+                        .WINDOW_SERVICE);
+        windowManager.getDefaultDisplay().getMetrics(metrics);
 
-      return metrics.heightPixels;
+        return metrics.heightPixels;
 
-    }else
-      return rootView.getRootView().getHeight();
+      }else
+        return rootView.getRootView().getHeight();
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+    return rootView.getRootView().getHeight();
   }
 
   /**

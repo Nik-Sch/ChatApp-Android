@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 
@@ -139,6 +140,8 @@ public class MessageDownloadService extends IntentService{
         output.flush();
         output.close();
         input.close();
+        getApplication().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
+                Uri.parse("file://" + new File(fileLocation).getAbsolutePath())));
 
         //signal the server that the file is no longer needed
         int i;
@@ -178,11 +181,12 @@ public class MessageDownloadService extends IntentService{
 
   /**
    * saves a downscaled copy of the image
+   *
    * @param fileLocation the location where the image is stored
-   * @param id the messageId of the message needed to calculate the file name of the downscaled
-   *           image
-   * @param chatId the chatId of the message needed to calculate the file name of the downscaled
-   *           image
+   * @param id           the messageId of the message needed to calculate the file name of the downscaled
+   *                     image
+   * @param chatId       the chatId of the message needed to calculate the file name of the downscaled
+   *                     image
    */
   private void saveImageCopy(String fileLocation, Long id, String chatId){
     try{
@@ -207,7 +211,8 @@ public class MessageDownloadService extends IntentService{
 
   /**
    * sends a post request to the url containing the dataParams.
-   * @param requestURL the url to which to send the postRequest
+   *
+   * @param requestURL     the url to which to send the postRequest
    * @param postDataParams the hashmap containing the data the server should get as a post request
    * @return the server response
    */
@@ -253,6 +258,7 @@ public class MessageDownloadService extends IntentService{
 
   /**
    * turns a hashmap into the String that represents the post format for sending the data
+   *
    * @param params the hashmap to be converted
    * @return the string that can be appended to a HttpRequest
    * @throws UnsupportedEncodingException

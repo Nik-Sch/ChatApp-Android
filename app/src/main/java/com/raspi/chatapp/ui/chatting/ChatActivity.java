@@ -637,10 +637,10 @@ public class ChatActivity extends AppCompatActivity implements
     //this is straight forward.
     SharedPreferences preferences = getSharedPreferences(Constants.PREFERENCES, 0);
     if (!preferences.contains(Constants.USERNAME))
-      preferences.edit().putString(Constants.USERNAME, "aylin").apply();
+      preferences.edit().putString(Constants.USERNAME, "dummy").apply();
 
     if (!preferences.contains(Constants.PASSWORD))
-      preferences.edit().putString(Constants.PASSWORD, "passwdAylin").apply();
+      preferences.edit().putString(Constants.PASSWORD, "passwdDummy").apply();
   }
 
   @Override
