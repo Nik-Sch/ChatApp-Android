@@ -26,4 +26,6 @@
     <color name="incorrect">#BB0000</color>
     <color name="lightBubble">#C4D5FB</color>
     <color name="sendImageHint">#4F71C0</color>
+    <color name="keyboard_background">#575757</color>
+    <color name="horizontal_divider">#8f8f8f</color>
 </resources>
