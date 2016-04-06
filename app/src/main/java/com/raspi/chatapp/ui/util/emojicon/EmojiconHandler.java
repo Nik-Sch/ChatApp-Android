@@ -1,10 +1,23 @@
+/*
+ * Copyright 2016 Niklas Schelten
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.raspi.chatapp.ui.util.emojicon;
 
 import android.content.Context;
-import android.content.Intent;
 import android.text.Spannable;
 import android.util.SparseIntArray;
-import android.widget.PopupWindow;
 
 import com.raspi.chatapp.R;
 
@@ -1552,8 +1565,6 @@ public final class EmojiconHandler{
    * @param emojiSize emojiSize
    * @param emojiAlignment emojiAlignment
    * @param textSize textSize
-   * @param index index
-   * @param length length
    */
   public static void addEmojis(Context context,
                                Spannable text,
@@ -1621,7 +1632,7 @@ public final class EmojiconHandler{
                   nextFollowSkip = 0;
                 }else
                   icon = tempIcon;
-                skip += followSkip + nextFollowUnicode;
+                skip += followSkip + nextFollowSkip;
               }
             }
           }else if (followUnicode == 0x20e3){
@@ -1632,6 +1643,7 @@ public final class EmojiconHandler{
               followSkip = 0;
             else
               icon = tempIcon;
+            skip += followSkip;
           }else{
             // some other modifiers
             int followSkip = Character.charCount(followUnicode);
@@ -1640,7 +1652,7 @@ public final class EmojiconHandler{
 
             String resourceName = "emoji_" + hexUnicde + "_" + hexFollowUnicode;
 
-            int resourceId = 0;
+            int resourceId;
             if (sEmojisModifiedMap.containsKey(resourceName))
               resourceId = sEmojisModifiedMap.get(resourceName);
             else{
