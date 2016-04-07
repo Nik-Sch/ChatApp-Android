@@ -39,13 +39,13 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -57,13 +57,15 @@ import android.widget.RelativeLayout;
 
 import com.ortiz.touch.TouchImageView;
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.util.emojicon.EmojiconEditText;
+import com.raspi.chatapp.ui.util.emojicon.EmojiconGridView;
+import com.raspi.chatapp.ui.util.emojicon.EmojiconPopup;
+import com.raspi.chatapp.ui.util.emojicon.emoji.Emojicon;
 import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.FileUtils;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
-import com.rockerhieu.emojicon.EmojiconEditText;
-import com.rockerhieu.emojicon.EmojiconsFragment;
 
 import org.json.JSONArray;
 
@@ -95,54 +97,6 @@ public class SendImageFragment extends Fragment{
   private boolean keyboardShown = false;
 
   private OnFragmentInteractionListener mListener;
-
-  private View rootView = null;
-  /**
-   * 0 -> no keyboard
-   * 1 -> softkeyBoard
-   * 2 -> emojiKeyboard
-   */
-  private int keyboardOpen = 0;
-  private int initUsableHeight;
-  private int oldHeight = -1;
-
-  private ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new
-          ViewTreeObserver.OnGlobalLayoutListener(){
-            @Override
-            public void onGlobalLayout(){
-              Rect r = new Rect();
-              rootView.getWindowVisibleDisplayFrame(r);
-              int currentHeight = r.bottom - r.top;
-              if (getActivity().findViewById(R.id
-                      .emojicon_keyboard).getVisibility() == View.VISIBLE)
-                keyboardOpened();
-              else if (currentHeight != oldHeight)
-                if (currentHeight < initUsableHeight){
-                  keyboardOpened();
-                  if (keyboardOpen != 2){
-                    keyboardOpen = 1;
-                  }else
-                    getActivity().findViewById(R.id.emojicon_keyboard)
-                            .setVisibility(View.GONE);
-                }else{
-                  if (keyboardOpen != 2){
-                    keyboardClosed();
-                    keyboardOpen = 0;
-                  }else if (!getActivity().getSharedPreferences(Constants
-                          .PREFERENCES, 0).getBoolean(Constants.PRESSED_BACK,
-                          true)){
-                    getActivity().findViewById(R.id.emojicon_keyboard)
-                            .setVisibility(View.VISIBLE);
-                  }else{
-                    keyboardClosed();
-                    getActivity().getSharedPreferences(Constants.PREFERENCES,
-                            0).edit().putBoolean(Constants.PRESSED_BACK, false)
-                            .apply();
-                  }
-                }
-              oldHeight = currentHeight;
-            }
-          };
 
   public SendImageFragment(){
     // Required empty public constructor
@@ -285,11 +239,6 @@ public class SendImageFragment extends Fragment{
    * everything to make sure it is shown correctly
    */
   private void initUI(){
-    rootView = getActivity().findViewById(R.id.root_view);
-
-    Rect r = new Rect();
-    rootView.getWindowVisibleDisplayFrame(r);
-    initUsableHeight = r.bottom - r.top;
     // set the actionBar title and subtitle
     if (actionBar != null){
       actionBar.setTitle(R.string.send_image);
@@ -322,7 +271,7 @@ public class SendImageFragment extends Fragment{
     });
 
     //Cancel button pressed
-    getView().findViewById(R.id.send_image_cancel)
+    getActivity().findViewById(R.id.send_image_cancel)
             .setOnClickListener(new View.OnClickListener(){
               @Override
               public void onClick(View v){
@@ -331,7 +280,7 @@ public class SendImageFragment extends Fragment{
               }
             });
     //Send button pressed
-    getView().findViewById(R.id.send_image_send)
+    getActivity().findViewById(R.id.send_image_send)
             .setOnClickListener(new View.OnClickListener(){
               @Override
               public void onClick(View v){
@@ -471,45 +420,66 @@ public class SendImageFragment extends Fragment{
             .send_image_description);
     final ImageButton emojiBtn = (ImageButton) view.findViewById(R
             .id.send_image_emoti_switch);
-    getActivity().getSupportFragmentManager().beginTransaction()
-            .replace(R.id.emojicon_keyboard, EmojiconsFragment
-                    .newInstance(false)).commit();
-    final View emojiKeyboard = getActivity().findViewById(R.id
-            .emojicon_keyboard);
-    mListener.setCurrentEmojiconEditText(emojiconEditText);
+    final EmojiconPopup popup = new EmojiconPopup(getActivity().findViewById(R.id.root_view),
+            getContext(), new EmojiconGridView.OnEmojiconClickedListener(){
+      @Override
+      public void OnEmojiconClicked(Emojicon emojicon){
+        if (emojiconEditText == null || emojicon == null)
+          return;
+        int start = emojiconEditText.getSelectionStart();
+        int end = emojiconEditText.getSelectionEnd();
+        if (start < 0)
+          emojiconEditText.append(emojicon.getEmoji());
+        else
+          emojiconEditText.getText().replace(Math.min(start, end),
+                  Math.max(start, end),
+                  emojicon.getEmoji(),
+                  0,
+                  emojicon.getEmoji().length());
+      }
+    });
+    popup.setSoftKeyboardSize();
+
+    popup.setOnSoftKeyboardOpenCloseListener(new EmojiconPopup.OnSoftKeyboardOpenCloseListener(){
+      @Override
+      public void onKeyboardOpen(int keyboardHeight){
+        keyboardOpened();
+      }
+
+      @Override
+      public void onKeyboardClose(){
+        if (popup.isShowing())
+          popup.dismiss();
+        keyboardClosed();
+      }
+    });
     // open/close the emojicon keyboard when pressing the button
     emojiBtn.setOnClickListener(new View.OnClickListener(){
       @Override
       public void onClick(View v){
-        if (emojiconEditText == null)
-          return;
-        emojiconEditText.setFocusableInTouchMode(true);
-        emojiconEditText.requestFocus();
-        InputMethodManager inputMethodManager = (InputMethodManager)
-                getActivity().getSystemService(Context
-                        .INPUT_METHOD_SERVICE);
-        switch (keyboardOpen){
-          case 0:
-            emojiKeyboard.setVisibility(View.VISIBLE);
-            keyboardOpen = 2;
-            break;
-          case 1:
-            inputMethodManager.hideSoftInputFromWindow(emojiconEditText
-                    .getWindowToken(), 0);
-            emojiKeyboard.setVisibility(View.VISIBLE);
-            keyboardOpen = 2;
-            break;
-          case 2:
-            emojiKeyboard.setVisibility(View.GONE);
-            inputMethodManager.showSoftInput(emojiconEditText,
-                    InputMethodManager.SHOW_IMPLICIT);
-            keyboardOpen = 1;
-            break;
-        }
+        if (!popup.isShowing()){
+          if (popup.isKeyboardOpen())
+            popup.showAtBottom();
+          else{
+            emojiconEditText.setFocusableInTouchMode(true);
+            emojiconEditText.requestFocus();
+            popup.showAtBottomPending();
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context
+                    .INPUT_METHOD_SERVICE);
+            imm.showSoftInput(emojiconEditText, InputMethodManager.SHOW_IMPLICIT);
+          }
+        }else
+          popup.dismiss();
       }
     });
 
-    rootView.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
+    popup.setOnEmojiconBackspaceClickedListener(new EmojiconPopup.OnEmojiconBackspaceClickedListener(){
+      @Override
+      public void onEmojiconBackspaceClicked(View view){
+        emojiconEditText.dispatchKeyEvent(
+                new KeyEvent(0, 0, 0, KeyEvent.KEYCODE_DEL, 0, 0, 0, 0, KeyEvent.KEYCODE_ENDCALL));
+      }
+    });
   }
 
   private void keyboardClosed(){
@@ -696,9 +666,6 @@ public class SendImageFragment extends Fragment{
    */
   public interface OnFragmentInteractionListener{
     void onReturnClick();
-
-    void setCurrentEmojiconEditText(com.rockerhieu.emojicon.EmojiconEditText
-                                            editText);
   }
 
   /**

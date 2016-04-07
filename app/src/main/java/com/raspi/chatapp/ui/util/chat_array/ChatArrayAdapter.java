@@ -24,8 +24,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.util.emojicon.EmojiconTextView;
 import com.raspi.chatapp.util.storage.MessageHistory;
-import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.util.ArrayList;
 import java.util.List;

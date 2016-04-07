@@ -20,5 +20,5 @@ import android.content.Context;
 import com.raspi.chatapp.ui.util.emojicon.emoji.Emojicon;
 
 public interface EmojiconRecents{
-  public void addRecentEmoji(Context context, Emojicon emojicon);
+  void addRecentEmoji(Context context, Emojicon emojicon);
 }

@@ -16,6 +16,7 @@
 !-->
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
     android:id="@+id/chat_list_entry"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -55,7 +56,7 @@
         android:layout_alignParentRight="true"
         android:text="00.00.0000" />
 
-    <com.rockerhieu.emojicon.EmojiconTextView
+    <com.raspi.chatapp.ui.util.emojicon.EmojiconTextView
         android:id="@+id/chat_list_entry_mess"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -63,5 +64,7 @@
         android:singleLine="true"
         android:text="This is an example for a very very very long message that will never end"
         android:drawablePadding="5dp"
-        android:textSize="15sp" />
+        android:textSize="15sp"
+        emojicon:emojiconSize="20sp"
+        emojicon:emojiconAlignment="bottom"/>
 </RelativeLayout>

@@ -21,7 +21,7 @@
     android:layout_height="wrap_content"
     android:padding="4dp"
     android:background="?android:attr/activatedBackgroundIndicator"
-    >
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
         android:id="@+id/message_image_inner"
@@ -70,7 +70,7 @@
             android:layout_alignStart="@+id/message_image_wrapper"
             android:layout_below="@+id/message_image_wrapper">
 
-            <com.rockerhieu.emojicon.EmojiconTextView
+            <com.raspi.chatapp.ui.util.emojicon.EmojiconTextView
                 android:id="@+id/message_image_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -79,7 +79,9 @@
                 android:layout_weight="1"
                 android:text="Hello World"
                 android:textColor="@android:color/black"
-                android:textSize="@dimen/font_size"/>
+                android:textSize="@dimen/font_size"
+                emojicon:emojiconSize="22sp"
+                emojicon:emojiconAlignment="bottom"/>
 
             <RelativeLayout
                 android:id="@+id/message_image_info"

@@ -42,7 +42,7 @@
         android:background="@android:color/holo_red_light"
         android:visibility="gone">
 
-        <com.rockerhieu.emojicon.EmojiconTextView
+        <com.raspi.chatapp.ui.util.emojicon.EmojiconTextView
             android:id="@+id/no_internet_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

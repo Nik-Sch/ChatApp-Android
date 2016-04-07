@@ -30,9 +30,9 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.raspi.chatapp.R;
+import com.raspi.chatapp.ui.util.emojicon.EmojiconTextView;
 import com.raspi.chatapp.ui.util.image.AsyncDrawable;
 import com.raspi.chatapp.util.storage.MessageHistory;
-import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.io.File;
 import java.util.ArrayList;

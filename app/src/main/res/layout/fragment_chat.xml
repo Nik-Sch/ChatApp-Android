@@ -19,6 +19,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
     tools:context=".ui.chatting.ChatActivity">
 
     <RelativeLayout
@@ -66,7 +67,7 @@
                 android:background="@android:color/transparent"
                 android:src="@drawable/ic_insert_emoticon_black_24dp"/>
 
-            <com.rockerhieu.emojicon.EmojiconEditText
+            <com.raspi.chatapp.ui.util.emojicon.EmojiconEditText
                 android:id="@+id/chat_in"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -78,7 +79,9 @@
                 android:lines="4"
                 android:maxLines="4"
                 android:minLines="1"
-                android:textSize="@dimen/font_size"/>
+                android:textSize="@dimen/font_size"
+                emojicon:emojiconSize="22sp"
+                emojicon:emojiconAlignment="bottom"/>
 
 
             <Button

@@ -14,18 +14,14 @@
     * See the License for the specific language governing permissions and
     * limitations under the License.
 !-->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:emojicon="http://schemas.android.com/apk/res-auto"
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content">
-
-    <com.raspi.chatapp.ui.util.emojicon.EmojiconTextView
-        android:id="@+id/emojicon_icon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_gravity="center"
-        android:gravity="center"
-        emojicon:emojiconSize="25dp"
-        emojicon:emojiconAlignment="bottom"/>
-
-</FrameLayout>
+<GridView
+    android:id="@+id/emojicon_grid_view"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:cacheColorHint="@android:color/transparent"
+    android:columnWidth="40dp"
+    android:numColumns="auto_fit"
+    android:scrollbars="vertical"
+    android:verticalSpacing="0dp"/>

@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:emojicon="http://schemas.android.com/apk/res-auto"
     android:background="@android:color/black">
 
 
@@ -35,7 +36,7 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_insert_emoticon_white_24dp"/>
 
-        <com.rockerhieu.emojicon.EmojiconEditText
+        <com.raspi.chatapp.ui.util.emojicon.EmojiconEditText
             android:id="@+id/send_image_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -46,7 +47,9 @@
             android:textColor="@color/colorPrimaryDark"
             android:textSize="18sp"
             android:hint="@string/send_image_hint"
-            android:textColorHint="@color/sendImageHint"/>
+            android:textColorHint="@color/sendImageHint"
+            emojicon:emojiconSize="22sp"
+            emojicon:emojiconAlignment="bottom"/>
     </LinearLayout>
 
 </RelativeLayout>

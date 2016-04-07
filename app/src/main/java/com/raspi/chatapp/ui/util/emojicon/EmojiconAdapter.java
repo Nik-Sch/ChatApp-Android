@@ -45,7 +45,7 @@ public class EmojiconAdapter extends ArrayAdapter<Emojicon>{
     }
     Emojicon emojicon = getItem(position);
     ViewHolder holder = (ViewHolder) v.getTag();
-    holder.icon.setText(emojicon.getIcon());
+    holder.icon.setText(emojicon.getEmoji());
     return v;
   }
 

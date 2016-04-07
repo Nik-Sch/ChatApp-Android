@@ -44,10 +44,10 @@ import android.widget.RelativeLayout;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.util.chat_array.ChatArrayAdapter;
 import com.raspi.chatapp.ui.util.chat_array.ChatEntry;
+import com.raspi.chatapp.ui.util.emojicon.EmojiconTextView;
 import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.internet.XmppManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
-import com.rockerhieu.emojicon.EmojiconTextView;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

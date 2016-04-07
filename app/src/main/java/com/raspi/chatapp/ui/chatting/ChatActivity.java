@@ -45,6 +45,7 @@ import com.raspi.chatapp.BuildConfig;
 import com.raspi.chatapp.R;
 import com.raspi.chatapp.ui.password.PasswordActivity;
 import com.raspi.chatapp.ui.settings.SettingsActivity;
+import com.raspi.chatapp.ui.util.emojicon.EmojiconEditText;
 import com.raspi.chatapp.util.Constants;
 import com.raspi.chatapp.util.Notification;
 import com.raspi.chatapp.util.internet.XmppManager;
@@ -52,10 +53,6 @@ import com.raspi.chatapp.util.service.MessageService;
 import com.raspi.chatapp.util.storage.AndroidDatabaseManager;
 import com.raspi.chatapp.util.storage.MessageHistory;
 import com.raspi.chatapp.util.storage.file.MyFileUtils;
-import com.rockerhieu.emojicon.EmojiconEditText;
-import com.rockerhieu.emojicon.EmojiconGridFragment;
-import com.rockerhieu.emojicon.EmojiconsFragment;
-import com.rockerhieu.emojicon.emoji.Emojicon;
 
 import org.jivesoftware.smack.roster.RosterEntry;
 
@@ -82,9 +79,7 @@ public class ChatActivity extends AppCompatActivity implements
         FragmentManager.OnBackStackChangedListener,
         ChatListFragment.OnFragmentInteractionListener,
         ChatFragment.OnChatFragmentInteractionListener,
-        SendImageFragment.OnFragmentInteractionListener,
-        EmojiconGridFragment.OnEmojiconClickedListener,
-        EmojiconsFragment.OnEmojiconBackspaceClickedListener{
+        SendImageFragment.OnFragmentInteractionListener{
 
   /**
    * The requestCode for accessing the library
@@ -370,16 +365,6 @@ public class ChatActivity extends AppCompatActivity implements
     Uri fileUri = Uri.fromFile(MyFileUtils.getFileName());
     cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
     startActivityForResult(cameraIntent, SEND_CAMERA_IMAGE_REQUEST_CODE);
-  }
-
-  @Override
-  public void onEmojiconBackspaceClicked(View view){
-    EmojiconsFragment.backspace(currentEmojiconEditText);
-  }
-
-  @Override
-  public void onEmojiconClicked(Emojicon emojicon){
-    EmojiconsFragment.input(currentEmojiconEditText, emojicon);
   }
 
   /**
@@ -722,11 +707,6 @@ public class ChatActivity extends AppCompatActivity implements
   }
 
   @Override
-  public void setCurrentEmojiconEditText(EmojiconEditText editText){
-    currentEmojiconEditText = editText;
-  }
-
-  @Override
   public void onAttachClicked(View view){
     View v = findViewById(R.id.popup_layout);
     if (v != null){
@@ -746,17 +726,6 @@ public class ChatActivity extends AppCompatActivity implements
       v.setVisibility(View.GONE);
       attachPopup = false;
     }
-  }
-
-  @Override
-  public void onBackPressed(){
-    View ekb = findViewById(R.id.emojicon_keyboard);
-    if (ekb.getVisibility() == View.VISIBLE){
-      getSharedPreferences(Constants.PREFERENCES, 0).edit().putBoolean
-              (Constants.PRESSED_BACK, true).apply();
-      ekb.setVisibility(View.GONE);
-    }else
-      super.onBackPressed();
   }
 
   /**

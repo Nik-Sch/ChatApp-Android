@@ -99,14 +99,6 @@ public class Emojicon implements Parcelable{
     dest.writeString(emoji);
   }
 
-  public int getIcon(){
-    return icon;
-  }
-
-  public char getValue(){
-    return value;
-  }
-
   public String getEmoji(){
     return emoji;
   }
