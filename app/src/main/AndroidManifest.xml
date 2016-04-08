@@ -2,8 +2,8 @@
 <manifest
     package="com.raspi.chatapp"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="4"
-    android:versionName="MusicToGo 1.2 by MusicToGo-Coop"
+    android:versionCode="5"
+    android:versionName="MusicToGo 1.2.1 by MusicToGo-Coop"
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
@@ -13,6 +13,7 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -23,7 +24,8 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".util.service.MessageService$RaiseMessageNotification">
+        <receiver android:name=".util.service.MessageService$RaiseMessageNotification"
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.raspi.chatapp.util.Constants.MESSAGE_RECEIVED"/>
             </intent-filter>
